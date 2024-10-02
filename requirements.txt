@@ -1,0 +1,10 @@
+black
+build
+coverage
+fudgeo
+geotiff
+hydpy
+mypy
+nox
+nlopt
+pylint
