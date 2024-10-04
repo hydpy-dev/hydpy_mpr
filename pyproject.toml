@@ -1,0 +1,7 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+skip-magic-trailing-comma = true
+exclude = "hydpy_mpr/data/|hydpy_mpr/tests/iotesting"
