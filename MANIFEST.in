@@ -1,0 +1,6 @@
+graft hydpy_mpr/data
+include *.md
+recursive-include hydpy_mpr *.md
+global-exclude *.pyc
+prune hydpy_mpr/tests/iotesting
+include hydpy_mpr/tests/iotesting/__init__.py
