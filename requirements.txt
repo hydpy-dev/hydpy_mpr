@@ -9,3 +9,4 @@ mypy
 nox
 nlopt
 pylint
+setuptools
