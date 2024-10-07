@@ -3,7 +3,7 @@
 .nox
 .venv
 dist
-hydpy_mpr/tests/iotesting
+hydpy_mpr/testing/iotesting
 temp
 HydPy_MPR.egg-info/*
 .coverage

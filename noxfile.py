@@ -41,7 +41,7 @@ def doctest(session: nox.Session) -> None:
     """Execute script `run_doctests.py` and measure code coverage."""
     _install_hydpy_mpr(session)
     session.install("coverage")
-    session.run("coverage", "run", "hydpy_mpr/tests/run_doctests.py", *session.posargs)
+    session.run("coverage", "run", "hydpy_mpr/testing/run_doctests.py", *session.posargs)
     if not session.posargs:
         session.run("coverage", "report", "-m", "--skip-covered", "--fail-under=100")
 
