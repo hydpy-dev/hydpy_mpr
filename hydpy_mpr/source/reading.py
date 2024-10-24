@@ -5,7 +5,12 @@ import warnings
 
 from fudgeo.geopkg import GeoPackage
 
-from hydpy_mpr.source.constants import ELEMENT_ID, ELEMENT_NAME, MAPPING_TABLE
+from hydpy_mpr.source.constants import (
+    ELEMENT_ID,
+    ELEMENT_NAME,
+    FEATURE_GPKG,
+    MAPPING_TABLE,
+)
 from hydpy_mpr.source.typing_ import MappingTable
 
 
@@ -23,22 +28,22 @@ def read_mapping_table(filepath: str, /) -> MappingTable:
 
     Everything okay:
 
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     {1: 'land_dill_assl', 2: 'land_lahn_kalk', 3: 'land_lahn_leun', 4: 'land_lahn_marb'}
 
     Missing file:
 
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/veature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_date")
     Traceback (most recent call last):
     ...
-    FileNotFoundError: Geopackage `HydPy-H-Lahn/mpr_data/veature.gpkg` does not exist.
+    FileNotFoundError: Geopackage `HydPy-H-Lahn/mpr_date/feature.gpkg` does not exist.
 
     ID column missing:
 
     >>> gpkg = GeoPackage("HydPy-H-Lahn/mpr_data/feature.gpkg")
     >>> gpkg.tables[MAPPING_TABLE].drop()
     >>> gpkg.connection.close()
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     Traceback (most recent call last):
     ...
     TypeError: Geopackage `HydPy-H-Lahn/mpr_data/feature.gpkg` does not contain the \
@@ -49,7 +54,7 @@ required mapping table `element_id2name`.
     >>> gpkg = GeoPackage("HydPy-H-Lahn/mpr_data/feature.gpkg")
     >>> _ = gpkg.create_table(MAPPING_TABLE, fields=())
     >>> gpkg.connection.close()
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     Traceback (most recent call last):
     ...
     TypeError: Geopackage `HydPy-H-Lahn/mpr_data/feature.gpkg` does not contain a \
@@ -67,7 +72,7 @@ column named `element_id`.
     ...         f"({ELEMENT_ID}, {ELEMENT_NAME}) VALUES (1.5, 2)"
     ...     )
     >>> gpkg.connection.close()
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     Traceback (most recent call last):
     ...
     TypeError: Column `element_id` of table `element_id2name` of geopackage \
@@ -84,7 +89,7 @@ column named `element_id`.
     ...         f"({ELEMENT_ID}, {ELEMENT_NAME}) VALUES (1, 2)"
     ...     )
     >>> gpkg.connection.close()
-    >>> read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    >>> read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     Traceback (most recent call last):
     ...
     TypeError: Column `element_name` of table `element_id2name` of geopackage \
@@ -103,7 +108,7 @@ column named `element_id`.
     ...         )
     >>> gpkg.connection.close()
     >>> with warn_later():
-    ...     read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    ...     read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")
     {1: 'one', 3: 'three'}
     UserWarning: Column `element_id` of table `element_id2name` of geopackage \
 `HydPy-H-Lahn/mpr_data/feature.gpkg` contains at least one missing value.
@@ -120,14 +125,14 @@ column named `element_id`.
     ...         )
     >>> gpkg.connection.close()
     >>> with warn_later():
-    ...     read_mapping_table("HydPy-H-Lahn/mpr_data/feature.gpkg")
+    ...     read_mapping_table(dirpath="HydPy-H-Lahn/mpr_data")  # doctest: +ELLIPSIS
     {1: 'one', 3: 'three'}
     UserWarning: Column `element_name` of table `element_id2name` of geopackage \
 `HydPy-H-Lahn/mpr_data/feature.gpkg` contains at least one missing value.
 
     >>> reset_workingdir()
     """
-
+    filepath = os.path.join(dirpath, FEATURE_GPKG)
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Geopackage `{filepath}` does not exist.")
     gpkg = GeoPackage(filepath)
