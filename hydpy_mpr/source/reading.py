@@ -16,7 +16,7 @@ def read_mapping_table(filepath: str, /) -> MappingTable:
     >>> from fudgeo.geopkg import Field, GeoPackage
     >>> from hydpy.core.testtools import warn_later
     >>> from hydpy_mpr.source.constants import ELEMENT_ID, ELEMENT_NAME, MAPPING_TABLE
-    >>> from hydpy_mpr.source.readutils import read_mapping_table
+    >>> from hydpy_mpr.source.reading import read_mapping_table
     >>> from hydpy_mpr.testing import prepare_project
 
     >>> reset_workingdir = prepare_project("HydPy-H-Lahn")
