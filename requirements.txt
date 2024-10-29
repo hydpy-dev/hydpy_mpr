@@ -4,9 +4,11 @@ click
 coverage
 fudgeo
 geotiff
+imagecodecs
 hydpy
 mypy
 nox
 nlopt
+numpy
 pylint
 setuptools

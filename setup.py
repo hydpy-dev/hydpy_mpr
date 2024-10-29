@@ -34,5 +34,14 @@ setuptools.setup(
     ),
     include_package_data=True,
     python_requires=">=3.10",
-    install_requires=["click", "coverage", "fudgeo", "geotiff", "hydpy", "nlopt"],
+    install_requires=[
+        "click",
+        "coverage",
+        "fudgeo",
+        "geotiff",
+        "hydpy",
+        "imagecodecs",
+        "nlopt",
+        "numpy",
+    ],
 )
