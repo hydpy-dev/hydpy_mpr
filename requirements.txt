@@ -11,4 +11,6 @@ nox
 nlopt
 numpy
 pylint
+pytest
+pytest-cov
 setuptools
