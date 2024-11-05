@@ -4,6 +4,7 @@ import os
 from hydpy_mpr import testing
 
 
+from hydpy_mpr.source.configuration import Config, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
 from hydpy_mpr.source.transform import RasterTransformer, TP
@@ -29,9 +30,11 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 
 __all__ = [
     "Coefficient",
+    "Config",
     "RasterEquation",
     "RasterFloat",
     "RasterGroup",
+    "RasterTask",
     "RasterTransformer",
     "RasterUpscaler",
     "TP",
