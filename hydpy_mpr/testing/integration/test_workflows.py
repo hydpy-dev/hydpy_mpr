@@ -1,25 +1,25 @@
-if __name__ == "__main__":
+# pylint: disable=missing-docstring, unused-argument
+
+from dataclasses import dataclass, field
+
+from hydpy import HydPy, print_matrix, pub
+from hydpy.models.hland.hland_control import FC
+from numpy import float64, nanmean, where
+from pytest import mark
+
+from hydpy_mpr import (
+    Coefficient,
+    RasterEquation,
+    RasterFloat,
+    RasterTransformer,
+    RasterUpscaler,
+    TP,
+)
+from hydpy_mpr.source.reading import read_rastergroups
 
 
-
-    from dataclasses import dataclass, field
-
-    from hydpy import HydPy, print_matrix, pub
-    from hydpy.models.hland.hland_control import FC
-    from numpy import float64, nanmean, where
-
-    from hydpy_mpr import (
-        Coefficient,
-        RasterEquation,
-        RasterFloat,
-        RasterTransformer,
-        RasterUpscaler,
-        TP,
-    )
-    from hydpy_mpr.source.reading import read_rastergroups
-    from hydpy_mpr.testing import prepare_project
-
-    reset_workingdir = prepare_project("HydPy-H-Lahn")
+@mark.integration_test
+def test_raster_workflow(fixture_project: None) -> None:
 
     @dataclass
     class RasterEquationFC(RasterEquation):
@@ -86,6 +86,4 @@ if __name__ == "__main__":
     transformer.activate(selection=pub.selections.complete, upscaler=fc_upscaler)
     transformer.modify_parameters()
 
-    print(repr(hp.elements["land_dill_assl"].model.parameters.control.fc))
-
-    reset_workingdir()
+    assert 1 == hp.elements["land_dill_assl"].model.parameters.control.fc

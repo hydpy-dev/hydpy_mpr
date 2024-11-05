@@ -13,4 +13,5 @@ numpy
 pylint
 pytest
 pytest-cov
+pytest-integration
 setuptools
