@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from hydpy import HydPy, pub
+from hydpy import HydPy, nse, pub
 from hydpy.models.hland.hland_control import FC
 from numpy import float64, nanmean, where
 from pytest import approx, mark
@@ -87,13 +87,23 @@ def test_raster_workflow(fixture_project: None) -> None:
     transformer.activate(selection=pub.selections.complete, upscaler=fc_upscaler)
     transformer.modify_parameters()
 
+
+    class MyCalibrator(Calibrator):
+
+        def calculate_likelihood(self) -> float:
+            return sum(nse(node=node) for node in self.hp.nodes) / 4.0
+
+    calib = MyCalibrator()
+
     config = Config(
+        calibrator=calib,
         tasks=[
             RasterTask(equation=fc, upscaler=fc_upscaler, transformers=[transformer])
         ]
     )
 
-    calib = Calibrator(hp=hp, config=config)
+    calib.activate(hp=hp, config=config)
+
     likelihood, values = calib.run(maxeval=100)
     assert likelihood == approx(0.82529)
     assert values == approx([-1882.091759, 972.689725, -259.809734])

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from hydpy_mpr.source.calibration import Calibrator
 from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
 from hydpy_mpr.source.upscaling import RasterUpscaler
 from hydpy_mpr.source.transform import RasterTransformer, TP
@@ -24,6 +25,7 @@ class RasterTask(Generic[TP]):
 @dataclass
 class Config(Generic[TP]):
 
+    calibrator: Calibrator
     tasks: list[RasterTask[TP]]
     subequations: list[RasterEquation] | None = field(default_factory=lambda: None)
 

@@ -1,4 +1,7 @@
+from abc import ABC, abstractmethod
+
 from hydpy import HydPy, nse
+from hydpy.core.typingtools import Conditions
 from nlopt import opt, LN_BOBYQA
 from numpy import ndarray
 
@@ -6,15 +9,20 @@ from hydpy_mpr.source.configuration import Config
 from hydpy_mpr.source.typing_ import Any, Sequence, VectorFloat
 
 
-class Calibrator:
+class Calibrator(ABC):
 
     hp: HydPy
+    conditions: Conditions
     config: Config
 
-    def __init__(self, hp: HydPy, config: Config) -> None:
+    def activate(self, hp: HydPy, config: Config) -> None:
         self.hp = hp
         self.conditions = hp.conditions
         self.config = config
+
+    @abstractmethod
+    def calculate_likelihood(self) -> float:
+        ...
 
     def perform_calibrationstep(
         self, values: Sequence[float], *args: Any, **kwargs: Any
@@ -25,7 +33,7 @@ class Calibrator:
             task.run()
         self.hp.conditions = self.conditions
         self.hp.simulate()
-        likelihood = sum(nse(node=node) for node in self.hp.nodes) / 4.0
+        likelihood = self.calculate_likelihood()
         return likelihood
 
     def run(self, *, maxeval: int | None = None) -> tuple[float, VectorFloat]:

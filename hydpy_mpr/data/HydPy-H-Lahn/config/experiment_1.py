@@ -1,12 +1,14 @@
 from hydpy.models.hland.hland_control import FC
 from hydpy_mpr import Config, RasterTask
 
+import calibrators
 import coefficients
 import equations
 import upscalers
 import transformers
 
 config = Config(
+    calibrator=calibrators.MyCalibrator,
     tasks=[
         RasterTask(
             equation=equations.FC(
