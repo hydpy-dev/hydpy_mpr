@@ -1,6 +1,7 @@
 """This module imports and defines the static type hints used within HydPy-MPR."""
 
 from typing import (
+    Any,
     Callable,
     Generic,
     Iterable,
@@ -8,6 +9,7 @@ from typing import (
     Literal,
     Mapping,
     overload,
+    Sequence,
     TypeAlias,
     TypeVar,
 )
@@ -30,6 +32,7 @@ from numpy import int64
 MappingTable: TypeAlias = dict[int64, str]
 
 __all__ = [
+    "Any",
     "assert_never",
     "Callable",
     "Generic",
@@ -48,6 +51,7 @@ __all__ = [
     "VectorFloat",
     "VectorInt",
     "Self",
+    "Sequence",
     "TypeAlias",
     "TypeVar",
 ]

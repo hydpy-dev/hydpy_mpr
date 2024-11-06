@@ -2,15 +2,18 @@
 
 from dataclasses import dataclass, field
 
-from hydpy import HydPy, print_matrix, pub
+from hydpy import HydPy, pub
 from hydpy.models.hland.hland_control import FC
 from numpy import float64, nanmean, where
-from pytest import mark
+from pytest import approx, mark
 
 from hydpy_mpr import (
+    Calibrator,
     Coefficient,
+    Config,
     RasterEquation,
     RasterFloat,
+    RasterTask,
     RasterTransformer,
     RasterUpscaler,
     TP,
@@ -37,8 +40,8 @@ def test_raster_workflow(fixture_project: None) -> None:
         def apply_coefficients(self) -> None:
             self.output[:] = (
                 self.coef_const.value
-                + self.coef_factor_sand.value * self.data_sand.values
-                + self.coef_factor_clay.value * self.data_clay.values
+                + self.coef_factor_sand.value * self.data_sand.values / 100.0
+                + self.coef_factor_clay.value * self.data_clay.values / 100.0
             )
 
     fc = RasterEquationFC(
@@ -58,8 +61,6 @@ def test_raster_workflow(fixture_project: None) -> None:
 
     fc.apply_coefficients()
     fc.apply_mask()
-    with pub.options.reprdigits(0):
-        print_matrix(fc.output)
 
     class RasterMean(RasterUpscaler):
         def scale_up(self) -> None:
@@ -86,4 +87,15 @@ def test_raster_workflow(fixture_project: None) -> None:
     transformer.activate(selection=pub.selections.complete, upscaler=fc_upscaler)
     transformer.modify_parameters()
 
-    assert 1 == hp.elements["land_dill_assl"].model.parameters.control.fc
+    config = Config(
+        tasks=[
+            RasterTask(equation=fc, upscaler=fc_upscaler, transformers=[transformer])
+        ]
+    )
+
+    calib = Calibrator(hp=hp, config=config)
+    likelihood, values = calib.run(maxeval=100)
+    assert likelihood == approx(0.82529)
+    assert values == approx([-1882.091759, 972.689725, -259.809734])
+    fc_values = hp.elements["land_dill_assl"].model.parameters.control.fc.values
+    assert min(fc_values) == max(fc_values) == approx(278.732232)

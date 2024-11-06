@@ -132,10 +132,10 @@ def read_geotiff(
                 missingvalue=int64(page.tags[42113].value),
             )
         if datatype == "float":
-            return Raster(
-                values=array(tiff.asarray(), dtype=float64),
-                missingvalue=float64(page.tags[42113].value),
-            )
+            values = array(tiff.asarray(), dtype=float64)
+            missingvalue = float64(page.tags[42113].value)
+            values[values < -1e10] = missingvalue  # ToDo
+            return Raster(values=values, missingvalue=missingvalue)
 
 
 class Raster(Generic[TM]):
@@ -148,7 +148,7 @@ class Raster(Generic[TM]):
         self.values = values
         self.missingvalue = missingvalue
         self.shape = values.shape
-        self.mask = values == missingvalue
+        self.mask = values != missingvalue
 
 
 def extract_tiffiles(filenames: Iterable[str]) -> list[str]:

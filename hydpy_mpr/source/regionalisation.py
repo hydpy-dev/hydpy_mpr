@@ -3,8 +3,7 @@ from dataclasses import dataclass, field, fields
 
 from numpy import full, inf, nan
 
-from hydpy_mpr import RasterGroup
-from hydpy_mpr.source.reading import Raster, RasterFloat, RasterGroups
+from hydpy_mpr.source.reading import Raster, RasterFloat, RasterGroup, RasterGroups
 from hydpy_mpr.source.typing_ import Mapping, MatrixFloat
 
 
@@ -131,16 +130,16 @@ class RasterEquation(ABC):
         }
 
     @property
-    def coefficients(self) -> Mapping[str, float]:
-        return {
-            field_.name: value
+    def coefficients(self) -> tuple[Coefficient, ...]:
+        return tuple(
+            value
             for field_ in fields(self)
-            if isinstance(value := getattr(self, field_.name), float)
-        }
+            if isinstance(value := getattr(self, field_.name), Coefficient)
+        )
 
     @abstractmethod
     def apply_coefficients(self) -> None:
         pass
 
     def apply_mask(self) -> None:
-        self.output[self.mask] = nan
+        self.output[~self.mask] = nan
