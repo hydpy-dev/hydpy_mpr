@@ -1,29 +1,28 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+import abc
 
-from hydpy import HydPy, nse
-from hydpy.core.typingtools import Conditions
-from nlopt import opt, LN_BOBYQA
-from numpy import ndarray
+import hydpy
+from hydpy.core import typingtools
+import nlopt
+import numpy
 
-from hydpy_mpr.source.configuration import Config
-from hydpy_mpr.source.typing_ import Any, Sequence, VectorFloat
+from hydpy_mpr.source import configuration
+from hydpy_mpr.source.typing_ import *
 
 
-class Calibrator(ABC):
+class Calibrator(abc.ABC):
 
-    hp: HydPy
-    conditions: Conditions
-    config: Config
+    hp: hydpy.HydPy
+    conditions: typingtools.Conditions
+    config: configuration.Config
 
-    def activate(self, hp: HydPy, config: Config) -> None:
+    def activate(self, hp: hydpy.HydPy, config: configuration.Config) -> None:
         self.hp = hp
         self.conditions = hp.conditions
         self.config = config
 
-    @abstractmethod
-    def calculate_likelihood(self) -> float:
-        ...
+    @abc.abstractmethod
+    def calculate_likelihood(self) -> float: ...
 
     def perform_calibrationstep(
         self, values: Sequence[float], *args: Any, **kwargs: Any
@@ -39,13 +38,13 @@ class Calibrator(ABC):
 
     def run(self, *, maxeval: int | None = None) -> tuple[float, VectorFloat]:
         config = self.config
-        o = opt(LN_BOBYQA, len(config.coefficients))
+        optimiser = nlopt.opt(nlopt.LN_BOBYQA, len(config.coefficients))
         if maxeval is not None:
-            o.set_maxeval(maxeval=maxeval)
-        o.set_lower_bounds(config.lowers)
-        o.set_upper_bounds(config.uppers)
-        o.set_max_objective(self.perform_calibrationstep)
-        opt_values = o.optimize(config.values)
+            optimiser.set_maxeval(maxeval=maxeval)
+        optimiser.set_lower_bounds(config.lowers)
+        optimiser.set_upper_bounds(config.uppers)
+        optimiser.set_max_objective(self.perform_calibrationstep)
+        opt_values = optimiser.optimize(config.values)
         likelihood = self.perform_calibrationstep(opt_values)
-        assert isinstance(opt_values, ndarray)
+        assert isinstance(opt_values, numpy.ndarray)
         return likelihood, opt_values

@@ -9,7 +9,7 @@ import hydpy
 
 from hydpy_mpr import data
 from hydpy_mpr.testing import iotesting
-from hydpy_mpr.source.typing_ import Callable, Literal
+from hydpy_mpr.source.typing_ import *
 
 
 def get_datapath(*subdir: str) -> str:

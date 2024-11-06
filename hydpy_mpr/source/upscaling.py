@@ -1,26 +1,29 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+import abc
+import dataclasses
 
-from numpy import float64, int64, nan
+import numpy
 
-from hydpy_mpr.source.regionalisation import RasterEquation
+from hydpy_mpr.source import regionalisation
+from hydpy_mpr.source.typing_ import *
 
 
-@dataclass
-class RasterUpscaler(ABC):
+@dataclasses.dataclass
+class RasterUpscaler(abc.ABC):
 
-    equation: RasterEquation
-    id2value: dict[int64, float64] = field(init=False)
+    equation: regionalisation.RasterEquation
+    id2value: dict[int64, float64] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
-        self.id2value = {id_: float64(nan) for id_ in self.equation.group.id2element}
+        self.id2value = {
+            id_: float64(numpy.nan) for id_ in self.equation.group.id2element
+        }
 
     @property
     def name2value(self) -> dict[str, float64]:
         id2element = self.equation.group.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
-    @abstractmethod
+    @abc.abstractmethod
     def scale_up(self) -> None:
         pass

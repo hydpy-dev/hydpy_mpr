@@ -1,30 +1,16 @@
 """Utilities for reading the raster, feature, and table data."""
 
 from __future__ import annotations
-import os.path
+import os
 import warnings
 
-from fudgeo.geopkg import GeoPackage
-from numpy import array, float64, int64
-from tifffile import TiffFile, TiffPage
+from fudgeo import geopkg
+import numpy
+import tifffile
 
-from hydpy_mpr.source.constants import (
-    ELEMENT_ID,
-    ELEMENT_NAME,
-    FEATURE_GPKG,
-    MAPPING_TABLE,
-)
-from hydpy_mpr.source.typing_ import (
-    Generic,
-    Iterable,
-    Literal,
-    MappingTable,
-    Matrix,
-    MatrixBool,
-    overload,
-    TypeAlias,
-    TypeVar,
-)
+from hydpy_mpr.source import constants
+from hydpy_mpr.source.constants import ELEMENT_ID, ELEMENT_NAME
+from hydpy_mpr.source.typing_ import *
 
 
 TM = TypeVar("TM", float64, int64)
@@ -38,16 +24,24 @@ RasterGroups: TypeAlias = dict[str, "RasterGroup"]
 def read_mapping_table(*, dirpath: str) -> MappingTable:
     """Read the table for mapping element IDs to element names required when working
     with raster files."""
-    filepath = os.path.join(dirpath, FEATURE_GPKG)
+
+    filepath = os.path.join(dirpath, constants.FEATURE_GPKG)
+
+    def _column_contains(column: str) -> str:
+        return (
+            f"Column `{column}` of table `{constants.MAPPING_TABLE}` of geopackage "
+            f"`{filepath}` contains"
+        )
+
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Geopackage `{filepath}` does not exist.")
-    gpkg = GeoPackage(filepath)
+    gpkg = geopkg.GeoPackage(filepath)
     try:
-        table = gpkg.tables.get(MAPPING_TABLE)
+        table = gpkg.tables.get(constants.MAPPING_TABLE)
         if table is None:
             raise TypeError(
                 f"Geopackage `{filepath}` does not contain the required mapping table "
-                f"`{MAPPING_TABLE}`."
+                f"`{constants.MAPPING_TABLE}`."
             )
         for column in (ELEMENT_ID, ELEMENT_NAME):
             if column not in table.field_names:
@@ -65,26 +59,18 @@ def read_mapping_table(*, dirpath: str) -> MappingTable:
         for element_id, element_name in cursor:
             if element_id is None:
                 warnings.warn(
-                    f"Column `{ELEMENT_ID}` of table `{MAPPING_TABLE}` of geopackage "
-                    f"`{filepath}` contains at least one missing value."
+                    f"{_column_contains(ELEMENT_ID)} at least one missing value."
                 )
                 continue
             if not isinstance(element_id, int):
-                raise TypeError(
-                    f"Column `{ELEMENT_ID}` of table `{MAPPING_TABLE}` of geopackage "
-                    f"`{filepath}` contains non-integer values."
-                )
+                raise TypeError(f"{_column_contains(ELEMENT_ID)} non-integer values.")
             if element_name is None:
                 warnings.warn(
-                    f"Column `{ELEMENT_NAME}` of table `{MAPPING_TABLE}` of "
-                    f"geopackage `{filepath}` contains at least one missing value."
+                    f"{_column_contains(ELEMENT_NAME)} at least one missing value."
                 )
                 continue
             if not isinstance(element_name, str):
-                raise TypeError(
-                    f"Column `{ELEMENT_NAME}` of table `{MAPPING_TABLE}` of "
-                    f"geopackage `{filepath}` contains non-string values."
-                )
+                raise TypeError(f"{_column_contains(ELEMENT_NAME)} non-string values.")
             element_id2name[int64(element_id)] = element_name
     finally:
         cursor.close()
@@ -121,18 +107,18 @@ def read_geotiff(
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"GeoTiff `{filepath}` does not exist.")
 
-    with TiffFile(filepath) as tiff:
+    with tifffile.TiffFile(filepath) as tiff:
         assert len(tiff.pages) == 1
         page = tiff.pages[0]
-        assert isinstance(page, TiffPage)
+        assert isinstance(page, tifffile.TiffPage)
 
         if datatype == "int":
             return Raster(
-                values=array(tiff.asarray(), dtype=int64)[:-1, :-1],  # ToDo
+                values=numpy.array(tiff.asarray(), dtype=int64)[:-1, :-1],  # ToDo
                 missingvalue=int64(page.tags[42113].value),
             )
         if datatype == "float":
-            values = array(tiff.asarray(), dtype=float64)
+            values = numpy.array(tiff.asarray(), dtype=float64)
             missingvalue = float64(page.tags[42113].value)
             values[values < -1e10] = missingvalue  # ToDo
             return Raster(values=values, missingvalue=missingvalue)
@@ -169,7 +155,7 @@ class RasterGroup:
         filenames = extract_tiffiles(os.listdir(dirpath))
 
         for idx, filename in enumerate(filenames):
-            if filename.rsplit(".")[0] == ELEMENT_ID:
+            if filename.rsplit(".")[0] == constants.ELEMENT_ID:
                 filepath = os.path.join(dirpath, filename)
                 self.id_raster = read_geotiff(filepath=filepath, datatype="int")
                 self.shape = self.id_raster.shape

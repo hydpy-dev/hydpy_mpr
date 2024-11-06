@@ -1,19 +1,19 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 
-from hydpy_mpr.source.calibration import Calibrator
-from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
-from hydpy_mpr.source.upscaling import RasterUpscaler
-from hydpy_mpr.source.transform import RasterTransformer, TP
-from hydpy_mpr.source.typing_ import Generic
+from hydpy_mpr.source import calibration
+from hydpy_mpr.source import regionalisation
+from hydpy_mpr.source import upscaling
+from hydpy_mpr.source import transform
+from hydpy_mpr.source.typing_ import *
 
 
 @dataclass
 class RasterTask(Generic[TP]):
 
-    equation: RasterEquation
-    upscaler: RasterUpscaler
-    transformers: list[RasterTransformer[TP]]
+    equation: regionalisation.RasterEquation
+    upscaler: upscaling.RasterUpscaler
+    transformers: list[transform.RasterTransformer[TP]]
 
     def run(self) -> None:
         self.equation.apply_coefficients()
@@ -26,13 +26,15 @@ class RasterTask(Generic[TP]):
 @dataclass
 class Config(Generic[TP]):
 
-    calibrator: Calibrator
+    calibrator: calibration.Calibrator
     tasks: list[RasterTask[TP]]
-    subequations: list[RasterEquation] | None = field(default_factory=lambda: None)
+    subequations: list[regionalisation.RasterEquation] | None = field(
+        default_factory=lambda: None
+    )
 
     @property
-    def coefficients(self) -> tuple[Coefficient, ...]:
-        coefficients: set[Coefficient] = set()
+    def coefficients(self) -> tuple[regionalisation.Coefficient, ...]:
+        coefficients: set[regionalisation.Coefficient] = set()
         for task in self.tasks:
             coefficients.update(task.equation.coefficients)
         return tuple(sorted(coefficients, key=lambda c: c.name))

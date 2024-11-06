@@ -1,16 +1,17 @@
 # pylint: disable=missing-docstring
 
 from __future__ import annotations
+
 from hydpy import pub
-from pytest import fixture
+import pytest
 
-from hydpy_mpr.source.typing_ import Iterator
-from hydpy_mpr.testing import prepare_project
+from hydpy_mpr.source.typing_ import *
+from hydpy_mpr import testing
 
 
-@fixture
+@pytest.fixture
 def fixture_project() -> Iterator[None]:
     with pub.options.printprogress(False):
-        reset_workingdir = prepare_project("HydPy-H-Lahn")
+        reset_workingdir = testing.prepare_project("HydPy-H-Lahn")
         yield
         reset_workingdir()

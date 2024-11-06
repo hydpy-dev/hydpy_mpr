@@ -1,9 +1,8 @@
+import hydpy_mpr as mpr
+import numpy
 
-from hydpy_mpr import RasterTransformer, TP
-from numpy import float64
 
+class RasterIdentityTransformer(mpr.RasterTransformer[mpr.TP]):
 
-class RasterIdentityTransformer(RasterTransformer[TP]):
-
-    def modify_parameter(self, parameter: TP, value: float64) -> None:
+    def modify_parameter(self, parameter: mpr.TP, value: numpy.float64) -> None:
         parameter(value)

@@ -1,28 +1,26 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import overload
+import abc
 
-from hydpy import Selection
-from hydpy.core.parametertools import Parameter
-from numpy import float64
+import hydpy
+import numpy
 
-from hydpy_mpr.source.upscaling import RasterUpscaler
-from hydpy_mpr.source.typing_ import Generic, Iterable, TypeVar
-
-TP = TypeVar("TP", bound=Parameter)
+from hydpy_mpr.source import upscaling
+from hydpy_mpr.source.typing_ import *
 
 
 class RasterTransformer(Generic[TP]):
 
-    selection: Selection
-    upscaler: RasterUpscaler
+    selection: hydpy.Selection
+    upscaler: upscaling.RasterUpscaler
     model2parameter: dict[str, type[TP]]
     element2parameter: dict[str, TP]
 
     def __init__(self, **model2parameter: type[TP]) -> None:
         self.model2parameter = model2parameter
 
-    def activate(self, *, selection: Selection, upscaler: RasterUpscaler) -> None:
+    def activate(
+        self, *, selection: hydpy.Selection, upscaler: upscaling.RasterUpscaler
+    ) -> None:
         self.selection = selection
         self.upscaler = upscaler
         element2parameter = {}
@@ -40,6 +38,6 @@ class RasterTransformer(Generic[TP]):
             if (parameter := element2parameter.get(name)) is not None:
                 self.modify_parameter(parameter=parameter, value=value)
 
-    @abstractmethod
+    @abc.abstractmethod
     def modify_parameter(self, parameter: TP, value: float64) -> None:
         pass

@@ -1,11 +1,11 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, fields
+import abc
+import dataclasses
 
-from numpy import full, inf, nan
+import numpy
 
-from hydpy_mpr.source.reading import Raster, RasterFloat, RasterGroup, RasterGroups
-from hydpy_mpr.source.typing_ import Mapping, MatrixFloat
+from hydpy_mpr.source import reading
+from hydpy_mpr.source.typing_ import *
 
 
 class Coefficient:
@@ -13,7 +13,11 @@ class Coefficient:
     _value: float
 
     def __init__(
-        self, name: str, default: float, lower: float = -inf, upper: float = inf
+        self,
+        name: str,
+        default: float,
+        lower: float = -numpy.inf,
+        upper: float = numpy.inf,
     ) -> None:
         self.name = name
         self.lower = lower
@@ -31,8 +35,8 @@ class Coefficient:
         self._value = v
 
 
-@dataclass
-class RasterEquation(ABC):
+@dataclasses.dataclass
+class RasterEquation(abc.ABC):
     """
 
     >>> from dataclasses import dataclass
@@ -86,22 +90,24 @@ class RasterEquation(ABC):
     """
 
     dir_group: str
-    _group: RasterGroup | None = field(init=False, default_factory=lambda: None)
-    output: MatrixFloat = field(init=False)
+    _group: reading.RasterGroup | None = dataclasses.field(
+        init=False, default_factory=lambda: None
+    )
+    output: MatrixFloat = dataclasses.field(init=False)
 
-    def extract_rasters(self, raster_groups: RasterGroups) -> None:
+    def extract_rasters(self, raster_groups: reading.RasterGroups) -> None:
         group = raster_groups[self.dir_group]
         self._group = group
-        self.mask = full(self.shape, True, dtype=bool)
+        self.mask = numpy.full(self.shape, True, dtype=bool)
         for fieldname, filename in self.fieldname2filename.items():
             rastername = f"data_{fieldname.removeprefix('file_')}"
             raster = group.data_rasters[filename]
             setattr(self, rastername, raster)
             self.mask *= raster.mask
-        self.output = full(self.shape, nan)
+        self.output = numpy.full(self.shape, numpy.nan)
 
     @property
-    def group(self) -> RasterGroup:
+    def group(self) -> reading.RasterGroup:
         if (group := self._group) is None:
             raise RuntimeError
         return group
@@ -116,31 +122,31 @@ class RasterEquation(ABC):
     @property
     def fieldname2filename(self) -> dict[str, str]:
         return {
-            field_.name: getattr(self, field_.name)
-            for field_ in fields(self)
-            if (field_.name).startswith("file_")
+            field.name: getattr(self, field.name)
+            for field in dataclasses.fields(self)
+            if (field.name).startswith("file_")
         }
 
     @property
-    def inputs(self) -> Mapping[str, RasterFloat]:
+    def inputs(self) -> Mapping[str, reading.RasterFloat]:
         return {
             name: value
-            for field_ in fields(self)
-            if ((name := field_.name) != "output")
-            and isinstance(value := getattr(self, name), Raster)
+            for field in dataclasses.fields(self)
+            if ((name := field.name) != "output")
+            and isinstance(value := getattr(self, name), reading.Raster)
         }
 
     @property
     def coefficients(self) -> tuple[Coefficient, ...]:
         return tuple(
             value
-            for field_ in fields(self)
-            if isinstance(value := getattr(self, field_.name), Coefficient)
+            for field in dataclasses.fields(self)
+            if isinstance(value := getattr(self, field.name), Coefficient)
         )
 
-    @abstractmethod
+    @abc.abstractmethod
     def apply_coefficients(self) -> None:
         pass
 
     def apply_mask(self) -> None:
-        self.output[~self.mask] = nan
+        self.output[~self.mask] = numpy.nan

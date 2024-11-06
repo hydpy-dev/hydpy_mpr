@@ -1,5 +1,5 @@
-from hydpy.models.hland.hland_control import FC
-from hydpy_mpr import Config, RasterTask
+from hydpy.models.hland import hland_control
+import hydpy_mpr
 
 import calibrators
 import coefficients
@@ -7,10 +7,10 @@ import equations
 import upscalers
 import transformers
 
-config = Config(
+config = hydpy_mpr.Config(
     calibrator=calibrators.MyCalibrator,
     tasks=[
-        RasterTask(
+        hydpy_mpr.RasterTask(
             equation=equations.FC(
                 dir_group="raster_5km",
                 file_sand="sand_mean_0_200_res5km",
@@ -20,7 +20,9 @@ config = Config(
                 coef_factor_clay=coefficients.coef_factor_clay,
             ),
             upscaler=upscalers.RasterMean,
-            transformers=[transformers.RasterIdentityTransformer(hland_96=FC)],
+            transformers=[
+                transformers.RasterIdentityTransformer(hland_96=hland_control.FC)
+            ],
         )
     ],
     subequations=[equations.KS],
