@@ -1,5 +1,6 @@
 # pylint: disable=missing-docstring, unused-argument
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 
 from hydpy import HydPy, nse, pub

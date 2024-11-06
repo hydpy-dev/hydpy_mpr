@@ -1,6 +1,7 @@
 """This module provides utilities for preparing example data, executing tests,
 simplifying docstrings, etc."""
 
+from __future__ import annotations
 import os
 import shutil
 

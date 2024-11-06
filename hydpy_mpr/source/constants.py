@@ -1,5 +1,8 @@
 """This module contains all constants defined by HydPy-MPR."""
 
+from __future__ import annotations
+
+
 # Default no data value for float raster data:
 NODATA_FLOAT = -9999.0
 

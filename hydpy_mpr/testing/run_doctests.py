@@ -1,5 +1,6 @@
 """Evaluate all doctests defined in the library's Python, Cython, and Markdown files."""
 
+from __future__ import annotations
 import doctest
 import importlib
 import os

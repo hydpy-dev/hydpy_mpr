@@ -1,5 +1,6 @@
 # pylint: disable=missing-docstring, unused-argument
 
+from __future__ import annotations
 from os.path import join
 from re import escape
 

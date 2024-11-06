@@ -1,5 +1,6 @@
 # pylint: disable=missing-docstring
 
+from __future__ import annotations
 from hydpy import pub
 from pytest import fixture
 

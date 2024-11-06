@@ -1,4 +1,5 @@
 """This module imports and defines the static type hints used within HydPy-MPR."""
+from __future__ import annotations
 
 from typing import (
     Any,
