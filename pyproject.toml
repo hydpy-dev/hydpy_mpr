@@ -6,5 +6,16 @@ build-backend = "setuptools.build_meta"
 skip-magic-trailing-comma = true
 exclude = "hydpy_mpr/data/|hydpy_mpr/testing/iotesting"
 
+[tool.pylint.main]
+allow-wildcard-with-all = true
+
+[tool.pylint.messages_control]
+disable = [
+    "cyclic-import",
+    "missing-docstring",
+    "too-few-public-methods",
+    "unused-wildcard-import",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["hydpy_mpr/testing"]
