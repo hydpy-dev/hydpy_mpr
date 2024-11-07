@@ -1,7 +1,6 @@
 black
 build
 click
-coverage
 fudgeo
 geotiff
 imagecodecs

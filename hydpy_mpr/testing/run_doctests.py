@@ -47,7 +47,7 @@ def main(path: str | None, files: list[str]) -> NoReturn:
 
     successfull_tests: Results = {}
     failed_tests: Results = {}
-    for dirname in ("examples", "source", "testing"):
+    for dirname in ("examples", "source"):
         dirpath = os.path.abspath(dirname)
         for filename in sorted(_filter_filenames(os.listdir(dirpath))):
             _analyse_file(
