@@ -37,6 +37,13 @@ def _install_hydpy_mpr(session: nox.Session) -> None:
 
 
 @nox.session
+def pytest(session: nox.Session) -> None:
+    """Execute all unit and integration tests and measure code coverage."""
+    _install_hydpy_mpr(session)
+    session.run("pytest", "--cov", "--cov-report", "term-missing")
+
+
+@nox.session
 def doctest(session: nox.Session) -> None:
     """Execute script `run_doctests.py` and measure code coverage."""
     _install_hydpy_mpr(session)
