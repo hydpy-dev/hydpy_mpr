@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 skip-magic-trailing-comma = true
-exclude = "hydpy_mpr/data/|hydpy_mpr/testing/iotesting"
+exclude = "hydpy_mpr/testing/iotesting"
 
 [tool.pylint.main]
 allow-wildcard-with-all = true

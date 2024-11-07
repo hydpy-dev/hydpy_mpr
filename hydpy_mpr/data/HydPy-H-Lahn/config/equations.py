@@ -16,9 +16,7 @@ class FC(mpr.RasterEquation):
 
     def apply_coefficients(self) -> None:
         self.output[:] = (
-                self.coef_const.value
-                + self.coef_factor_sand.value * self.data_sand.values
-                + self.coef_factor_clay.value * self.data_clay.values
+            self.coef_const.value
+            + self.coef_factor_sand.value * self.data_sand.values
+            + self.coef_factor_clay.value * self.data_clay.values
         )
-
-
