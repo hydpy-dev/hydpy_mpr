@@ -1,8 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 
+import hydpy
+
 from hydpy_mpr.source import calibration
 from hydpy_mpr.source import regionalisation
+from hydpy_mpr.source import running
 from hydpy_mpr.source import upscaling
 from hydpy_mpr.source import transform
 from hydpy_mpr.source.typing_ import *
@@ -26,8 +29,10 @@ class RasterTask(Generic[TP]):
 @dataclass
 class Config(Generic[TP]):
 
-    calibrator: calibration.Calibrator
+    hp: hydpy.HydPy
     tasks: list[RasterTask[TP]]
+    calibrator: calibration.Calibrator
+    runner: running.Runner
     subequations: list[regionalisation.RasterEquation] | None = field(
         default_factory=lambda: None
     )

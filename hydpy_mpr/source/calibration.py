@@ -36,7 +36,7 @@ class Calibrator(abc.ABC):
         likelihood = self.calculate_likelihood()
         return likelihood
 
-    def run(self, *, maxeval: int | None = None) -> tuple[float, VectorFloat]:
+    def calibrate(self, *, maxeval: int | None = None) -> tuple[float, VectorFloat]:
         config = self.config
         optimiser = nlopt.opt(nlopt.LN_BOBYQA, len(config.coefficients))
         if maxeval is not None:

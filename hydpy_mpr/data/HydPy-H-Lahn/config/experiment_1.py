@@ -1,16 +1,17 @@
 from hydpy.models.hland import hland_control
-import hydpy_mpr
+import hydpy_mpr as mpr
 
 import calibrators
 import coefficients
 import equations
+import initialisers
 import upscalers
 import transformers
 
-config = hydpy_mpr.Config(
-    calibrator=calibrators.MyCalibrator,
+config = mpr.Config(
+    hp=initialisers.initialise_lahn(),
     tasks=[
-        hydpy_mpr.RasterTask(
+        mpr.RasterTask(
             equation=equations.FC(
                 dir_group="raster_5km",
                 file_sand="sand_mean_0_200_res5km",
@@ -25,5 +26,10 @@ config = hydpy_mpr.Config(
             ],
         )
     ],
-    subequations=[equations.KS],
+    calibrator=calibrators.MyCalibrator,
+    runner=mpr.Runner(),
 )
+
+
+if __name__ == "__main__":
+    config.runner.run()

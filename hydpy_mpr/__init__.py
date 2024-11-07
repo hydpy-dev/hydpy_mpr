@@ -8,6 +8,7 @@ from hydpy_mpr.source.calibration import Calibrator
 from hydpy_mpr.source.configuration import Config, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
+from hydpy_mpr.source.running import Runner
 from hydpy_mpr.source.transform import RasterTransformer, TP
 from hydpy_mpr.source.upscaling import RasterUpscaler
 
@@ -39,5 +40,6 @@ __all__ = [
     "RasterTask",
     "RasterTransformer",
     "RasterUpscaler",
+    "Runner",
     "TP",
 ]

@@ -2,7 +2,6 @@ from __future__ import annotations
 import abc
 
 import hydpy
-import numpy
 
 from hydpy_mpr.source import upscaling
 from hydpy_mpr.source.typing_ import *
