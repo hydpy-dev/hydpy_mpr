@@ -11,6 +11,7 @@ from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
 from hydpy_mpr.source.running import Runner
 from hydpy_mpr.source.transform import RasterTransformer, TP
 from hydpy_mpr.source.upscaling import RasterUpscaler
+from hydpy_mpr.source.writing import Writer
 
 
 __version__ = "0.0.dev0"
@@ -42,4 +43,5 @@ __all__ = [
     "RasterUpscaler",
     "Runner",
     "TP",
+    "Writer",
 ]

@@ -5,9 +5,11 @@ import hydpy
 
 from hydpy_mpr.source import calibration
 from hydpy_mpr.source import regionalisation
+from hydpy_mpr.source import reading
 from hydpy_mpr.source import running
 from hydpy_mpr.source import upscaling
 from hydpy_mpr.source import transform
+from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
 
@@ -27,15 +29,27 @@ class RasterTask(Generic[TP]):
 
 
 @dataclass
-class Config(Generic[TP]):
+class Config:
 
     hp: hydpy.HydPy
-    tasks: list[RasterTask[TP]]
+    tasks: list[RasterTask[Any]]
     calibrator: calibration.Calibrator
     runner: running.Runner
+    writer: writing.Writer
     subequations: list[regionalisation.RasterEquation] | None = field(
         default_factory=lambda: None
     )
+
+    def __post_init__(self) -> None:
+        raster_groups = reading.read_rastergroups("HydPy-H-Lahn/mpr_data")
+        for task in self.tasks:
+            task.equation.activate(self, raster_groups=raster_groups)
+            task.upscaler.activate(self, task=task)
+            for transformer in task.transformers:
+                transformer.activate(self, task=task)
+        self.calibrator.activate(self)
+        self.runner.activate(self)
+        self.writer.activate(self)
 
     @property
     def coefficients(self) -> tuple[regionalisation.Coefficient, ...]:

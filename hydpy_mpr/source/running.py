@@ -12,5 +12,6 @@ class Runner:
     def activate(self, config: configuration.Config) -> None:
         self.config = config
 
-    def run(self) -> None:
-        self.config.calibrator.calibrate()
+    def run(self, maxeval: int) -> None:
+        self.config.calibrator.calibrate(maxeval=maxeval)
+        self.config.writer.write()

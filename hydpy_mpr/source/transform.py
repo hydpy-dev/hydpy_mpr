@@ -3,37 +3,45 @@ import abc
 
 import hydpy
 
-from hydpy_mpr.source import upscaling
+from hydpy_mpr.source import configuration
 from hydpy_mpr.source.typing_ import *
 
 
 class RasterTransformer(Generic[TP]):
 
-    selection: hydpy.Selection
-    upscaler: upscaling.RasterUpscaler
+    selection: hydpy.Selection | None
     model2parameter: dict[str, type[TP]]
     element2parameter: dict[str, TP]
+    task: configuration.RasterTask[TP]
+    config: configuration.Config
 
-    def __init__(self, **model2parameter: type[TP]) -> None:
+    def __init__(
+        self, *, selection: hydpy.Selection | None = None, **model2parameter: type[TP]
+    ) -> None:
+        self.selection = selection
         self.model2parameter = model2parameter
 
     def activate(
-        self, *, selection: hydpy.Selection, upscaler: upscaling.RasterUpscaler
+        self, config: configuration.Config, /, *, task: configuration.RasterTask[TP]
     ) -> None:
-        self.selection = selection
-        self.upscaler = upscaler
+        self.config = config
+        self.task = task
+        if self.selection is None:
+            elements = self.config.hp.elements
+        else:
+            elements = self.selection.elements
         element2parameter = {}
         for model, parametertype in self.model2parameter.items():
-            elements = self.selection.search_modeltypes(model).elements
             for element in elements:
-                parameter = element.model.parameters.control[parametertype.name]
-                assert isinstance(parameter, parametertype)
-                element2parameter[element.name] = parameter
+                if model == element.model.name:
+                    parameter = element.model.parameters.control[parametertype.name]
+                    assert isinstance(parameter, parametertype)
+                    element2parameter[element.name] = parameter
         self.element2parameter = element2parameter
 
     def modify_parameters(self) -> None:
         element2parameter = self.element2parameter
-        for name, value in self.upscaler.name2value.items():
+        for name, value in self.task.upscaler.name2value.items():
             if (parameter := element2parameter.get(name)) is not None:
                 self.modify_parameter(parameter=parameter, value=value)
 

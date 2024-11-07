@@ -17,8 +17,6 @@ from typing import (
 )
 
 from hydpy.core.parametertools import Parameter
-from typing_extensions import assert_never, Self
-
 from hydpy.core.typingtools import (
     Matrix,
     MatrixBool,
@@ -30,6 +28,7 @@ from hydpy.core.typingtools import (
     VectorInt,
 )
 from numpy import int64, float64
+from typing_extensions import assert_never, Self
 
 
 MappingTable: TypeAlias = dict[int64, str]

@@ -5,7 +5,6 @@ import os
 import re
 
 from fudgeo import geopkg
-import numpy
 import pytest
 
 from hydpy_mpr.source import constants

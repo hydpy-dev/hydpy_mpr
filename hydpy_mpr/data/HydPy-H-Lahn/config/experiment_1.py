@@ -20,16 +20,17 @@ config = mpr.Config(
                 coef_factor_sand=coefficients.coef_factor_sand,
                 coef_factor_clay=coefficients.coef_factor_clay,
             ),
-            upscaler=upscalers.RasterMean,
+            upscaler=upscalers.RasterMean(),
             transformers=[
                 transformers.RasterIdentityTransformer(hland_96=hland_control.FC)
             ],
         )
     ],
-    calibrator=calibrators.MyCalibrator,
+    calibrator=calibrators.MyCalibrator(),
     runner=mpr.Runner(),
+    writer=mpr.Writer(controldir="experiment_1"),
 )
 
 
 if __name__ == "__main__":
-    config.runner.run()
+    config.runner.run(maxeval=100)
