@@ -12,20 +12,14 @@ from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
-DIRPATH_PROJECT = "HydPy-H-Lahn"
-DIRPATH_MPR_DATA = os.path.join(DIRPATH_PROJECT, "mpr_data")
-FILENAME_FEATURE = "feature.gpkg"
-DIRPATH_FEATURE = os.path.join("HydPy-H-Lahn", "mpr_data", FILENAME_FEATURE)
-
-
-def modify_table(*fields: geopkg.Field) -> geopkg.GeoPackage:
-    gpkg = geopkg.GeoPackage(DIRPATH_FEATURE)
+def modify_table(*fields: geopkg.Field, filepath: str) -> geopkg.GeoPackage:
+    gpkg = geopkg.GeoPackage(filepath)
     gpkg.create_table(constants.MAPPING_TABLE, fields=fields, overwrite=True)
     return gpkg
 
 
-def test_everything_okay(fixture_project: None) -> None:
-    assert reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA) == {
+def test_everything_okay(arrange_project: None, dirpath_mpr_data: str) -> None:
+    assert reading.read_mapping_table(dirpath=dirpath_mpr_data) == {
         int64(1): "land_lahn_marb",
         int64(2): "land_lahn_leun",
         int64(3): "land_lahn_kalk",
@@ -38,35 +32,42 @@ def test_missing_file(tmp_path: str) -> None:
     with pytest.raises(FileNotFoundError) as info:
         reading.read_mapping_table(dirpath=tmp_path)
     assert str(info.value) == (
-        f"Geopackage `{os.path.join(tmp_path, FILENAME_FEATURE)}` does not exist."
+        f"Geopackage `{os.path.join(tmp_path, constants.FEATURE_GPKG)}` does not exist."
     )
 
 
-def test_missing_table(fixture_project: None) -> None:
-    gpkg = geopkg.GeoPackage(DIRPATH_FEATURE)
+def test_missing_table(
+    arrange_project: None, filepath_feature: str, dirpath_mpr_data: str
+) -> None:
+    gpkg = geopkg.GeoPackage(filepath_feature)
     gpkg.tables[constants.MAPPING_TABLE].drop()
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert str(info.value) == (
-        f"Geopackage `{DIRPATH_FEATURE}` does not contain the required mapping table "
+        f"Geopackage `{filepath_feature}` does not contain the required mapping table "
         f"`element_id2name`."
     )
 
 
-def test_missing_column(fixture_project: None) -> None:
-    modify_table().connection.close()
+def test_missing_column(
+    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+) -> None:
+    modify_table(filepath=filepath_feature).connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert str(info.value) == (
-        f"Geopackage `{DIRPATH_FEATURE}` does not contain a column named `element_id`."
+        f"Geopackage `{filepath_feature}` does not contain a column named `element_id`."
     )
 
 
-def test_missing_id(fixture_project: None) -> None:
+def test_missing_id(
+    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),
         geopkg.Field(name=constants.ELEMENT_NAME, data_type="TEXT", size=100),
+        filepath=filepath_feature,
     )
     with gpkg.connection as connection:
         for id_, name in ((1, '"one"'), ("NULL", '"two"'), (3, '"three"')):
@@ -80,17 +81,20 @@ def test_missing_id(fixture_project: None) -> None:
         UserWarning,
         match=re.escape(
             "Column `element_id` of table `element_id2name` of geopackage "
-            f"`{DIRPATH_FEATURE}` contains at least one missing value."
+            f"`{filepath_feature}` contains at least one missing value."
         ),
     ):
-        table = reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        table = reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert table == {int64(1): "one", int64(3): "three"}
 
 
-def test_missing_name(fixture_project: None) -> None:
+def test_missing_name(
+    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),
         geopkg.Field(name=constants.ELEMENT_NAME, data_type="TEXT", size=100),
+        filepath=filepath_feature,
     )
     with gpkg.connection as connection:
         for id_, name in ((1, '"one"'), (2, "NULL"), (3, '"three"')):
@@ -104,17 +108,20 @@ def test_missing_name(fixture_project: None) -> None:
         UserWarning,
         match=re.escape(
             "Column `element_name` of table `element_id2name` of geopackage "
-            f"`{DIRPATH_FEATURE}` contains at least one missing value."
+            f"`{filepath_feature}` contains at least one missing value."
         ),
     ):
-        table = reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        table = reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert table == {int64(1): "one", int64(3): "three"}
 
 
-def test_wrong_id_type(fixture_project: None) -> None:
+def test_wrong_id_type(
+    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="DOUBLE"),
         geopkg.Field(name=constants.ELEMENT_NAME, data_type="TEXT", size=100),
+        filepath=filepath_feature,
     )
     with gpkg.connection as connection:
         connection.execute(
@@ -123,17 +130,20 @@ def test_wrong_id_type(fixture_project: None) -> None:
         )
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert str(info.value) == (
         "Column `element_id` of table `element_id2name` of geopackage "
-        f"`{DIRPATH_FEATURE}` contains non-integer values."
+        f"`{filepath_feature}` contains non-integer values."
     )
 
 
-def test_wrong_name_type(fixture_project: None) -> None:
+def test_wrong_name_type(
+    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),
         geopkg.Field(name=constants.ELEMENT_NAME, data_type="DOUBLE"),
+        filepath=filepath_feature,
     )
     with gpkg.connection as connection:
         connection.execute(
@@ -142,8 +152,8 @@ def test_wrong_name_type(fixture_project: None) -> None:
         )
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(dirpath=DIRPATH_MPR_DATA)
+        reading.read_mapping_table(dirpath=dirpath_mpr_data)
     assert str(info.value) == (
         "Column `element_name` of table `element_id2name` of geopackage "
-        f"`{DIRPATH_FEATURE}` contains non-string values."
+        f"`{filepath_feature}` contains non-string values."
     )

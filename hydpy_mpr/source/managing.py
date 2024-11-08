@@ -39,7 +39,7 @@ class MPR:
     )
 
     def __post_init__(self) -> None:
-        raster_groups = reading.read_rastergroups("HydPy-H-Lahn/mpr_data")
+        raster_groups = reading.read_rastergroups("HydPy-H-Lahn/mpr_data")  # ToDo
         for task in self.tasks:
             task.equation.activate(self, raster_groups=raster_groups)
             task.upscaler.activate(self, task=task)

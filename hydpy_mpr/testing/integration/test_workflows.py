@@ -14,7 +14,7 @@ from hydpy_mpr.source.typing_ import *
 
 
 @pytest.mark.integration_test
-def test_raster_workflow(fixture_project: None) -> None:
+def test_raster_workflow(arrange_project: None) -> None:
 
     @dataclasses.dataclass
     class RasterEquationFC(hydpy_mpr.RasterEquation):
