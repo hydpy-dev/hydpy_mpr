@@ -4,7 +4,7 @@ import dataclasses
 
 from hydpy import pub
 
-from hydpy_mpr.source import configuration
+from hydpy_mpr.source import managing
 
 
 @dataclasses.dataclass
@@ -12,10 +12,10 @@ class Writer(abc.ABC):
 
     controldir: str = dataclasses.field(default="default")
 
-    config: configuration.Config = dataclasses.field(init=False)
+    mpr: managing.MPR = dataclasses.field(init=False)
 
-    def activate(self, config: configuration.Config) -> None:
-        self.config = config
+    def activate(self, mpr: managing.MPR) -> None:
+        self.mpr = mpr
 
     @abc.abstractmethod
     def write(self) -> None:
@@ -25,8 +25,8 @@ class Writer(abc.ABC):
 class ControlWriter(Writer):
 
     def write(self) -> None:
-        config = self.config
-        calib = config.calibrator
+        mpr = self.mpr
+        calib = mpr.calibrator
         calib.perform_calibrationstep(calib.values)
         pub.controlmanager.currentdir = self.controldir
-        config.hp.save_controls()
+        mpr.hp.save_controls()

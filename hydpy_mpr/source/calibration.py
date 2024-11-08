@@ -6,7 +6,7 @@ from hydpy.core import typingtools
 import nlopt
 import numpy
 
-from hydpy_mpr.source import configuration
+from hydpy_mpr.source import managing
 from hydpy_mpr.source.typing_ import *
 
 
@@ -14,14 +14,14 @@ from hydpy_mpr.source.typing_ import *
 class Calibrator(abc.ABC):
 
     conditions: typingtools.Conditions = dataclasses.field(init=False)
-    config: configuration.Config = dataclasses.field(init=False)
+    mpr: managing.MPR = dataclasses.field(init=False)
     values: tuple[float, ...] = dataclasses.field(init=False)
     likelihood: float = dataclasses.field(init=False)
 
-    def activate(self, config: configuration.Config, /) -> None:
-        self.config = config
-        self.conditions = config.hp.conditions
-        self.values = tuple(config.values)
+    def activate(self, mpr: managing.MPR, /) -> None:
+        self.mpr = mpr
+        self.conditions = mpr.hp.conditions
+        self.values = tuple(mpr.values)
         self.likelihood = numpy.nan
 
     @abc.abstractmethod
@@ -33,12 +33,12 @@ class Calibrator(abc.ABC):
         *args: Any,
         **kwargs: Any,
     ) -> float:
-        for coefficient, value in zip(self.config.coefficients, values):
+        for coefficient, value in zip(self.mpr.coefficients, values):
             coefficient.value = value
-        for task in self.config.tasks:
+        for task in self.mpr.tasks:
             task.run()
-        self.config.hp.conditions = self.conditions
-        self.config.hp.simulate()
+        self.mpr.hp.conditions = self.conditions
+        self.mpr.hp.simulate()
         likelihood = self.calculate_likelihood()
         return likelihood
 
@@ -54,12 +54,12 @@ class NLOptCalibrator(Calibrator, abc.ABC):
     maxeval: int | None = dataclasses.field(default_factory=lambda: None)
 
     def calibrate(self) -> None:
-        config = self.config
-        optimiser = nlopt.opt(self.algorithm, len(config.coefficients))
+        mpr = self.mpr
+        optimiser = nlopt.opt(self.algorithm, len(mpr.coefficients))
         if (maxeval := self.maxeval) is not None:
             optimiser.set_maxeval(maxeval=maxeval)
-        optimiser.set_lower_bounds(config.lowers)
-        optimiser.set_upper_bounds(config.uppers)
+        optimiser.set_lower_bounds(mpr.lowers)
+        optimiser.set_upper_bounds(mpr.uppers)
         optimiser.set_max_objective(self.perform_calibrationstep)
         self.values = tuple(optimiser.optimize(self.values))
         self.likelihood = self.perform_calibrationstep(self.values)

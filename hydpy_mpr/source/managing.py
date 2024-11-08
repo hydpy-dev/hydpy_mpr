@@ -6,7 +6,6 @@ import hydpy
 from hydpy_mpr.source import calibration
 from hydpy_mpr.source import regionalisation
 from hydpy_mpr.source import reading
-from hydpy_mpr.source import running
 from hydpy_mpr.source import upscaling
 from hydpy_mpr.source import transform
 from hydpy_mpr.source import writing
@@ -29,12 +28,11 @@ class RasterTask(Generic[TP]):
 
 
 @dataclass
-class Config:
+class MPR:
 
     hp: hydpy.HydPy
     tasks: list[RasterTask[Any]]
     calibrator: calibration.Calibrator
-    runner: running.Runner
     writers: list[writing.Writer] = field(default_factory=lambda: [])
     subequations: list[regionalisation.RasterEquation] | None = field(
         default_factory=lambda: None
@@ -48,7 +46,6 @@ class Config:
             for transformer in task.transformers:
                 transformer.activate(self, task=task)
         self.calibrator.activate(self)
-        self.runner.activate(self)
         for writer in self.writers:
             writer.activate(self)
 
@@ -70,3 +67,8 @@ class Config:
     @property
     def values(self) -> tuple[float, ...]:
         return tuple(c.value for c in self.coefficients)
+
+    def run(self) -> None:
+        self.calibrator.calibrate()
+        for writer in self.writers:
+            writer.write()

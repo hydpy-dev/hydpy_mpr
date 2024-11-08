@@ -1,18 +1,18 @@
 import dataclasses
-import hydpy_mpr as mpr
+import hydpy_mpr
 
 
 @dataclasses.dataclass
-class FC(mpr.RasterEquation):
+class FC(hydpy_mpr.RasterEquation):
     file_sand: str
     file_clay: str
 
-    data_sand: mpr.RasterFloat = dataclasses.field(init=False)
-    data_clay: mpr.RasterFloat = dataclasses.field(init=False)
+    data_sand: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+    data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
-    coef_const: mpr.Coefficient
-    coef_factor_sand: mpr.Coefficient
-    coef_factor_clay: mpr.Coefficient
+    coef_const: hydpy_mpr.Coefficient
+    coef_factor_sand: hydpy_mpr.Coefficient
+    coef_factor_clay: hydpy_mpr.Coefficient
 
     def apply_coefficients(self) -> None:
         self.output[:] = (

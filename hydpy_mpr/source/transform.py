@@ -3,7 +3,7 @@ import abc
 
 import hydpy
 
-from hydpy_mpr.source import configuration
+from hydpy_mpr.source import managing
 from hydpy_mpr.source.typing_ import *
 
 
@@ -12,8 +12,8 @@ class RasterTransformer(Generic[TP]):
     selection: hydpy.Selection | None
     model2parameter: dict[str, type[TP]]
     element2parameter: dict[str, TP]
-    task: configuration.RasterTask[TP]
-    config: configuration.Config
+    task: managing.RasterTask[TP]
+    mpr: managing.MPR
 
     def __init__(
         self, *, selection: hydpy.Selection | None = None, **model2parameter: type[TP]
@@ -21,13 +21,11 @@ class RasterTransformer(Generic[TP]):
         self.selection = selection
         self.model2parameter = model2parameter
 
-    def activate(
-        self, config: configuration.Config, /, *, task: configuration.RasterTask[TP]
-    ) -> None:
-        self.config = config
+    def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[TP]) -> None:
+        self.mpr = mpr
         self.task = task
         if self.selection is None:
-            elements = self.config.hp.elements
+            elements = self.mpr.hp.elements
         else:
             elements = self.selection.elements
         element2parameter = {}

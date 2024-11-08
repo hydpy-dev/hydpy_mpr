@@ -5,10 +5,9 @@ from hydpy_mpr import testing
 
 
 from hydpy_mpr.source.calibration import Calibrator, NLOptCalibrator
-from hydpy_mpr.source.configuration import Config, RasterTask
+from hydpy_mpr.source.managing import MPR, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
-from hydpy_mpr.source.running import Runner
 from hydpy_mpr.source.transform import RasterTransformer, TP
 from hydpy_mpr.source.upscaling import RasterUpscaler
 from hydpy_mpr.source.writing import ControlWriter, Writer
@@ -34,7 +33,7 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 __all__ = [
     "Calibrator",
     "Coefficient",
-    "Config",
+    "MPR",
     "ControlWriter",
     "NLOptCalibrator",
     "RasterEquation",
@@ -43,7 +42,6 @@ __all__ = [
     "RasterTask",
     "RasterTransformer",
     "RasterUpscaler",
-    "Runner",
     "TP",
     "Writer",
 ]

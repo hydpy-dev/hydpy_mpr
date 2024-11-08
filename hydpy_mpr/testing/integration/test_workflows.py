@@ -9,7 +9,7 @@ from hydpy.models.hland import hland_control
 import numpy
 import pytest
 
-import hydpy_mpr as mpr
+import hydpy_mpr
 from hydpy_mpr.source.typing_ import *
 
 
@@ -17,17 +17,17 @@ from hydpy_mpr.source.typing_ import *
 def test_raster_workflow(fixture_project: None) -> None:
 
     @dataclasses.dataclass
-    class RasterEquationFC(mpr.RasterEquation):
+    class RasterEquationFC(hydpy_mpr.RasterEquation):
 
         file_sand: str
         file_clay: str
 
-        data_sand: mpr.RasterFloat = dataclasses.field(init=False)
-        data_clay: mpr.RasterFloat = dataclasses.field(init=False)
+        data_sand: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+        data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
-        coef_const: mpr.Coefficient
-        coef_factor_sand: mpr.Coefficient
-        coef_factor_clay: mpr.Coefficient
+        coef_const: hydpy_mpr.Coefficient
+        coef_factor_sand: hydpy_mpr.Coefficient
+        coef_factor_clay: hydpy_mpr.Coefficient
 
         def apply_coefficients(self) -> None:
             self.output[:] = (
@@ -40,12 +40,12 @@ def test_raster_workflow(fixture_project: None) -> None:
         dir_group="raster_5km",
         file_sand="sand_mean_0_200_res5km",
         file_clay="clay_mean_0_200_res5km",
-        coef_const=mpr.Coefficient(name="const", default=200.0),
-        coef_factor_sand=mpr.Coefficient(name="factor_sand", default=-100.0),
-        coef_factor_clay=mpr.Coefficient(name="factor_clay", default=300.0),
+        coef_const=hydpy_mpr.Coefficient(name="const", default=200.0),
+        coef_factor_sand=hydpy_mpr.Coefficient(name="factor_sand", default=-100.0),
+        coef_factor_clay=hydpy_mpr.Coefficient(name="factor_clay", default=300.0),
     )
 
-    class RasterMean(mpr.RasterUpscaler):
+    class RasterMean(hydpy_mpr.RasterUpscaler):
         def scale_up(self) -> None:
             id2value = self.id2value
             output = self.task.equation.output
@@ -55,37 +55,36 @@ def test_raster_workflow(fixture_project: None) -> None:
                     output[numpy.where(id_ == id_raster.values)]
                 )
 
-    class RasterIdentityTransformer(mpr.RasterTransformer[TP]):
+    class RasterIdentityTransformer(hydpy_mpr.RasterTransformer[TP]):
 
         def modify_parameter(self, parameter: TP, value: float64) -> None:
             parameter(value)
 
-    class MyCalibrator(mpr.NLOptCalibrator):
+    class MyCalibrator(hydpy_mpr.NLOptCalibrator):
 
         def calculate_likelihood(self) -> float:
-            return sum(hydpy.nse(node=node) for node in self.config.hp.nodes) / 4.0
+            return sum(hydpy.nse(node=node) for node in self.mpr.hp.nodes) / 4.0
 
     hp = hydpy.HydPy("HydPy-H-Lahn")
     pub.timegrids = "1996-01-01", "1997-01-01", "1d"
     hp.prepare_everything()
 
-    config = mpr.Config(
+    mpr = hydpy_mpr.MPR(
         hp=hp,
         tasks=[
-            mpr.RasterTask(
+            hydpy_mpr.RasterTask(
                 equation=fc,
                 upscaler=RasterMean(),
                 transformers=[RasterIdentityTransformer(hland_96=hland_control.FC)],
             )
         ],
         calibrator=MyCalibrator(maxeval=100),
-        runner=mpr.Runner(),
-        writers=[mpr.ControlWriter(controldir="experiment_1")],
+        writers=[hydpy_mpr.ControlWriter(controldir="experiment_1")],
     )
 
-    config.runner.run()
-    assert config.calibrator.likelihood == pytest.approx(0.8252895637383195)
-    assert config.calibrator.values == pytest.approx(
+    mpr.run()
+    assert mpr.calibrator.likelihood == pytest.approx(0.8252895637383195)
+    assert mpr.calibrator.values == pytest.approx(
         [-1882.09175855596, 972.6897246013439, -259.8097340328786]
     )
     fc_values = hp.elements["land_dill_assl"].model.parameters.control.fc.values

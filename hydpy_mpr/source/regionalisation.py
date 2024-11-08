@@ -4,7 +4,7 @@ import dataclasses
 
 import numpy
 
-from hydpy_mpr.source import configuration
+from hydpy_mpr.source import managing
 from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
@@ -91,17 +91,15 @@ class RasterEquation(abc.ABC):
     """
 
     dir_group: str
-    config: configuration.Config = dataclasses.field(init=False)
+    mpr: managing.MPR = dataclasses.field(init=False)
     _group: reading.RasterGroup | None = dataclasses.field(
         init=False, default_factory=lambda: None
     )
     mask: MatrixFloat = dataclasses.field(init=False)
     output: MatrixFloat = dataclasses.field(init=False)
 
-    def activate(
-        self, config: configuration.Config, raster_groups: reading.RasterGroups
-    ) -> None:
-        self.config = config
+    def activate(self, mpr: managing.MPR, raster_groups: reading.RasterGroups) -> None:
+        self.mpr = mpr
         group = raster_groups[self.dir_group]
         self._group = group
         self.mask = numpy.full(self.shape, True, dtype=bool)

@@ -1,8 +1,8 @@
-import hydpy_mpr as mpr
+import hydpy_mpr
 import numpy
 
 
-class RasterMean(mpr.RasterUpscaler):
+class RasterMean(hydpy_mpr.RasterUpscaler):
 
     def scale_up(self) -> None:
         id2value = self.id2value

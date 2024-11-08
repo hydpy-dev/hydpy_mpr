@@ -1,5 +1,5 @@
 from hydpy.models.hland import hland_control
-import hydpy_mpr as mpr
+import hydpy_mpr
 
 import calibrators
 import coefficients
@@ -8,10 +8,10 @@ import initialisers
 import upscalers
 import transformers
 
-config = mpr.Config(
+mpr = hydpy_mpr.MPR(
     hp=initialisers.initialise_lahn(),
     tasks=[
-        mpr.RasterTask(
+        hydpy_mpr.RasterTask(
             equation=equations.FC(
                 dir_group="raster_5km",
                 file_sand="sand_mean_0_200_res5km",
@@ -27,10 +27,9 @@ config = mpr.Config(
         )
     ],
     calibrator=calibrators.MyCalibrator(maxeval=100),
-    runner=mpr.Runner(),
-    writers=[mpr.ControlWriter(controldir="experiment_1")],
+    writers=[hydpy_mpr.ControlWriter(controldir="experiment_1")],
 )
 
 
 if __name__ == "__main__":
-    config.runner.run(maxeval=100)
+    mpr.run()
