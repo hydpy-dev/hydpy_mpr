@@ -14,4 +14,5 @@ class Runner:
 
     def run(self, maxeval: int) -> None:
         self.config.calibrator.calibrate(maxeval=maxeval)
-        self.config.writer.write()
+        for writer in self.config.writers:
+            writer.write()

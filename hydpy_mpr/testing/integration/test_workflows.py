@@ -80,7 +80,7 @@ def test_raster_workflow(fixture_project: None) -> None:
         ],
         calibrator=MyCalibrator(),
         runner=mpr.Runner(),
-        writer=mpr.Writer(controldir="experiment_1"),
+        writers=[mpr.ControlWriter(controldir="experiment_1")],
     )
 
     config.runner.run(maxeval=100)

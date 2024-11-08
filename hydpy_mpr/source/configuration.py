@@ -35,7 +35,7 @@ class Config:
     tasks: list[RasterTask[Any]]
     calibrator: calibration.Calibrator
     runner: running.Runner
-    writer: writing.Writer
+    writers: list[writing.Writer] = field(default_factory=lambda: [])
     subequations: list[regionalisation.RasterEquation] | None = field(
         default_factory=lambda: None
     )
@@ -49,7 +49,8 @@ class Config:
                 transformer.activate(self, task=task)
         self.calibrator.activate(self)
         self.runner.activate(self)
-        self.writer.activate(self)
+        for writer in self.writers:
+            writer.activate(self)
 
     @property
     def coefficients(self) -> tuple[regionalisation.Coefficient, ...]:

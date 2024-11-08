@@ -28,7 +28,7 @@ config = mpr.Config(
     ],
     calibrator=calibrators.MyCalibrator(),
     runner=mpr.Runner(),
-    writer=mpr.Writer(controldir="experiment_1"),
+    writers=[mpr.ControlWriter(controldir="experiment_1")],
 )
 
 
