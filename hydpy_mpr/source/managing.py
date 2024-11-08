@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 
 import hydpy
 
-from hydpy_mpr.source import calibration
-from hydpy_mpr.source import regionalisation
+from hydpy_mpr.source import calibrating
+from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
 from hydpy_mpr.source import upscaling
-from hydpy_mpr.source import transform
+from hydpy_mpr.source import transforming
 from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
@@ -15,9 +15,9 @@ from hydpy_mpr.source.typing_ import *
 @dataclass
 class RasterTask(Generic[TP]):
 
-    equation: regionalisation.RasterEquation
+    equation: regionalising.RasterEquation
     upscaler: upscaling.RasterUpscaler
-    transformers: list[transform.RasterTransformer[TP]]
+    transformers: list[transforming.RasterTransformer[TP]]
 
     def run(self) -> None:
         self.equation.apply_coefficients()
@@ -32,9 +32,9 @@ class MPR:
 
     hp: hydpy.HydPy
     tasks: list[RasterTask[Any]]
-    calibrator: calibration.Calibrator
+    calibrator: calibrating.Calibrator
     writers: list[writing.Writer] = field(default_factory=lambda: [])
-    subequations: list[regionalisation.RasterEquation] | None = field(
+    subequations: list[regionalising.RasterEquation] | None = field(
         default_factory=lambda: None
     )
 
@@ -50,8 +50,8 @@ class MPR:
             writer.activate(self)
 
     @property
-    def coefficients(self) -> tuple[regionalisation.Coefficient, ...]:
-        coefficients: set[regionalisation.Coefficient] = set()
+    def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
+        coefficients: set[regionalising.Coefficient] = set()
         for task in self.tasks:
             coefficients.update(task.equation.coefficients)
         return tuple(sorted(coefficients, key=lambda c: c.name))
