@@ -1,5 +1,6 @@
 from __future__ import annotations
 import abc
+import dataclasses
 
 from hydpy.core import typingtools
 import nlopt
@@ -9,12 +10,13 @@ from hydpy_mpr.source import configuration
 from hydpy_mpr.source.typing_ import *
 
 
+@dataclasses.dataclass
 class Calibrator(abc.ABC):
 
-    conditions: typingtools.Conditions
-    config: configuration.Config
-    values: tuple[float, ...]
-    likelihood: float
+    conditions: typingtools.Conditions = dataclasses.field(init=False)
+    config: configuration.Config = dataclasses.field(init=False)
+    values: tuple[float, ...] = dataclasses.field(init=False)
+    likelihood: float = dataclasses.field(init=False)
 
     def activate(self, config: configuration.Config, /) -> None:
         self.config = config
@@ -40,10 +42,21 @@ class Calibrator(abc.ABC):
         likelihood = self.calculate_likelihood()
         return likelihood
 
-    def calibrate(self, *, maxeval: int | None = None) -> None:
+    @abc.abstractmethod
+    def calibrate(self) -> None:
+        pass
+
+
+@dataclasses.dataclass
+class NLOptCalibrator(Calibrator, abc.ABC):
+
+    algorithm: int = dataclasses.field(default_factory=lambda: nlopt.LN_BOBYQA)
+    maxeval: int | None = dataclasses.field(default_factory=lambda: None)
+
+    def calibrate(self) -> None:
         config = self.config
-        optimiser = nlopt.opt(nlopt.LN_BOBYQA, len(config.coefficients))
-        if maxeval is not None:
+        optimiser = nlopt.opt(self.algorithm, len(config.coefficients))
+        if (maxeval := self.maxeval) is not None:
             optimiser.set_maxeval(maxeval=maxeval)
         optimiser.set_lower_bounds(config.lowers)
         optimiser.set_upper_bounds(config.uppers)

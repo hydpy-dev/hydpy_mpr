@@ -12,7 +12,7 @@ class Runner:
     def activate(self, config: configuration.Config) -> None:
         self.config = config
 
-    def run(self, maxeval: int) -> None:
-        self.config.calibrator.calibrate(maxeval=maxeval)
+    def run(self) -> None:
+        self.config.calibrator.calibrate()
         for writer in self.config.writers:
             writer.write()

@@ -60,7 +60,7 @@ def test_raster_workflow(fixture_project: None) -> None:
         def modify_parameter(self, parameter: TP, value: float64) -> None:
             parameter(value)
 
-    class MyCalibrator(mpr.Calibrator):
+    class MyCalibrator(mpr.NLOptCalibrator):
 
         def calculate_likelihood(self) -> float:
             return sum(hydpy.nse(node=node) for node in self.config.hp.nodes) / 4.0
@@ -78,12 +78,12 @@ def test_raster_workflow(fixture_project: None) -> None:
                 transformers=[RasterIdentityTransformer(hland_96=hland_control.FC)],
             )
         ],
-        calibrator=MyCalibrator(),
+        calibrator=MyCalibrator(maxeval=100),
         runner=mpr.Runner(),
         writers=[mpr.ControlWriter(controldir="experiment_1")],
     )
 
-    config.runner.run(maxeval=100)
+    config.runner.run()
     assert config.calibrator.likelihood == pytest.approx(0.8252895637383195)
     assert config.calibrator.values == pytest.approx(
         [-1882.09175855596, 972.6897246013439, -259.8097340328786]

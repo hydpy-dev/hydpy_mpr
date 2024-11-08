@@ -4,7 +4,7 @@ import os
 from hydpy_mpr import testing
 
 
-from hydpy_mpr.source.calibration import Calibrator
+from hydpy_mpr.source.calibration import Calibrator, NLOptCalibrator
 from hydpy_mpr.source.configuration import Config, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalisation import Coefficient, RasterEquation
@@ -36,6 +36,7 @@ __all__ = [
     "Coefficient",
     "Config",
     "ControlWriter",
+    "NLOptCalibrator",
     "RasterEquation",
     "RasterFloat",
     "RasterGroup",

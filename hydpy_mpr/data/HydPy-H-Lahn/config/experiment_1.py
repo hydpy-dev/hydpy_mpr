@@ -26,7 +26,7 @@ config = mpr.Config(
             ],
         )
     ],
-    calibrator=calibrators.MyCalibrator(),
+    calibrator=calibrators.MyCalibrator(maxeval=100),
     runner=mpr.Runner(),
     writers=[mpr.ControlWriter(controldir="experiment_1")],
 )
