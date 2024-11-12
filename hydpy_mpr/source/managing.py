@@ -19,6 +19,8 @@ class RasterTask(Generic[TP]):
     equation: regionalising.RasterEquation
     upscaler: upscaling.RasterElementUpscaler
     transformers: list[transforming.RasterTransformer[TP]]
+    mask: MatrixBool = dataclasses.field(init=False)
+
     def activate(self, mpr: MPR, /, raster_groups: reading.RasterGroups) -> None:
         self.mpr = mpr
         self.equation.activate(self.mpr, raster_groups=raster_groups)
@@ -26,6 +28,12 @@ class RasterTask(Generic[TP]):
         for transformer in self.transformers:
             transformer.activate(self.mpr, task=self)
 
+        group = self.equation.group
+        self.mask = group.element_raster.mask.copy()
+        if isinstance(self.upscaler, upscaling.RasterSubunitUpscaler):
+            self.mask *= group.subunit_raster.mask  # ToDo: better error message
+        for raster in self.equation.inputs.values():
+            self.mask *= raster.mask
 
     def run(self) -> None:
         self.equation.apply_coefficients()
