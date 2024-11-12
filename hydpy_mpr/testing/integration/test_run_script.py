@@ -12,10 +12,10 @@ def test_example_1(
     arrange_project: None,
     dirpath_project: str,
     dirpath_config: str,
-    dirpath_experiment1: str,
+    filepath_experiment1: str,
 ) -> None:
     sys.path.insert(0, dirpath_config)
-    runpy.run_path(dirpath_experiment1, run_name="__main__")
+    runpy.run_path(filepath_experiment1, run_name="__main__")
     result = runpy.run_path(
         os.path.join(dirpath_project, "control", "experiment_1", "land_dill_assl.py")
     )

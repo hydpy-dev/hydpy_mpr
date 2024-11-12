@@ -14,11 +14,11 @@ mpr = hydpy_mpr.MPR(
         hydpy_mpr.RasterTask(
             equation=equations.FC(
                 dir_group="raster_5km",
-                file_sand="sand_mean_0_200_res5km",
                 file_clay="clay_mean_0_200_res5km",
+                file_density="bdod_mean_0_200_res15km_gcm3",
                 coef_const=coefficients.coef_const,
-                coef_factor_sand=coefficients.coef_factor_sand,
                 coef_factor_clay=coefficients.coef_factor_clay,
+                coef_factor_density=coefficients.coef_factor_density,
             ),
             upscaler=upscalers.RasterElementMean(),
             transformers=[
