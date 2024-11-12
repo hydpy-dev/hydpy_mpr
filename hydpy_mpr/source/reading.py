@@ -137,6 +137,7 @@ class Raster(Generic[TM]):
     def __post_init__(self) -> None:
         self.shape = self.values.shape
 
+    @override
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Raster):
             fields_self = tuple(field.name for field in dataclasses.fields(self))

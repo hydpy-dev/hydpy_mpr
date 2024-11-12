@@ -53,6 +53,7 @@ class NLOptCalibrator(Calibrator, abc.ABC):
     algorithm: int = dataclasses.field(default_factory=lambda: nlopt.LN_BOBYQA)
     maxeval: int | None = dataclasses.field(default_factory=lambda: None)
 
+    @override
     def calibrate(self) -> None:
         mpr = self.mpr
         optimiser = nlopt.opt(self.algorithm, len(mpr.coefficients))

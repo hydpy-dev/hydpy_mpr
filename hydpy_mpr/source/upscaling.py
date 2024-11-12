@@ -46,6 +46,7 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
     id2idx2value: dict[int64, dict[int64, float]] = dataclasses.field(init=False)
 
+    @override
     def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[Any]) -> None:
         super().activate(mpr, task=task)
         element_raster = self.task.equation.group.element_raster.values

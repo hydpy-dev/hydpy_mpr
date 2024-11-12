@@ -29,6 +29,7 @@ def test_raster_workflow(arrange_project: None) -> None:
         coef_factor_sand: hydpy_mpr.Coefficient
         coef_factor_clay: hydpy_mpr.Coefficient
 
+        @override
         def apply_coefficients(self) -> None:
             self.output[:] = (
                 self.coef_const.value
@@ -46,6 +47,7 @@ def test_raster_workflow(arrange_project: None) -> None:
     )
 
     class RasterMean(hydpy_mpr.RasterElementUpscaler):
+        @override
         def scale_up(self) -> None:
             id2value = self.id2value
             output = self.task.equation.output
@@ -57,11 +59,13 @@ def test_raster_workflow(arrange_project: None) -> None:
 
     class RasterIdentityTransformer(hydpy_mpr.RasterTransformer[TP]):
 
+        @override
         def modify_parameter(self, parameter: TP, value: float64) -> None:
             parameter(value)
 
     class MyCalibrator(hydpy_mpr.NLOptCalibrator):
 
+        @override
         def calculate_likelihood(self) -> float:
             return sum(hydpy.nse(node=node) for node in self.mpr.hp.nodes) / 4.0
 

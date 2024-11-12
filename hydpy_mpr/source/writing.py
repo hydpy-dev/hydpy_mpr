@@ -5,6 +5,7 @@ import dataclasses
 from hydpy import pub
 
 from hydpy_mpr.source import managing
+from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass
@@ -24,6 +25,7 @@ class Writer(abc.ABC):
 
 class ControlWriter(Writer):
 
+    @override
     def write(self) -> None:
         mpr = self.mpr
         calib = mpr.calibrator

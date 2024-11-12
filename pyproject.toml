@@ -14,6 +14,10 @@ warn_redundant_casts = true
 warn_unreachable = true
 exclude = "iotesting"
 
+[[tool.mypy.overrides]]
+module = ["hydpy_mpr.source.*", "hydpy_mpr.testing.*"]
+enable_error_code = "explicit-override"
+
 [tool.pylint.main]
 allow-wildcard-with-all = true
 
