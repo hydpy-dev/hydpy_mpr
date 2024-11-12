@@ -16,7 +16,7 @@ from hydpy_mpr.source.typing_ import *
 class RasterTask(Generic[TP]):
 
     equation: regionalising.RasterEquation
-    upscaler: upscaling.RasterUpscaler
+    upscaler: upscaling.RasterElementUpscaler
     transformers: list[transforming.RasterTransformer[TP]]
 
     def run(self) -> None:
@@ -39,7 +39,7 @@ class MPR:
     )
 
     def __post_init__(self) -> None:
-        raster_groups = reading.read_rastergroups("HydPy-H-Lahn/mpr_data")  # ToDo
+        raster_groups = reading.RasterGroups("HydPy-H-Lahn/mpr_data")  # ToDo
         for task in self.tasks:
             task.equation.activate(self, raster_groups=raster_groups)
             task.upscaler.activate(self, task=task)

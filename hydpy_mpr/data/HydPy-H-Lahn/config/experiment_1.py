@@ -20,7 +20,7 @@ mpr = hydpy_mpr.MPR(
                 coef_factor_sand=coefficients.coef_factor_sand,
                 coef_factor_clay=coefficients.coef_factor_clay,
             ),
-            upscaler=upscalers.RasterMean(),
+            upscaler=upscalers.RasterElementMean(),
             transformers=[
                 transformers.RasterIdentityTransformer(hland_96=hland_control.FC)
             ],

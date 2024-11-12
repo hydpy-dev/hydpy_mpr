@@ -45,11 +45,11 @@ def test_raster_workflow(arrange_project: None) -> None:
         coef_factor_clay=hydpy_mpr.Coefficient(name="factor_clay", default=300.0),
     )
 
-    class RasterMean(hydpy_mpr.RasterUpscaler):
+    class RasterMean(hydpy_mpr.RasterElementUpscaler):
         def scale_up(self) -> None:
             id2value = self.id2value
             output = self.task.equation.output
-            id_raster = self.task.equation.group.id_raster
+            id_raster = self.task.equation.group.element_raster
             for id_ in id2value:
                 id2value[id_] = numpy.nanmean(
                     output[numpy.where(id_ == id_raster.values)]

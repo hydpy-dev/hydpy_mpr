@@ -137,7 +137,7 @@ class RasterEquation(abc.ABC):
             name: value
             for field in dataclasses.fields(self)
             if ((name := field.name) != "output")
-            and isinstance(value := getattr(self, name), reading.Raster)
+            and isinstance(value := getattr(self, name), reading.RasterFloat)
         }
 
     @property

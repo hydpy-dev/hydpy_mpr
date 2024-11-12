@@ -9,7 +9,7 @@ from hydpy_mpr.source.managing import MPR, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalising import Coefficient, RasterEquation
 from hydpy_mpr.source.transforming import RasterTransformer, TP
-from hydpy_mpr.source.upscaling import RasterUpscaler
+from hydpy_mpr.source.upscaling import RasterElementUpscaler, RasterSubunitUpscaler
 from hydpy_mpr.source.writing import ControlWriter, Writer
 
 
@@ -39,9 +39,10 @@ __all__ = [
     "RasterEquation",
     "RasterFloat",
     "RasterGroup",
+    "RasterSubunitUpscaler",
     "RasterTask",
     "RasterTransformer",
-    "RasterUpscaler",
+    "RasterElementUpscaler",
     "TP",
     "Writer",
 ]

@@ -28,7 +28,7 @@ from hydpy.core.typingtools import (
     VectorInt,
 )
 from numpy import int64, float64
-from typing_extensions import assert_never, Self
+from typing_extensions import assert_never, override, Self
 
 
 MappingTable: TypeAlias = dict[int64, str]
@@ -53,6 +53,7 @@ __all__ = [
     "MatrixFloat",
     "MatrixInt",
     "overload",
+    "override",
     "Vector",
     "VectorBool",
     "VectorFloat",
