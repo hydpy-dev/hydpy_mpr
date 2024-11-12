@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+import dataclasses
 
 import hydpy
 
@@ -12,12 +12,20 @@ from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclass
+@dataclasses.dataclass
 class RasterTask(Generic[TP]):
 
+    mpr: MPR = dataclasses.field(init=False)
     equation: regionalising.RasterEquation
     upscaler: upscaling.RasterElementUpscaler
     transformers: list[transforming.RasterTransformer[TP]]
+    def activate(self, mpr: MPR, /, raster_groups: reading.RasterGroups) -> None:
+        self.mpr = mpr
+        self.equation.activate(self.mpr, raster_groups=raster_groups)
+        self.upscaler.activate(self.mpr, task=self)
+        for transformer in self.transformers:
+            transformer.activate(self.mpr, task=self)
+
 
     def run(self) -> None:
         self.equation.apply_coefficients()
@@ -27,24 +35,22 @@ class RasterTask(Generic[TP]):
             transformer.modify_parameters()
 
 
-@dataclass
+@dataclasses.dataclass
 class MPR:
 
+    mprpath: str
     hp: hydpy.HydPy
     tasks: list[RasterTask[Any]]
     calibrator: calibrating.Calibrator
-    writers: list[writing.Writer] = field(default_factory=lambda: [])
-    subequations: list[regionalising.RasterEquation] | None = field(
+    writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
+    subequations: list[regionalising.RasterEquation] | None = dataclasses.field(
         default_factory=lambda: None
     )
 
     def __post_init__(self) -> None:
-        raster_groups = reading.RasterGroups("HydPy-H-Lahn/mpr_data")  # ToDo
+        raster_groups = reading.RasterGroups(self.mprpath)
         for task in self.tasks:
-            task.equation.activate(self, raster_groups=raster_groups)
-            task.upscaler.activate(self, task=task)
-            for transformer in task.transformers:
-                transformer.activate(self, task=task)
+            task.activate(self, raster_groups=raster_groups)
         self.calibrator.activate(self)
         for writer in self.writers:
             writer.activate(self)

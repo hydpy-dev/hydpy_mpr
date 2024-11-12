@@ -1,3 +1,5 @@
+import os
+
 from hydpy.models.hland import hland_control
 import hydpy_mpr
 
@@ -9,6 +11,7 @@ import upscalers
 import transformers
 
 mpr = hydpy_mpr.MPR(
+    mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
     hp=initialisers.initialise_lahn(),
     tasks=[
         hydpy_mpr.RasterTask(

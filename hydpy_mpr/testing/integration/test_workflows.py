@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import dataclasses
+import os
 
 import hydpy
 from hydpy import pub
@@ -74,6 +75,7 @@ def test_raster_workflow(arrange_project: None) -> None:
     hp.prepare_everything()
 
     mpr = hydpy_mpr.MPR(
+        mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
         hp=hp,
         tasks=[
             hydpy_mpr.RasterTask(
