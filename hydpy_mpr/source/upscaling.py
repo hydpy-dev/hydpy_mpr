@@ -46,18 +46,20 @@ class RasterElementUpscaler(RasterUpscaler, abc.ABC):
 @dataclasses.dataclass
 class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
-    id2idx2value: dict[int64, dict[int64, float]] = dataclasses.field(init=False)
+    id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
 
     @override
     def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[Any]) -> None:
         super().activate(mpr, task=task)
-        element_raster = self.task.equation.group.element_raster.values
+        group = self.task.equation.group
+        element_raster = group.element_raster.values
+        subunit_raster = group.subunit_raster.values
         id2idx2value = {}
-        for id_ in self.task.equation.group.id2element:
+        for id_ in group.id2element:
             idx2value = {}
-            idxs = numpy.unique(element_raster[numpy.where(element_raster == id_)])
+            idxs = numpy.unique(subunit_raster[numpy.where(element_raster == id_)])
             for idx in sorted(idxs):
-                idx2value[idx] = numpy.nan
+                idx2value[int64(idx)] = float64(numpy.nan)
             id2idx2value[id_] = idx2value
         self.id2idx2value = id2idx2value
 
@@ -84,6 +86,31 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
                 id2value[id_] = function(output[idxs])
             else:
                 id2value[id_] = float64(numpy.nan)
+
+
+@dataclasses.dataclass
+class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
+
+    function: UpscalingOption = constants.UP_A
+    _function: UpscalingFunction = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self._function = _query_function(self.function)
+
+    @override
+    def scale_up(self) -> None:
+        output = self.task.equation.output
+        element_raster = self.task.equation.group.element_raster.values
+        subunit_raster = self.task.equation.group.subunit_raster.values
+        function = self._function
+        for id_, idx2value in self.id2idx2value.items():
+            idx_raster_element = element_raster == id_
+            for idx in idx2value:
+                idx_raster_subunit = idx_raster_element * (subunit_raster == idx)
+                if numpy.any(idx_raster_subunit):
+                    idx2value[idx] = function(output[idx_raster_subunit])
+                else:
+                    idx2value[idx] = float64(numpy.nan)
 
 
 def _query_function(function: UpscalingOption) -> UpscalingFunction:

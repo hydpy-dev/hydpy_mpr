@@ -17,7 +17,7 @@ class RasterTask(Generic[TP]):
 
     mpr: MPR = dataclasses.field(init=False)
     equation: regionalising.RasterEquation
-    upscaler: upscaling.RasterElementUpscaler
+    upscaler: upscaling.RasterElementUpscaler | upscaling.RasterSubunitUpscaler
     transformers: list[transforming.RasterTransformer[TP]]
     mask: MatrixBool = dataclasses.field(init=False)
 

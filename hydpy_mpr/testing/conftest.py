@@ -155,11 +155,11 @@ def task_15km(
     equation_fc: regionalising.RasterEquation,
     request: UpscalingFunction,
 ) -> managing.RasterTask[hland_control.FC]:
-    function = getattr(request, "param", constants.UP_A)
+    upscaler, function = getattr(
+        request, "param", (upscaling.RasterElementDefaultUpscaler, constants.UP_A)
+    )
     task = managing.RasterTask[hland_control.FC](
-        equation=equation_fc,
-        upscaler=upscaling.RasterElementDefaultUpscaler(function=function),
-        transformers=[],
+        equation=equation_fc, upscaler=upscaler(function=function), transformers=[]
     )
     mpr = cast(managing.MPR, None)
     task.activate(mpr, reading.RasterGroups(mprpath=dirpath_mpr_data))
