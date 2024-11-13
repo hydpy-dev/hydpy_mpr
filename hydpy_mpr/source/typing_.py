@@ -36,6 +36,11 @@ MappingTable: TypeAlias = dict[int64, str]
 
 TP = TypeVar("TP", bound=Parameter)
 
+UpscalingFunction: TypeAlias = Callable[[MatrixFloat], float64]
+
+UpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
+    UpscalingFunction | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
+)
 
 __all__ = [
     "Any",
@@ -65,4 +70,6 @@ __all__ = [
     "TP",
     "TypeAlias",
     "TypeVar",
+    "UpscalingOption",
+    "UpscalingFunction",
 ]

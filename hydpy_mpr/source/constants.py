@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
+from hydpy_mpr.source.typing_ import *
 
-# Default no data value for float raster data:
-NODATA_FLOAT = -9999.0
-
-# Default no data value for integer raster data:
-NODATA_INT = -9999
 
 # Name of the raster directory:
 RASTER = "raster"
@@ -27,3 +23,8 @@ ELEMENT_NAME = "element_name"
 
 # Name of the subunit ID raster file:
 SUBUNIT_ID = "subunit_id"
+
+# Names of the default upscaling methods (note: synchronise with `typing_`):
+UP_A: Literal["arithmetic_mean"] = "arithmetic_mean"
+UP_G: Literal["geometric_mean"] = "geometric_mean"
+UP_H: Literal["harmonic_mean"] = "harmonic_mean"

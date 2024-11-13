@@ -2,16 +2,6 @@ import hydpy_mpr
 import numpy
 
 
-class RasterElementMean(hydpy_mpr.RasterElementUpscaler):
-
-    def scale_up(self) -> None:
-        id2value = self.id2value
-        output = self.task.equation.output
-        id_raster = self.task.equation.group.element_raster.values
-        for id_ in id2value:
-            id2value[id_] = numpy.nanmean(output[numpy.where(id_ == id_raster)])
-
-
 class RasterSubunitMean(hydpy_mpr.RasterSubunitUpscaler):
 
     def scale_up(self) -> None:

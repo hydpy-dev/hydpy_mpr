@@ -3,7 +3,9 @@ import abc
 import dataclasses
 
 import numpy
+from scipy import stats
 
+from hydpy_mpr.source import constants
 from hydpy_mpr.source import managing
 from hydpy_mpr.source.typing_ import *
 
@@ -58,3 +60,39 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
                 idx2value[idx] = numpy.nan
             id2idx2value[id_] = idx2value
         self.id2idx2value = id2idx2value
+
+
+@dataclasses.dataclass
+class RasterElementDefaultUpscaler(RasterElementUpscaler):
+
+    function: UpscalingOption = constants.UP_A
+    _function: UpscalingFunction = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self._function = _query_function(self.function)
+
+    @override
+    def scale_up(self) -> None:
+        id2value = self.id2value
+        output = self.task.equation.output[self.task.mask]
+        group = self.task.equation.group
+        id_raster = group.element_raster.values[self.task.mask]
+        function = self._function
+        for id_ in id2value:
+            idxs = id_ == id_raster
+            if numpy.any(idxs):
+                id2value[id_] = function(output[idxs])
+            else:
+                id2value[id_] = float64(numpy.nan)
+
+
+def _query_function(function: UpscalingOption) -> UpscalingFunction:
+    match function:
+        case constants.UP_A:
+            return numpy.mean
+        case constants.UP_H:
+            return stats.hmean  # type: ignore[no-any-return]
+        case constants.UP_G:
+            return stats.gmean  # type: ignore[no-any-return]
+        case _:
+            return function

@@ -7,7 +7,6 @@ import calibrators
 import coefficients
 import equations
 import initialisers
-import upscalers
 import transformers
 
 mpr = hydpy_mpr.MPR(
@@ -23,7 +22,7 @@ mpr = hydpy_mpr.MPR(
                 coef_factor_clay=coefficients.coef_factor_clay,
                 coef_factor_density=coefficients.coef_factor_density,
             ),
-            upscaler=upscalers.RasterElementMean(),
+            upscaler=hydpy_mpr.RasterElementDefaultUpscaler(function="arithmetic_mean"),
             transformers=[
                 transformers.RasterIdentityTransformer(hland_96=hland_control.FC)
             ],

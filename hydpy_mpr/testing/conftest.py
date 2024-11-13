@@ -6,11 +6,14 @@ import os
 import runpy
 
 from hydpy import pub
+from hydpy.models.hland import hland_control
 import pytest
 
 from hydpy_mpr.source import constants
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
+from hydpy_mpr.source import managing
+from hydpy_mpr.source import upscaling
 from hydpy_mpr.source.typing_ import *
 from hydpy_mpr import testing
 
@@ -114,6 +117,12 @@ def arrange_project(dirpath_project: Literal["HydPy-H-Lahn"]) -> Iterator[None]:
         yield
         reset_workingdir()
 
+
+@pytest.fixture
+def expected(request: pytest.FixtureRequest) -> Any:
+    return request.param
+
+
 @pytest.fixture
 def equation_fc(
     arrange_project: None,
@@ -138,3 +147,20 @@ def equation_fc(
     fc.activate(mpr, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
     return fc
 
+
+@pytest.fixture
+def task_15km(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    equation_fc: regionalising.RasterEquation,
+    request: UpscalingFunction,
+) -> managing.RasterTask[hland_control.FC]:
+    function = getattr(request, "param", constants.UP_A)
+    task = managing.RasterTask[hland_control.FC](
+        equation=equation_fc,
+        upscaler=upscaling.RasterElementDefaultUpscaler(function=function),
+        transformers=[],
+    )
+    mpr = cast(managing.MPR, None)
+    task.activate(mpr, reading.RasterGroups(mprpath=dirpath_mpr_data))
+    return task
