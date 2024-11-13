@@ -63,6 +63,11 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
             id2idx2value[id_] = idx2value
         self.id2idx2value = id2idx2value
 
+    @property
+    def name2idx2value(self) -> dict[str, dict[int64, float64]]:
+        id2element = self.task.equation.group.id2element
+        return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
+
 
 @dataclasses.dataclass
 class RasterElementDefaultUpscaler(RasterElementUpscaler):

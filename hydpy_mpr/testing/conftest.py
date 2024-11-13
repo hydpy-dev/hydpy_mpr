@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import runpy
 
+import hydpy
 from hydpy import pub
 from hydpy.models.hland import hland_control
 import pytest
@@ -14,6 +15,7 @@ from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
 from hydpy_mpr.source import managing
 from hydpy_mpr.source import upscaling
+from hydpy_mpr.source import transforming
 from hydpy_mpr.source.typing_ import *
 from hydpy_mpr import testing
 
@@ -119,6 +121,15 @@ def arrange_project(dirpath_project: Literal["HydPy-H-Lahn"]) -> Iterator[None]:
 
 
 @pytest.fixture
+def hp(arrange_project: None) -> hydpy.HydPy:
+    hp = hydpy.HydPy("HydPy-H-Lahn")
+    pub.timegrids = "1996-01-01", "1997-01-01", "1d"
+    hp.prepare_network()
+    hp.prepare_models()
+    return hp
+
+
+@pytest.fixture
 def expected(request: pytest.FixtureRequest) -> Any:
     return request.param
 
@@ -150,17 +161,27 @@ def equation_fc(
 
 @pytest.fixture
 def task_15km(
-    arrange_project: None,
+    hp: hydpy.HydPy,
     dirpath_mpr_data: str,
     equation_fc: regionalising.RasterEquation,
-    request: UpscalingFunction,
+    request: pytest.FixtureRequest,
 ) -> managing.RasterTask[hland_control.FC]:
-    upscaler, function = getattr(
-        request, "param", (upscaling.RasterElementDefaultUpscaler, constants.UP_A)
+    upscaler, function, transformer = getattr(
+        request,
+        "param",
+        (
+            upscaling.RasterElementDefaultUpscaler,
+            constants.UP_A,
+            transforming.RasterElementIdentityTransformer,
+        ),
     )
     task = managing.RasterTask[hland_control.FC](
-        equation=equation_fc, upscaler=upscaler(function=function), transformers=[]
+        equation=equation_fc,
+        upscaler=upscaler(function=function),
+        transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
     mpr = cast(managing.MPR, None)
-    task.activate(mpr, reading.RasterGroups(mprpath=dirpath_mpr_data))
+    task.activate(
+        mpr, hp=hp, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data)
+    )
     return task

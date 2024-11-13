@@ -8,10 +8,17 @@ from hydpy_mpr.source.calibrating import Calibrator, NLOptCalibrator
 from hydpy_mpr.source.managing import MPR, RasterTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
 from hydpy_mpr.source.regionalising import Coefficient, RasterEquation
-from hydpy_mpr.source.transforming import RasterTransformer, TP
+from hydpy_mpr.source.transforming import (
+    RasterElementIdentityTransformer,
+    RasterElementTransformer,
+    RasterSubunitIdentityTransformer,
+    RasterSubunitTransformer,
+    TP,
+)
 from hydpy_mpr.source.upscaling import (
     RasterElementDefaultUpscaler,
     RasterElementUpscaler,
+    RasterSubunitDefaultUpscaler,
     RasterSubunitUpscaler,
 )
 from hydpy_mpr.source.writing import ControlWriter, Writer
@@ -41,13 +48,17 @@ __all__ = [
     "ControlWriter",
     "NLOptCalibrator",
     "RasterElementDefaultUpscaler",
+    "RasterElementIdentityTransformer",
     "RasterElementUpscaler",
+    "RasterElementTransformer",
     "RasterEquation",
     "RasterFloat",
     "RasterGroup",
+    "RasterSubunitDefaultUpscaler",
+    "RasterSubunitIdentityTransformer",
     "RasterSubunitUpscaler",
+    "RasterSubunitTransformer",
     "RasterTask",
-    "RasterTransformer",
     "TP",
     "Writer",
 ]

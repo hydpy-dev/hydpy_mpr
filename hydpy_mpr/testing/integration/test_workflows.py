@@ -58,12 +58,6 @@ def test_raster_workflow(arrange_project: None) -> None:
                     output[numpy.where(id_ == id_raster.values)]
                 )
 
-    class RasterIdentityTransformer(hydpy_mpr.RasterTransformer[TP]):
-
-        @override
-        def modify_parameter(self, parameter: TP, value: float64) -> None:
-            parameter(value)
-
     class MyCalibrator(hydpy_mpr.NLOptCalibrator):
 
         @override
@@ -81,7 +75,11 @@ def test_raster_workflow(arrange_project: None) -> None:
             hydpy_mpr.RasterTask(
                 equation=fc,
                 upscaler=RasterMean(),
-                transformers=[RasterIdentityTransformer(hland_96=hland_control.FC)],
+                transformers=[
+                    hydpy_mpr.RasterElementIdentityTransformer(
+                        parameter=hland_control.FC, model="hland_96"
+                    )
+                ],
             )
         ],
         calibrator=MyCalibrator(maxeval=100),

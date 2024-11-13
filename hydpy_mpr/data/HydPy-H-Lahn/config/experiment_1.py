@@ -7,7 +7,6 @@ import calibrators
 import coefficients
 import equations
 import initialisers
-import transformers
 
 mpr = hydpy_mpr.MPR(
     mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
@@ -24,7 +23,9 @@ mpr = hydpy_mpr.MPR(
             ),
             upscaler=hydpy_mpr.RasterElementDefaultUpscaler(function="arithmetic_mean"),
             transformers=[
-                transformers.RasterIdentityTransformer(hland_96=hland_control.FC)
+                hydpy_mpr.RasterElementIdentityTransformer(
+                    parameter=hland_control.FC, model="hland_96"
+                )
             ],
         )
     ],

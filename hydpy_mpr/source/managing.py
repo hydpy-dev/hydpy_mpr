@@ -15,18 +15,22 @@ from hydpy_mpr.source.typing_ import *
 @dataclasses.dataclass
 class RasterTask(Generic[TP]):
 
-    mpr: MPR = dataclasses.field(init=False)
     equation: regionalising.RasterEquation
     upscaler: upscaling.RasterElementUpscaler | upscaling.RasterSubunitUpscaler
     transformers: list[transforming.RasterTransformer[TP]]
+    mpr: MPR = dataclasses.field(init=False)
+    hp: hydpy.HydPy = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
 
-    def activate(self, mpr: MPR, /, raster_groups: reading.RasterGroups) -> None:
+    def activate(
+        self, mpr: MPR, /, hp: hydpy.HydPy, raster_groups: reading.RasterGroups
+    ) -> None:
         self.mpr = mpr
+        self.hp = hp
         self.equation.activate(self.mpr, raster_groups=raster_groups)
         self.upscaler.activate(self.mpr, task=self)
         for transformer in self.transformers:
-            transformer.activate(self.mpr, task=self)
+            transformer.activate(self.mpr, hp=hp, task=self)
 
         group = self.equation.group
         self.mask = group.element_raster.mask.copy()
@@ -58,7 +62,7 @@ class MPR:
     def __post_init__(self) -> None:
         raster_groups = reading.RasterGroups(self.mprpath)
         for task in self.tasks:
-            task.activate(self, raster_groups=raster_groups)
+            task.activate(self, hp=self.hp, raster_groups=raster_groups)
         self.calibrator.activate(self)
         for writer in self.writers:
             writer.activate(self)
