@@ -1,14 +1,23 @@
 # pylint: disable=missing-docstring, unused-argument
 
-from hydpy.models.hland import hland_control
 import numpy
+import pytest
 
+from hydpy_mpr.source import constants
 from hydpy_mpr.source import managing
+from hydpy_mpr.source import transforming
+from hydpy_mpr.source import upscaling
+
+UpElement = upscaling.RasterElementDefaultUpscaler
+TransElement = transforming.RasterElementIdentityTransformer
 
 
-def test_raster_masking(task_15km: managing.RasterTask[hland_control.FC]) -> None:
-    mask = task_15km.mask
-    equation = task_15km.equation
+@pytest.mark.parametrize(
+    "task_element", [(UpElement, constants.UP_A, TransElement)], indirect=True
+)
+def test_raster_masking(task_element: managing.RasterElementTask) -> None:
+    mask = task_element.upscaler.mask
+    equation = task_element.equation
     element = equation.group.element_raster.values
     subunit = equation.group.subunit_raster.values
     clay = equation.data_clay.values  # type: ignore[attr-defined]

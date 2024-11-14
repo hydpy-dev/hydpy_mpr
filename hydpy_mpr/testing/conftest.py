@@ -154,34 +154,49 @@ def equation_fc(
         ),
     )
     assert isinstance(fc, regionalising.RasterEquation)
-    mpr = cast(managing.MPR, None)
-    fc.activate(mpr, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
+    fc.activate(raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
     return fc
 
 
 @pytest.fixture
-def task_15km(
+def task_element(
     hp: hydpy.HydPy,
     dirpath_mpr_data: str,
     equation_fc: regionalising.RasterEquation,
     request: pytest.FixtureRequest,
-) -> managing.RasterTask[hland_control.FC]:
-    upscaler, function, transformer = getattr(
-        request,
-        "param",
-        (
-            upscaling.RasterElementDefaultUpscaler,
-            constants.UP_A,
-            transforming.RasterElementIdentityTransformer,
-        ),
-    )
-    task = managing.RasterTask[hland_control.FC](
+) -> managing.RasterElementTask:
+
+    function: UpscalingOption
+    upscaler, function, transformer = request.param
+    assert issubclass(upscaler, upscaling.RasterElementUpscaler)
+    assert issubclass(transformer, transforming.RasterElementTransformer)
+
+    task = managing.RasterElementTask(
         equation=equation_fc,
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
-    mpr = cast(managing.MPR, None)
-    task.activate(
-        mpr, hp=hp, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data)
+    task.activate(hp=hp, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
+    return task
+
+
+@pytest.fixture
+def task_subunit(
+    hp: hydpy.HydPy,
+    dirpath_mpr_data: str,
+    equation_fc: regionalising.RasterEquation,
+    request: pytest.FixtureRequest,
+) -> managing.RasterSubunitTask:
+
+    function: UpscalingOption
+    upscaler, function, transformer = request.param
+    assert issubclass(upscaler, upscaling.RasterSubunitUpscaler)
+    assert issubclass(transformer, transforming.RasterSubunitTransformer)
+
+    task = managing.RasterSubunitTask(
+        equation=equation_fc,
+        upscaler=upscaler(function=function),
+        transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
+    task.activate(hp=hp, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
     return task

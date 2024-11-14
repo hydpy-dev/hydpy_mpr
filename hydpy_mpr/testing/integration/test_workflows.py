@@ -51,8 +51,8 @@ def test_raster_workflow(arrange_project: None) -> None:
         @override
         def scale_up(self) -> None:
             id2value = self.id2value
-            output = self.task.equation.output
-            id_raster = self.task.equation.group.element_raster
+            output = self.equation.output
+            id_raster = self.equation.group.element_raster
             for id_ in id2value:
                 id2value[id_] = numpy.nanmean(
                     output[numpy.where(id_ == id_raster.values)]
@@ -62,7 +62,7 @@ def test_raster_workflow(arrange_project: None) -> None:
 
         @override
         def calculate_likelihood(self) -> float:
-            return sum(hydpy.nse(node=node) for node in self.mpr.hp.nodes) / 4.0
+            return sum(hydpy.nse(node=node) for node in self.hp.nodes) / 4.0
 
     hp = hydpy.HydPy("HydPy-H-Lahn")
     pub.timegrids = "1996-01-01", "1997-01-01", "1d"
@@ -72,7 +72,7 @@ def test_raster_workflow(arrange_project: None) -> None:
         mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
         hp=hp,
         tasks=[
-            hydpy_mpr.RasterTask(
+            hydpy_mpr.RasterElementTask(
                 equation=fc,
                 upscaler=RasterMean(),
                 transformers=[

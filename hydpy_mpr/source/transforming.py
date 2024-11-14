@@ -5,7 +5,6 @@ import dataclasses
 import hydpy
 import numpy
 
-from hydpy_mpr.source import managing
 from hydpy_mpr.source import upscaling
 from hydpy_mpr.source.typing_ import *
 
@@ -18,14 +17,8 @@ class RasterTransformer(abc.ABC, Generic[TP]):
     selection: hydpy.Selection | None = dataclasses.field(default_factory=lambda: None)
     hp: hydpy.HydPy = dataclasses.field(init=False)
     element2parameter: dict[str, TP] = dataclasses.field(init=False)
-    task: managing.RasterTask[TP] = dataclasses.field(init=False)
-    mpr: managing.MPR = dataclasses.field(init=False)
 
-    def activate(
-        self, mpr: managing.MPR, /, *, task: managing.RasterTask[TP], hp: hydpy.HydPy
-    ) -> None:
-        self.mpr = mpr
-        self.task = task
+    def _activate(self, hp: hydpy.HydPy) -> None:
         self.hp = hp
         if self.selection is None:
             elements = hp.elements
@@ -49,13 +42,11 @@ class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
 
     upscaler: upscaling.RasterElementUpscaler = dataclasses.field(init=False)
 
-    @override
     def activate(
-        self, mpr: managing.MPR, /, *, task: managing.RasterTask[TP], hp: hydpy.HydPy
+        self, *, hp: hydpy.HydPy, upscaler: upscaling.RasterElementUpscaler
     ) -> None:
-        super().activate(mpr, task=task, hp=hp)
-        assert isinstance(task.upscaler, upscaling.RasterElementUpscaler)
-        self.upscaler = task.upscaler
+        super()._activate(hp=hp)
+        self.upscaler = upscaler
 
     @override
     def modify_parameters(self) -> None:
@@ -73,13 +64,11 @@ class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
 class RasterSubunitTransformer(RasterTransformer[TP], abc.ABC):
     upscaler: upscaling.RasterSubunitUpscaler = dataclasses.field(init=False)
 
-    @override
     def activate(
-        self, mpr: managing.MPR, /, *, task: managing.RasterTask[TP], hp: hydpy.HydPy
+        self, *, hp: hydpy.HydPy, upscaler: upscaling.RasterSubunitUpscaler
     ) -> None:
-        super().activate(mpr, task=task, hp=hp)
-        assert isinstance(task.upscaler, upscaling.RasterSubunitUpscaler)
-        self.upscaler = task.upscaler
+        super()._activate(hp=hp)
+        self.upscaler = upscaler
 
     @override
     def modify_parameters(self) -> None:

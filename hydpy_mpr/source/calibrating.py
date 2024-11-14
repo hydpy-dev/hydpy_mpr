@@ -2,27 +2,46 @@ from __future__ import annotations
 import abc
 import dataclasses
 
+import hydpy
 from hydpy.core import typingtools
 import nlopt
 import numpy
 
-from hydpy_mpr.source import managing
+from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass
 class Calibrator(abc.ABC):
-
     conditions: typingtools.Conditions = dataclasses.field(init=False)
-    mpr: managing.MPR = dataclasses.field(init=False)
-    values: tuple[float, ...] = dataclasses.field(init=False)
+    hp: hydpy.HydPy = dataclasses.field(init=False)
+    tasks: Tasks = dataclasses.field(init=False)
     likelihood: float = dataclasses.field(init=False)
 
-    def activate(self, mpr: managing.MPR, /) -> None:
-        self.mpr = mpr
-        self.conditions = mpr.hp.conditions
-        self.values = tuple(mpr.values)
+    def activate(self, *, hp: hydpy.HydPy, tasks: Tasks) -> None:
+        self.hp = hp
+        self.tasks = tasks
+        self.conditions = hp.conditions
         self.likelihood = numpy.nan
+
+    @property
+    def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
+        coefficients: set[regionalising.Coefficient] = set()
+        for task in self.tasks:
+            coefficients.update(task.equation.coefficients)
+        return tuple(sorted(coefficients, key=lambda c: c.name))
+
+    @property
+    def lowers(self) -> tuple[float, ...]:
+        return tuple(c.lower for c in self.coefficients)
+
+    @property
+    def uppers(self) -> tuple[float, ...]:
+        return tuple(c.upper for c in self.coefficients)
+
+    @property
+    def values(self) -> tuple[float, ...]:
+        return tuple(c.value for c in self.coefficients)
 
     @abc.abstractmethod
     def calculate_likelihood(self) -> float: ...
@@ -33,12 +52,12 @@ class Calibrator(abc.ABC):
         *args: Any,
         **kwargs: Any,
     ) -> float:
-        for coefficient, value in zip(self.mpr.coefficients, values):
+        for coefficient, value in zip(self.coefficients, values):
             coefficient.value = value
-        for task in self.mpr.tasks:
+        for task in self.tasks:
             task.run()
-        self.mpr.hp.conditions = self.conditions
-        self.mpr.hp.simulate()
+        self.hp.conditions = self.conditions
+        self.hp.simulate()
         likelihood = self.calculate_likelihood()
         return likelihood
 
@@ -55,12 +74,13 @@ class NLOptCalibrator(Calibrator, abc.ABC):
 
     @override
     def calibrate(self) -> None:
-        mpr = self.mpr
-        optimiser = nlopt.opt(self.algorithm, len(mpr.coefficients))
+        optimiser = nlopt.opt(self.algorithm, len(self.coefficients))
         if (maxeval := self.maxeval) is not None:
             optimiser.set_maxeval(maxeval=maxeval)
-        optimiser.set_lower_bounds(mpr.lowers)
-        optimiser.set_upper_bounds(mpr.uppers)
+        optimiser.set_lower_bounds(self.lowers)
+        optimiser.set_upper_bounds(self.uppers)
         optimiser.set_max_objective(self.perform_calibrationstep)
-        self.values = tuple(optimiser.optimize(self.values))
+        values = optimiser.optimize(self.values)
+        for coefficient, value in zip(self.coefficients, values):
+            coefficient.value = value
         self.likelihood = self.perform_calibrationstep(self.values)

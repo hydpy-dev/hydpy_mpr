@@ -14,6 +14,7 @@ from typing import (
     overload,
     Sequence,
     TypeAlias,
+    TYPE_CHECKING,
     TypeVar,
 )
 
@@ -32,9 +33,17 @@ from numpy import int64, float64
 from typing_extensions import assert_never, override, Self
 
 
+TP = TypeVar("TP", bound=Parameter)
+
+
 MappingTable: TypeAlias = dict[int64, str]
 
-TP = TypeVar("TP", bound=Parameter)
+if TYPE_CHECKING:
+    from hydpy_mpr.source import managing
+
+    Tasks: TypeAlias = list[managing.RasterElementTask | managing.RasterSubunitTask]
+else:
+    Tasks = list
 
 UpscalingFunction: TypeAlias = Callable[[MatrixFloat], float64]
 
@@ -67,6 +76,7 @@ __all__ = [
     "VectorInt",
     "Self",
     "Sequence",
+    "Tasks",
     "TP",
     "TypeAlias",
     "TypeVar",

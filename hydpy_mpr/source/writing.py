@@ -2,9 +2,10 @@ from __future__ import annotations
 import abc
 import dataclasses
 
+import hydpy
 from hydpy import pub
 
-from hydpy_mpr.source import managing
+from hydpy_mpr.source import calibrating
 from hydpy_mpr.source.typing_ import *
 
 
@@ -12,23 +13,23 @@ from hydpy_mpr.source.typing_ import *
 class Writer(abc.ABC):
 
     controldir: str = dataclasses.field(default="default")
+    hp: hydpy.HydPy = dataclasses.field(init=False)
+    calibrator: calibrating.Calibrator = dataclasses.field(init=False)
 
-    mpr: managing.MPR = dataclasses.field(init=False)
-
-    def activate(self, mpr: managing.MPR) -> None:
-        self.mpr = mpr
+    def activate(self, *, hp: hydpy.HydPy, calibrator: calibrating.Calibrator) -> None:
+        self.hp = hp
+        self.calibrator = calibrator
 
     @abc.abstractmethod
     def write(self) -> None:
         pass
 
 
+@dataclasses.dataclass
 class ControlWriter(Writer):
 
     @override
     def write(self) -> None:
-        mpr = self.mpr
-        calib = mpr.calibrator
-        calib.perform_calibrationstep(calib.values)
+        self.calibrator.perform_calibrationstep(self.calibrator.values)
         pub.controlmanager.currentdir = self.controldir
-        mpr.hp.save_controls()
+        self.hp.save_controls()

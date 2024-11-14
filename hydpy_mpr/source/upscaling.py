@@ -6,19 +6,21 @@ import numpy
 from scipy import stats
 
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import managing
+from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass
 class RasterUpscaler(abc.ABC):
 
-    mpr: managing.MPR = dataclasses.field(init=False)
-    task: managing.RasterTask[Any] = dataclasses.field(init=False)
+    equation: regionalising.RasterEquation = dataclasses.field(init=False)
+    mask: MatrixBool = dataclasses.field(init=False)
 
-    def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[Any]) -> None:
-        self.mpr = mpr
-        self.task = task
+    def activate(self, *, equation: regionalising.RasterEquation) -> None:
+        self.equation = equation
+        self.mask = equation.group.element_raster.mask.copy()
+        for raster in equation.inputs.values():
+            self.mask *= raster.mask
 
     @abc.abstractmethod
     def scale_up(self) -> None:
@@ -31,15 +33,15 @@ class RasterElementUpscaler(RasterUpscaler, abc.ABC):
     id2value: dict[int64, float64] = dataclasses.field(init=False)
 
     @override
-    def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[Any]) -> None:
-        super().activate(mpr, task=task)
+    def activate(self, *, equation: regionalising.RasterEquation) -> None:
+        super().activate(equation=equation)
         self.id2value = {
-            id_: float64(numpy.nan) for id_ in self.task.equation.group.id2element
+            id_: float64(numpy.nan) for id_ in self.equation.group.id2element
         }
 
     @property
     def name2value(self) -> dict[str, float64]:
-        id2element = self.task.equation.group.id2element
+        id2element = self.equation.group.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
@@ -49,13 +51,15 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
 
     @override
-    def activate(self, mpr: managing.MPR, /, *, task: managing.RasterTask[Any]) -> None:
-        super().activate(mpr, task=task)
-        group = self.task.equation.group
-        element_raster = group.element_raster.values
-        subunit_raster = group.subunit_raster.values
+    def activate(self, *, equation: regionalising.RasterEquation) -> None:
+        super().activate(equation=equation)
+
+        self.mask *= equation.group.subunit_raster.mask  # ToDo: better error message
+
+        element_raster = equation.group.element_raster.values
+        subunit_raster = equation.group.subunit_raster.values
         id2idx2value = {}
-        for id_ in group.id2element:
+        for id_ in equation.group.id2element:
             idx2value = {}
             idxs = numpy.unique(subunit_raster[numpy.where(element_raster == id_)])
             for idx in sorted(idxs):
@@ -65,7 +69,7 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
     @property
     def name2idx2value(self) -> dict[str, dict[int64, float64]]:
-        id2element = self.task.equation.group.id2element
+        id2element = self.equation.group.id2element
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 
 
@@ -81,9 +85,9 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
     @override
     def scale_up(self) -> None:
         id2value = self.id2value
-        output = self.task.equation.output[self.task.mask]
-        group = self.task.equation.group
-        id_raster = group.element_raster.values[self.task.mask]
+        output = self.equation.output[self.mask]
+        group = self.equation.group
+        id_raster = group.element_raster.values[self.mask]
         function = self._function
         for id_ in id2value:
             idxs = id_ == id_raster
@@ -104,9 +108,9 @@ class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
 
     @override
     def scale_up(self) -> None:
-        output = self.task.equation.output
-        element_raster = self.task.equation.group.element_raster.values
-        subunit_raster = self.task.equation.group.subunit_raster.values
+        output = self.equation.output[self.mask]
+        element_raster = self.equation.group.element_raster.values[self.mask]
+        subunit_raster = self.equation.group.subunit_raster.values[self.mask]
         function = self._function
         for id_, idx2value in self.id2idx2value.items():
             idx_raster_element = element_raster == id_

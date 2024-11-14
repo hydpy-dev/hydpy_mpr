@@ -1,6 +1,5 @@
 # pylint: disable=missing-docstring, unused-argument
 
-from hydpy.models.hland import hland_control
 import numpy
 import pytest
 
@@ -17,7 +16,7 @@ TransSubunit = transforming.RasterSubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
-    "task_15km, expected",
+    "task_element, expected",
     [
         ((UpElement, constants.UP_A, TransElement), 3.0),
         ((UpElement, constants.UP_G, TransElement), 2.2894284851066637),
@@ -27,14 +26,14 @@ TransSubunit = transforming.RasterSubunitIdentityTransformer
     indirect=True,
 )
 def test_raster_element_default_upscaler_okay(
-    task_15km: managing.RasterTask[hland_control.FC], expected: float
+    task_element: managing.RasterElementTask, expected: float
 ) -> None:
-    t = task_15km
-    e, u = t.equation, t.upscaler
+    e = task_element.equation
+    u = task_element.upscaler
     i = e.group.element_raster.values
-    e.output[t.mask * (i == 1)] = 2.0
-    assert numpy.sum(t.mask * (i == 4)) == 3
-    e.output[t.mask * (i == 4)] = 1.0, 2.0, 6.0
+    e.output[u.mask * (i == 1)] = 2.0
+    assert numpy.sum(u.mask * (i == 4)) == 3
+    e.output[u.mask * (i == 4)] = 1.0, 2.0, 6.0
     u.scale_up()
     assert isinstance(u, UpElement)
     assert len(u.id2value) == 5
@@ -45,13 +44,13 @@ def test_raster_element_default_upscaler_okay(
 
 
 @pytest.mark.parametrize(
-    "task_15km", [(UpElement, constants.UP_A, TransElement)], indirect=True
+    "task_element", [(UpElement, constants.UP_A, TransElement)], indirect=True
 )
 def test_raster_element_default_upscaler_missing_id(
-    task_15km: managing.RasterTask[hland_control.FC],
+    task_element: managing.RasterElementTask,
 ) -> None:
-    t = task_15km
-    e, u = t.equation, t.upscaler
+    e = task_element.equation
+    u = task_element.upscaler
     i = e.group.element_raster.values
     i[i == 1] = 2
     assert isinstance(u, UpElement)
@@ -62,7 +61,7 @@ def test_raster_element_default_upscaler_missing_id(
 
 
 @pytest.mark.parametrize(
-    "task_15km",
+    "task_element",
     [
         (UpElement, constants.UP_A, TransElement),
         (UpElement, constants.UP_G, TransElement),
@@ -72,10 +71,10 @@ def test_raster_element_default_upscaler_missing_id(
     indirect=True,
 )
 def test_raster_element_default_upscaler_missing_value(
-    task_15km: managing.RasterTask[hland_control.FC],
+    task_element: managing.RasterElementTask,
 ) -> None:
-    t = task_15km
-    e, u = t.equation, t.upscaler
+    e = task_element.equation
+    u = task_element.upscaler
     i = e.group.element_raster.values
     e.output[i == 1] = 2.0, 2.0, 2.0, numpy.nan, 2.0, 2.0, 2.0
     assert isinstance(u, UpElement)
@@ -86,7 +85,7 @@ def test_raster_element_default_upscaler_missing_value(
 
 
 @pytest.mark.parametrize(
-    "task_15km, expected",
+    "task_subunit, expected",
     [
         ((UpSubunit, constants.UP_A, TransSubunit), 3.0),
         ((UpSubunit, constants.UP_G, TransSubunit), 2.2894284851066637),
@@ -96,13 +95,13 @@ def test_raster_element_default_upscaler_missing_value(
     indirect=True,
 )
 def test_raster_subunit_default_upscaler_okay(
-    task_15km: managing.RasterTask[hland_control.FC], expected: float
+    task_subunit: managing.RasterSubunitTask, expected: float
 ) -> None:
-    t = task_15km
-    o, u = t.equation.output, t.upscaler
-    e = t.equation.group.element_raster.values
-    s = t.equation.group.subunit_raster.values
-    o[t.mask * (e == 3) * (s == 0)] = 1.0, 2.0, 6.0
+    u = task_subunit.upscaler
+    o = task_subunit.equation.output
+    e = task_subunit.equation.group.element_raster.values
+    s = task_subunit.equation.group.subunit_raster.values
+    o[u.mask * (e == 3) * (s == 0)] = 1.0, 2.0, 6.0
     u.scale_up()
     assert isinstance(u, UpSubunit)
     assert u.id2idx2value[int64(3)][int64(0)] == pytest.approx(expected)
@@ -110,16 +109,15 @@ def test_raster_subunit_default_upscaler_okay(
 
 
 @pytest.mark.parametrize(
-    "task_15km", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
+    "task_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
 def test_raster_subunit_default_upscaler_missing_id(
-    task_15km: managing.RasterTask[hland_control.FC],
+    task_subunit: managing.RasterSubunitTask,
 ) -> None:
-    t = task_15km
-    u = t.upscaler
-    e = t.equation.group.element_raster.values
-    s = t.equation.group.subunit_raster.values
-    s[t.mask * (e == 3) * (s == 0)] = 1
+    u = task_subunit.upscaler
+    e = task_subunit.equation.group.element_raster.values
+    s = task_subunit.equation.group.subunit_raster.values
+    s[u.mask * (e == 3) * (s == 0)] = 1
     assert isinstance(u, UpSubunit)
     u.id2idx2value[int64(3)][int64(0)] = float64(2.0)
     u.scale_up()
@@ -128,7 +126,7 @@ def test_raster_subunit_default_upscaler_missing_id(
 
 
 @pytest.mark.parametrize(
-    "task_15km",
+    "task_subunit",
     [
         (UpSubunit, constants.UP_A, TransSubunit),
         (UpSubunit, constants.UP_G, TransSubunit),
@@ -138,13 +136,13 @@ def test_raster_subunit_default_upscaler_missing_id(
     indirect=True,
 )
 def test_raster_subunit_default_upscaler_missing_value(
-    task_15km: managing.RasterTask[hland_control.FC],
+    task_subunit: managing.RasterSubunitTask,
 ) -> None:
-    t = task_15km
-    o, u = t.equation.output, t.upscaler
-    e = t.equation.group.element_raster.values
-    s = t.equation.group.subunit_raster.values
-    o[t.mask * (e == 3) * (s == 0)] = 2.0, numpy.nan, 2.0
+    o = task_subunit.equation.output
+    u = task_subunit.upscaler
+    e = task_subunit.equation.group.element_raster.values
+    s = task_subunit.equation.group.subunit_raster.values
+    o[u.mask * (e == 3) * (s == 0)] = 2.0, numpy.nan, 2.0
     assert isinstance(u, UpSubunit)
     assert len(u.id2idx2value) == 5
     assert len(u.id2idx2value[int64(1)]) == 4

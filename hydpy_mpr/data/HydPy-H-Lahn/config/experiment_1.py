@@ -12,7 +12,7 @@ mpr = hydpy_mpr.MPR(
     mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
     hp=initialisers.initialise_lahn(),
     tasks=[
-        hydpy_mpr.RasterTask(
+        hydpy_mpr.RasterSubunitTask(
             equation=equations.FC(
                 dir_group="raster_5km",
                 file_clay="clay_mean_0_200_res5km",
@@ -21,20 +21,20 @@ mpr = hydpy_mpr.MPR(
                 coef_factor_clay=coefficients.fc_clay,
                 coef_factor_density=coefficients.fc_density,
             ),
-            upscaler=hydpy_mpr.RasterElementDefaultUpscaler(),
+            upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
             transformers=[
                 hydpy_mpr.RasterSubunitIdentityTransformer(
                     parameter=hland_control.FC, model="hland_96"
                 )
             ],
         ),
-        hydpy_mpr.RasterTask(
+        hydpy_mpr.RasterSubunitTask(
             equation=equations.Beta(
                 dir_group="raster_5km",
                 file_density="bdod_mean_0_200_res15km_gcm3",
                 coef_factor_density=coefficients.beta_density,
             ),
-            upscaler=hydpy_mpr.RasterElementDefaultUpscaler(),
+            upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
             transformers=[
                 hydpy_mpr.RasterSubunitIdentityTransformer(
                     parameter=hland_control.Beta, model="hland_96"

@@ -11,33 +11,24 @@ from hydpy_mpr.source import transforming
 from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
+TypeVarRasterUpscaler = TypeVar("TypeVarRasterUpscaler", bound=upscaling.RasterUpscaler)
+TypeVarRasTransformer = TypeVar(
+    "TypeVarRasTransformer", bound=transforming.RasterTransformer[Any]
+)
+
 
 @dataclasses.dataclass
-class RasterTask(Generic[TP]):
+class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasTransformer]):
 
     equation: regionalising.RasterEquation
-    upscaler: upscaling.RasterElementUpscaler | upscaling.RasterSubunitUpscaler
-    transformers: list[transforming.RasterTransformer[TP]]
-    mpr: MPR = dataclasses.field(init=False)
+    upscaler: TypeVarRasterUpscaler
+    transformers: list[TypeVarRasTransformer]
     hp: hydpy.HydPy = dataclasses.field(init=False)
-    mask: MatrixBool = dataclasses.field(init=False)
 
-    def activate(
-        self, mpr: MPR, /, hp: hydpy.HydPy, raster_groups: reading.RasterGroups
-    ) -> None:
-        self.mpr = mpr
+    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
         self.hp = hp
-        self.equation.activate(self.mpr, raster_groups=raster_groups)
-        self.upscaler.activate(self.mpr, task=self)
-        for transformer in self.transformers:
-            transformer.activate(self.mpr, hp=hp, task=self)
-
-        group = self.equation.group
-        self.mask = group.element_raster.mask.copy()
-        if isinstance(self.upscaler, upscaling.RasterSubunitUpscaler):
-            self.mask *= group.subunit_raster.mask  # ToDo: better error message
-        for raster in self.equation.inputs.values():
-            self.mask *= raster.mask
+        self.equation.activate(raster_groups=raster_groups)
+        self.upscaler.activate(equation=self.equation)
 
     def run(self) -> None:
         self.equation.apply_coefficients()
@@ -47,12 +38,38 @@ class RasterTask(Generic[TP]):
             transformer.modify_parameters()
 
 
+class RasterElementTask(
+    RasterTask[
+        upscaling.RasterElementUpscaler, transforming.RasterElementTransformer[Any]
+    ]
+):
+
+    @override
+    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
+        super().activate(hp=hp, raster_groups=raster_groups)
+        for transformer in self.transformers:
+            transformer.activate(hp=hp, upscaler=self.upscaler)
+
+
+class RasterSubunitTask(
+    RasterTask[
+        upscaling.RasterSubunitUpscaler, transforming.RasterSubunitTransformer[Any]
+    ]
+):
+
+    @override
+    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
+        super().activate(hp=hp, raster_groups=raster_groups)
+        for transformer in self.transformers:
+            transformer.activate(hp=hp, upscaler=self.upscaler)
+
+
 @dataclasses.dataclass
 class MPR:
 
     mprpath: str
     hp: hydpy.HydPy
-    tasks: list[RasterTask[Any]]
+    tasks: Tasks
     calibrator: calibrating.Calibrator
     writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
     subequations: list[regionalising.RasterEquation] | None = dataclasses.field(
@@ -62,29 +79,10 @@ class MPR:
     def __post_init__(self) -> None:
         raster_groups = reading.RasterGroups(self.mprpath)
         for task in self.tasks:
-            task.activate(self, hp=self.hp, raster_groups=raster_groups)
-        self.calibrator.activate(self)
+            task.activate(hp=self.hp, raster_groups=raster_groups)
+        self.calibrator.activate(hp=self.hp, tasks=self.tasks)
         for writer in self.writers:
-            writer.activate(self)
-
-    @property
-    def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
-        coefficients: set[regionalising.Coefficient] = set()
-        for task in self.tasks:
-            coefficients.update(task.equation.coefficients)
-        return tuple(sorted(coefficients, key=lambda c: c.name))
-
-    @property
-    def lowers(self) -> tuple[float, ...]:
-        return tuple(c.lower for c in self.coefficients)
-
-    @property
-    def uppers(self) -> tuple[float, ...]:
-        return tuple(c.upper for c in self.coefficients)
-
-    @property
-    def values(self) -> tuple[float, ...]:
-        return tuple(c.value for c in self.coefficients)
+            writer.activate(hp=self.hp, calibrator=self.calibrator)
 
     def run(self) -> None:
         self.calibrator.calibrate()
