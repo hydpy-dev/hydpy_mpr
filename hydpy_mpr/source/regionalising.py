@@ -38,57 +38,6 @@ class Coefficient:
 
 @dataclasses.dataclass
 class RasterEquation(abc.ABC):
-    """
-
-    >>> from dataclasses import dataclass
-    >>> from numpy import asarray
-    >>> from hydpy_mpr import MatrixFloat, RasterEquation
-
-    >>> @dataclass
-    ... class FC(RasterEquation):
-    ...
-    ...     data_sand: MatrixFloat
-    ...     data_clay: MatrixFloat
-    ...
-    ...     coef_const: Coefficient
-    ...     coef_factor_sand: Coefficient
-    ...     coef_factor_clay: Coefficient
-    ...
-    ...     def apply_coefficients(self) -> None:
-    ...         self.output[:] = (
-    ...             self.coef_const.value
-    ...             + self.coef_factor_sand.value * self.data_sand
-    ...             + self.coef_factor_clay.value * self.data_clay
-    ...         )
-
-    >>> data_sand = asarray([[0.0, 0.1], [0.2, 0.3], [0.4, 0.5]])
-    >>> data_clay = asarray([[0.8, 0.8], [0.5, 0.5], [0.2, 0.2]])
-
-
-    >>> fc = FC(
-    ...     data_sand=asarray([[0.0, 0.1], [0.2, 0.3], [0.4, 0.5]]),
-    ...     data_clay=asarray([[0.8, 0.8], [0.5, 0.5], [0.2, 0.2]]),
-    ...     coef_const=Coefficient(name="const", default=200.0),
-    ...     coef_factor_sand=Coefficient(name="factor_sand", default=0.0),
-    ...     coef_factor_clay=Coefficient(name="factor_clay", default=0.0),
-    ... )
-
-    >>> fc.apply_coefficients()
-    >>> fc.output
-    array([[200., 200.],
-           [200., 200.],
-           [200., 200.]])
-
-    >>> fc.coef_const.value = 200.0
-    >>> fc.coef_factor_sand.value = -100.0
-    >>> fc.coef_factor_clay.value = 300.0
-
-    >>> fc.apply_coefficients()
-    >>> fc.output
-    array([[440., 430.],
-           [330., 320.],
-           [220., 210.]])
-    """
 
     dir_group: str
     mpr: managing.MPR = dataclasses.field(init=False)

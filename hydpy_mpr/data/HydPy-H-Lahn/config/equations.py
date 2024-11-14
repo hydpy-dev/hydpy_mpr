@@ -4,6 +4,7 @@ import hydpy_mpr
 
 @dataclasses.dataclass
 class FC(hydpy_mpr.RasterEquation):
+
     file_clay: str
     file_density: str
 
@@ -20,3 +21,16 @@ class FC(hydpy_mpr.RasterEquation):
             + self.coef_factor_clay.value * self.data_clay.values
             + self.coef_factor_density.value * self.data_density.values
         )
+
+
+@dataclasses.dataclass
+class Beta(hydpy_mpr.RasterEquation):
+
+    file_density: str
+
+    data_density: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+
+    coef_factor_density: hydpy_mpr.Coefficient
+
+    def apply_coefficients(self) -> None:
+        self.output[:] = self.coef_factor_density.value * self.data_density.values

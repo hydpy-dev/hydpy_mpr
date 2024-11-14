@@ -1,8 +1,15 @@
 import hydpy_mpr
 
 
-coef_const = hydpy_mpr.Coefficient(name="const", default=2.0)
+fc_const = hydpy_mpr.Coefficient(name="fc_const", default=2.0, lower=5.0, upper=50.0)
+fc_clay = hydpy_mpr.Coefficient(
+    name="fc_factor_clay", default=0.5, lower=0.0, upper=1.0
+)
+fc_density = hydpy_mpr.Coefficient(
+    name="fc_factor_density", default=-1.0, lower=-5.0, upper=0.0
+)
 
-coef_factor_clay = hydpy_mpr.Coefficient(name="factor_clay", default=-1.0)
-
-coef_factor_density = hydpy_mpr.Coefficient(name="factor_density", default=0.5)
+beta_density = hydpy_mpr.Coefficient(
+    name="beta_factor_density", default=2.0, lower=1.0, upper=3.0
+)
+int
