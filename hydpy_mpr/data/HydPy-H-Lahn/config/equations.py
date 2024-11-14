@@ -16,7 +16,7 @@ class FC(hydpy_mpr.RasterEquation):
     coef_factor_density: hydpy_mpr.Coefficient
 
     def apply_coefficients(self) -> None:
-        self.output[:] = 15.0 * (
+        self.output[:] = 20.0 * (
             self.coef_const.value
             + self.coef_factor_clay.value * self.data_clay.values
             + self.coef_factor_density.value * self.data_density.values

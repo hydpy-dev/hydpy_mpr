@@ -87,10 +87,10 @@ def test_raster_element_default_upscaler_missing_value(
 @pytest.mark.parametrize(
     "task_subunit, expected",
     [
-        ((UpSubunit, constants.UP_A, TransSubunit), 3.0),
-        ((UpSubunit, constants.UP_G, TransSubunit), 2.2894284851066637),
-        ((UpSubunit, constants.UP_H, TransSubunit), 1.8),
-        ((UpSubunit, numpy.max, TransSubunit), 6.0),
+        ((UpSubunit, constants.UP_A, TransSubunit), 2.5),
+        ((UpSubunit, constants.UP_G, TransSubunit), 2.0),
+        ((UpSubunit, constants.UP_H, TransSubunit), 1.6),
+        ((UpSubunit, numpy.max, TransSubunit), 4.0),
     ],
     indirect=True,
 )
@@ -101,7 +101,7 @@ def test_raster_subunit_default_upscaler_okay(
     o = task_subunit.equation.output
     e = task_subunit.equation.group.element_raster.values
     s = task_subunit.equation.group.subunit_raster.values
-    o[u.mask * (e == 3) * (s == 0)] = 1.0, 2.0, 6.0
+    o[u.mask * (e == 3) * (s == 0)] = 1.0, 4.0
     u.scale_up()
     assert isinstance(u, UpSubunit)
     assert u.id2idx2value[int64(3)][int64(0)] == pytest.approx(expected)
@@ -142,11 +142,11 @@ def test_raster_subunit_default_upscaler_missing_value(
     u = task_subunit.upscaler
     e = task_subunit.equation.group.element_raster.values
     s = task_subunit.equation.group.subunit_raster.values
-    o[u.mask * (e == 3) * (s == 0)] = 2.0, numpy.nan, 2.0
+    o[u.mask * (e == 3) * (s == 0)] = numpy.nan, 2.0
     assert isinstance(u, UpSubunit)
     assert len(u.id2idx2value) == 5
-    assert len(u.id2idx2value[int64(1)]) == 4
-    assert len(u.id2idx2value[int64(2)]) == 3
+    assert len(u.id2idx2value[int64(2)]) == 4
+    assert len(u.id2idx2value[int64(3)]) == 7
     u.id2idx2value[int64(3)][int64(0)] = float64(2.0)
     u.scale_up()
     assert isinstance(u, UpSubunit)

@@ -122,7 +122,6 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
         if datatype == "float":
             values = numpy.array(tiff.asarray(), dtype=float64)
             missingvalue = float64(page.tags[42113].value)
-            values[values < -1.0] = -9999.0  # ToDo: remove
             if not numpy.isnan(missingvalue):
                 values[values == missingvalue] = numpy.nan
             return RasterFloat(values=values)

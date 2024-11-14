@@ -77,7 +77,7 @@ def filepath_subunit_id_15km(dirpath_raster_15km: str) -> str:
 
 @pytest.fixture
 def filename_element_sand_15km() -> str:
-    return "sand_mean_0_200_res15km_%.tif"
+    return "sand_mean_0_200_res15km_pct.tif"
 
 
 @pytest.fixture
@@ -89,7 +89,7 @@ def filepath_element_sand(
 
 @pytest.fixture
 def filename_element_clay_15km() -> str:
-    return "clay_mean_0_200_res15km_%.tif"
+    return "clay_mean_0_200_res15km_pct.tif"
 
 
 @pytest.fixture

@@ -7,7 +7,6 @@ import os
 import hydpy
 from hydpy import pub
 from hydpy.models.hland import hland_control
-import numpy
 import pytest
 
 import hydpy_mpr
@@ -20,43 +19,38 @@ def test_raster_workflow(arrange_project: None) -> None:
     @dataclasses.dataclass
     class RasterEquationFC(hydpy_mpr.RasterEquation):
 
-        file_sand: str
         file_clay: str
+        file_density: str
 
-        data_sand: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
         data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+        data_density: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
         coef_const: hydpy_mpr.Coefficient
-        coef_factor_sand: hydpy_mpr.Coefficient
         coef_factor_clay: hydpy_mpr.Coefficient
+        coef_factor_density: hydpy_mpr.Coefficient
 
         @override
         def apply_coefficients(self) -> None:
-            self.output[:] = (
+            self.output[:] = 20.0 * (
                 self.coef_const.value
-                + self.coef_factor_sand.value * self.data_sand.values / 100.0
-                + self.coef_factor_clay.value * self.data_clay.values / 100.0
+                + self.coef_factor_clay.value * self.data_clay.values
+                + self.coef_factor_density.value * self.data_density.values
             )
 
     fc = RasterEquationFC(
-        dir_group="raster_5km",
-        file_sand="sand_mean_0_200_res5km",
-        file_clay="clay_mean_0_200_res5km",
-        coef_const=hydpy_mpr.Coefficient(name="const", default=200.0),
-        coef_factor_sand=hydpy_mpr.Coefficient(name="factor_sand", default=-100.0),
-        coef_factor_clay=hydpy_mpr.Coefficient(name="factor_clay", default=300.0),
+        dir_group="raster_15km",
+        file_clay="clay_mean_0_200_res15km_pct",
+        file_density="bdod_mean_0_200_res15km_gcm3",
+        coef_const=hydpy_mpr.Coefficient(
+            name="const", default=20.0, lower=5.0, upper=50.0
+        ),
+        coef_factor_clay=hydpy_mpr.Coefficient(
+            name="factor_clay", default=0.5, lower=0.0, upper=1.0
+        ),
+        coef_factor_density=hydpy_mpr.Coefficient(
+            name="factor_density", default=-1.0, lower=-5.0, upper=0.0
+        ),
     )
-
-    class RasterMean(hydpy_mpr.RasterElementUpscaler):
-        @override
-        def scale_up(self) -> None:
-            id2value = self.id2value
-            output = self.equation.output
-            id_raster = self.equation.group.element_raster
-            for id_ in id2value:
-                id2value[id_] = numpy.nanmean(
-                    output[numpy.where(id_ == id_raster.values)]
-                )
 
     class MyCalibrator(hydpy_mpr.NLOptCalibrator):
 
@@ -72,11 +66,11 @@ def test_raster_workflow(arrange_project: None) -> None:
         mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
         hp=hp,
         tasks=[
-            hydpy_mpr.RasterElementTask(
+            hydpy_mpr.RasterSubunitTask(
                 equation=fc,
-                upscaler=RasterMean(),
+                upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
                 transformers=[
-                    hydpy_mpr.RasterElementIdentityTransformer(
+                    hydpy_mpr.RasterSubunitIdentityTransformer(
                         parameter=hland_control.FC, model="hland_96"
                     )
                 ],
@@ -87,9 +81,24 @@ def test_raster_workflow(arrange_project: None) -> None:
     )
 
     mpr.run()
-    assert mpr.calibrator.likelihood == pytest.approx(0.8252895637383195)
+    assert mpr.calibrator.likelihood == pytest.approx(0.818256247212652)
     assert mpr.calibrator.values == pytest.approx(
-        [-1882.09175855596, 972.6897246013439, -259.8097340328786]
+        [5.0, 0.5267278445642123, -4.9999999999925]
     )
     fc_values = hp.elements["land_dill_assl"].model.parameters.control.fc.values
-    assert min(fc_values) == max(fc_values) == pytest.approx(278.73223239535025)
+    assert fc_values == pytest.approx(
+        [
+            278.0,
+            278.0,
+            278.0,
+            278.0,
+            280.47638276,
+            264.40416301,
+            278.0,
+            278.0,
+            278.0,
+            278.0,
+            278.0,
+            278.0,
+        ]
+    )
