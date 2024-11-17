@@ -1,4 +1,7 @@
 import dataclasses
+
+import numpy
+
 import hydpy_mpr
 
 
@@ -34,3 +37,36 @@ class Beta(hydpy_mpr.RasterEquation):
 
     def apply_coefficients(self) -> None:
         self.output[:] = self.coef_factor_density.value * self.data_density.values
+
+
+@dataclasses.dataclass
+class Ks(hydpy_mpr.RasterEquation):
+
+    file_sand: str
+    file_clay: str
+
+    data_sand: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+    data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+
+    coef_factor: hydpy_mpr.Coefficient
+    coef_factor_sand: hydpy_mpr.Coefficient
+    coef_factor_clay: hydpy_mpr.Coefficient
+
+    def apply_coefficients(self) -> None:
+        self.output[:] = self.coef_factor * numpy.exp(
+            self.coef_factor_sand.value * self.data_sand.values
+            - self.coef_factor_clay.value * self.data_clay.values
+        )
+
+
+@dataclasses.dataclass
+class PercMax(hydpy_mpr.RasterEquation):
+
+    file_ks: str
+
+    data_ks: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
+
+    coef_factor: hydpy_mpr.Coefficient
+
+    def apply_coefficients(self) -> None:
+        self.output[:] = self.coef_factor.value * (1.0 + self.data_ks.values)
