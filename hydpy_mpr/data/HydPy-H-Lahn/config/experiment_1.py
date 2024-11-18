@@ -5,8 +5,8 @@ import hydpy_mpr
 
 import calibrators
 import coefficients
-import equations
 import initialisers
+import regionalisers
 
 mpr = hydpy_mpr.MPR(
     mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
@@ -16,7 +16,7 @@ mpr = hydpy_mpr.MPR(
     # ],
     tasks=[
         hydpy_mpr.RasterSubunitTask(
-            equation=equations.FC(
+            regionaliser=regionalisers.FC(
                 dir_group="raster_15km",
                 file_clay="clay_mean_0_200_res15km_pct",
                 file_density="bdod_mean_0_200_res15km_gcm3",

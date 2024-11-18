@@ -13,13 +13,13 @@ from hydpy_mpr.source.typing_ import *
 @dataclasses.dataclass
 class RasterUpscaler(abc.ABC):
 
-    equation: regionalising.RasterEquation = dataclasses.field(init=False)
+    regionaliser: regionalising.RasterRegionaliser = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
 
-    def activate(self, *, equation: regionalising.RasterEquation) -> None:
-        self.equation = equation
-        self.mask = equation.group.element_raster.mask.copy()
-        for raster in equation.inputs.values():
+    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+        self.regionaliser = regionaliser
+        self.mask = regionaliser.group.element_raster.mask.copy()
+        for raster in regionaliser.inputs.values():
             self.mask *= raster.mask
 
     @abc.abstractmethod
@@ -33,15 +33,15 @@ class RasterElementUpscaler(RasterUpscaler, abc.ABC):
     id2value: dict[int64, float64] = dataclasses.field(init=False)
 
     @override
-    def activate(self, *, equation: regionalising.RasterEquation) -> None:
-        super().activate(equation=equation)
+    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+        super().activate(regionaliser=regionaliser)
         self.id2value = {
-            id_: float64(numpy.nan) for id_ in self.equation.group.id2element
+            id_: float64(numpy.nan) for id_ in self.regionaliser.group.id2element
         }
 
     @property
     def name2value(self) -> dict[str, float64]:
-        id2element = self.equation.group.id2element
+        id2element = self.regionaliser.group.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
@@ -51,15 +51,17 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
 
     @override
-    def activate(self, *, equation: regionalising.RasterEquation) -> None:
-        super().activate(equation=equation)
+    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+        super().activate(regionaliser=regionaliser)
 
-        self.mask *= equation.group.subunit_raster.mask  # ToDo: better error message
+        self.mask *= (
+            regionaliser.group.subunit_raster.mask
+        )  # ToDo: better error message
 
-        element_raster = equation.group.element_raster.values
-        subunit_raster = equation.group.subunit_raster.values
+        element_raster = regionaliser.group.element_raster.values
+        subunit_raster = regionaliser.group.subunit_raster.values
         id2idx2value = {}
-        for id_ in equation.group.id2element:
+        for id_ in regionaliser.group.id2element:
             idx2value = {}
             idxs = numpy.unique(subunit_raster[numpy.where(element_raster == id_)])
             for idx in sorted(idxs):
@@ -69,7 +71,7 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
     @property
     def name2idx2value(self) -> dict[str, dict[int64, float64]]:
-        id2element = self.equation.group.id2element
+        id2element = self.regionaliser.group.id2element
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 
 
@@ -85,8 +87,8 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
     @override
     def scale_up(self) -> None:
         id2value = self.id2value
-        output = self.equation.output[self.mask]
-        group = self.equation.group
+        output = self.regionaliser.output[self.mask]
+        group = self.regionaliser.group
         id_raster = group.element_raster.values[self.mask]
         function = self._function
         for id_ in id2value:
@@ -108,9 +110,9 @@ class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
 
     @override
     def scale_up(self) -> None:
-        output = self.equation.output[self.mask]
-        element_raster = self.equation.group.element_raster.values[self.mask]
-        subunit_raster = self.equation.group.subunit_raster.values[self.mask]
+        output = self.regionaliser.output[self.mask]
+        element_raster = self.regionaliser.group.element_raster.values[self.mask]
+        subunit_raster = self.regionaliser.group.subunit_raster.values[self.mask]
         function = self._function
         for id_, idx2value in self.id2idx2value.items():
             idx_raster_element = element_raster == id_

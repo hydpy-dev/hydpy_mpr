@@ -28,7 +28,7 @@ class Calibrator(abc.ABC):
     def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
         coefficients: set[regionalising.Coefficient] = set()
         for task in self.tasks:
-            coefficients.update(task.equation.coefficients)
+            coefficients.update(task.regionaliser.coefficients)
         return tuple(sorted(coefficients, key=lambda c: c.name))
 
     @property

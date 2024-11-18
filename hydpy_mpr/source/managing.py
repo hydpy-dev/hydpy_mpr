@@ -20,19 +20,19 @@ TypeVarRasTransformer = TypeVar(
 @dataclasses.dataclass
 class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasTransformer]):
 
-    equation: regionalising.RasterEquation
+    regionaliser: regionalising.RasterRegionaliser
     upscaler: TypeVarRasterUpscaler
     transformers: list[TypeVarRasTransformer]
     hp: hydpy.HydPy = dataclasses.field(init=False)
 
     def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
         self.hp = hp
-        self.equation.activate(raster_groups=raster_groups)
-        self.upscaler.activate(equation=self.equation)
+        self.regionaliser.activate(raster_groups=raster_groups)
+        self.upscaler.activate(regionaliser=self.regionaliser)
 
     def run(self) -> None:
-        self.equation.apply_coefficients()
-        self.equation.apply_mask()
+        self.regionaliser.apply_coefficients()
+        self.regionaliser.apply_mask()
         self.upscaler.scale_up()
         for transformer in self.transformers:
             transformer.modify_parameters()
@@ -72,7 +72,7 @@ class MPR:
     tasks: Tasks
     calibrator: calibrating.Calibrator
     writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
-    subequations: list[regionalising.RasterEquation] | None = dataclasses.field(
+    subequations: list[regionalising.RasterRegionaliser] | None = dataclasses.field(
         default_factory=lambda: None
     )
 

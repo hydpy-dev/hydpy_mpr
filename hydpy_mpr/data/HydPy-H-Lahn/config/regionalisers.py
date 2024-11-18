@@ -6,7 +6,7 @@ import hydpy_mpr
 
 
 @dataclasses.dataclass
-class FC(hydpy_mpr.RasterEquation):
+class FC(hydpy_mpr.RasterRegionaliser):
 
     file_clay: str
     file_density: str
@@ -27,7 +27,7 @@ class FC(hydpy_mpr.RasterEquation):
 
 
 @dataclasses.dataclass
-class Beta(hydpy_mpr.RasterEquation):
+class Beta(hydpy_mpr.RasterRegionaliser):
 
     file_density: str
 
@@ -40,7 +40,7 @@ class Beta(hydpy_mpr.RasterEquation):
 
 
 @dataclasses.dataclass
-class Ks(hydpy_mpr.RasterEquation):
+class Ks(hydpy_mpr.RasterRegionaliser):
 
     file_sand: str
     file_clay: str
@@ -60,7 +60,7 @@ class Ks(hydpy_mpr.RasterEquation):
 
 
 @dataclasses.dataclass
-class PercMax(hydpy_mpr.RasterEquation):
+class PercMax(hydpy_mpr.RasterRegionaliser):
 
     file_ks: str
 

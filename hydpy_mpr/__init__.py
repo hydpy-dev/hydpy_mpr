@@ -7,7 +7,7 @@ from hydpy_mpr import testing
 from hydpy_mpr.source.calibrating import Calibrator, NLOptCalibrator
 from hydpy_mpr.source.managing import MPR, RasterElementTask, RasterSubunitTask
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup
-from hydpy_mpr.source.regionalising import Coefficient, RasterEquation
+from hydpy_mpr.source.regionalising import Coefficient, RasterRegionaliser
 from hydpy_mpr.source.transforming import (
     RasterElementIdentityTransformer,
     RasterElementTransformer,
@@ -52,9 +52,9 @@ __all__ = [
     "RasterElementUpscaler",
     "RasterElementTask",
     "RasterElementTransformer",
-    "RasterEquation",
     "RasterFloat",
     "RasterGroup",
+    "RasterRegionaliser",
     "RasterSubunitDefaultUpscaler",
     "RasterSubunitIdentityTransformer",
     "RasterSubunitTask",

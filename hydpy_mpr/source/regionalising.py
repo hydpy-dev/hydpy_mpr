@@ -36,7 +36,7 @@ class Coefficient:
 
 
 @dataclasses.dataclass
-class RasterEquation(abc.ABC):
+class RasterRegionaliser(abc.ABC):
 
     dir_group: str
     group: reading.RasterGroup = dataclasses.field(init=False)

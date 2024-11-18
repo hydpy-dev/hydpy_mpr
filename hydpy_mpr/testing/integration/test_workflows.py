@@ -17,7 +17,7 @@ from hydpy_mpr.source.typing_ import *
 def test_raster_workflow(arrange_project: None) -> None:
 
     @dataclasses.dataclass
-    class RasterEquationFC(hydpy_mpr.RasterEquation):
+    class RasterRegionaliserFC(hydpy_mpr.RasterRegionaliser):
 
         file_clay: str
         file_density: str
@@ -37,7 +37,7 @@ def test_raster_workflow(arrange_project: None) -> None:
                 + self.coef_factor_density.value * self.data_density.values
             )
 
-    fc = RasterEquationFC(
+    fc = RasterRegionaliserFC(
         dir_group="raster_15km",
         file_clay="clay_mean_0_200_res15km_pct",
         file_density="bdod_mean_0_200_res15km_gcm3",
@@ -67,7 +67,7 @@ def test_raster_workflow(arrange_project: None) -> None:
         hp=hp,
         tasks=[
             hydpy_mpr.RasterSubunitTask(
-                equation=fc,
+                regionaliser=fc,
                 upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
                 transformers=[
                     hydpy_mpr.RasterSubunitIdentityTransformer(

@@ -17,11 +17,11 @@ TransSubunit = transforming.RasterSubunitIdentityTransformer
 )
 def test_raster_masking(task_subunit: managing.RasterSubunitTask) -> None:
     mask = task_subunit.upscaler.mask
-    equation = task_subunit.equation
-    element = equation.group.element_raster
-    subunit = equation.group.subunit_raster
-    clay = equation.data_clay  # type: ignore[attr-defined]
-    density = equation.data_density  # type: ignore[attr-defined]
+    regionaliser = task_subunit.regionaliser
+    element = regionaliser.group.element_raster
+    subunit = regionaliser.group.subunit_raster
+    clay = regionaliser.data_clay  # type: ignore[attr-defined]
+    density = regionaliser.data_density  # type: ignore[attr-defined]
     assert not numpy.any(numpy.isnan(clay.values[mask]))
     assert not numpy.any(numpy.isnan(density.values[mask]))
     assert not numpy.any(element.values[mask] == -9999)

@@ -103,8 +103,8 @@ def dirpath_config(dirpath_mpr_data: str) -> str:
 
 
 @pytest.fixture
-def filepath_equations(dirpath_config: str) -> str:
-    return os.path.join(dirpath_config, "equations.py")
+def filepath_regionalisers(dirpath_config: str) -> str:
+    return os.path.join(dirpath_config, "regionalisers.py")
 
 
 @pytest.fixture
@@ -135,15 +135,15 @@ def expected(request: pytest.FixtureRequest) -> Any:
 
 
 @pytest.fixture
-def equation_fc(
+def regionaliser_fc(
     arrange_project: None,
     dirpath_mpr_data: str,
-    filepath_equations: str,
+    filepath_regionalisers: str,
     dirname_raster_15km: str,
     filename_element_clay_15km: str,
     filename_element_density_15km: str,
-) -> regionalising.RasterEquation:
-    fc = runpy.run_path(filepath_equations)["FC"](
+) -> regionalising.RasterRegionaliser:
+    fc = runpy.run_path(filepath_regionalisers)["FC"](
         dir_group=dirname_raster_15km,
         file_clay=filename_element_clay_15km.split(".")[0],
         file_density=filename_element_density_15km.split(".")[0],
@@ -153,7 +153,7 @@ def equation_fc(
             name="factor_density", default=-1.0
         ),
     )
-    assert isinstance(fc, regionalising.RasterEquation)
+    assert isinstance(fc, regionalising.RasterRegionaliser)
     fc.activate(raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
     return fc
 
@@ -162,7 +162,7 @@ def equation_fc(
 def task_element(
     hp: hydpy.HydPy,
     dirpath_mpr_data: str,
-    equation_fc: regionalising.RasterEquation,
+    regionaliser_fc: regionalising.RasterRegionaliser,
     request: pytest.FixtureRequest,
 ) -> managing.RasterElementTask:
 
@@ -172,7 +172,7 @@ def task_element(
     assert issubclass(transformer, transforming.RasterElementTransformer)
 
     task = managing.RasterElementTask(
-        equation=equation_fc,
+        regionaliser=regionaliser_fc,
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
@@ -184,7 +184,7 @@ def task_element(
 def task_subunit(
     hp: hydpy.HydPy,
     dirpath_mpr_data: str,
-    equation_fc: regionalising.RasterEquation,
+    regionaliser_fc: regionalising.RasterRegionaliser,
     request: pytest.FixtureRequest,
 ) -> managing.RasterSubunitTask:
 
@@ -194,7 +194,7 @@ def task_subunit(
     assert issubclass(transformer, transforming.RasterSubunitTransformer)
 
     task = managing.RasterSubunitTask(
-        equation=equation_fc,
+        regionaliser=regionaliser_fc,
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
