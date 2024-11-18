@@ -8,7 +8,7 @@ from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterEquation(abc.ABC):
 
     dir_group: str

@@ -16,7 +16,7 @@ from hydpy_mpr.source.typing_ import *
 @pytest.mark.integration_test
 def test_raster_workflow(arrange_project: None) -> None:
 
-    @dataclasses.dataclass
+    @dataclasses.dataclass(kw_only=True)
     class RasterRegionaliserFC(hydpy_mpr.RasterRegionaliser):
 
         file_clay: str

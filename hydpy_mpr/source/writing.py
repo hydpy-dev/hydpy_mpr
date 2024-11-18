@@ -9,7 +9,7 @@ from hydpy_mpr.source import calibrating
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Writer(abc.ABC):
 
     controldir: str = dataclasses.field(default="default")
@@ -25,7 +25,7 @@ class Writer(abc.ABC):
         pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class ControlWriter(Writer):
 
     @override

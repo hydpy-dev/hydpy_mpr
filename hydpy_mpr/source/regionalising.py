@@ -35,7 +35,7 @@ class Coefficient:
         self._value = v
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterRegionaliser(equations.RasterEquation, abc.ABC):
 
     @property

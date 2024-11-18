@@ -127,7 +127,7 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
             return RasterFloat(values=values)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Raster(Generic[TM]):
     values: Matrix[TM]
     shape: tuple[int, int] = dataclasses.field(init=False)
@@ -156,7 +156,7 @@ class Raster(Generic[TM]):
         return False
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterInt(Raster[int64]):
 
     missingvalue: int64
@@ -171,7 +171,7 @@ class RasterInt(Raster[int64]):
         return super().__eq__(other)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterFloat(Raster[float64]):
 
     @override
@@ -188,7 +188,7 @@ def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
     return [fn for fn in filenames if fn.rsplit(".")[-1] in ("tif", "tiff")]
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterGroup:
 
     mprpath: str
@@ -256,7 +256,7 @@ class RasterGroup:
             )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterGroups:
     mprpath: str
     groups: dict[str, RasterGroup] = dataclasses.field(init=False)

@@ -10,7 +10,7 @@ from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterUpscaler(abc.ABC):
 
     regionaliser: regionalising.RasterRegionaliser = dataclasses.field(init=False)
@@ -27,7 +27,7 @@ class RasterUpscaler(abc.ABC):
         pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterElementUpscaler(RasterUpscaler, abc.ABC):
 
     id2value: dict[int64, float64] = dataclasses.field(init=False)
@@ -45,7 +45,7 @@ class RasterElementUpscaler(RasterUpscaler, abc.ABC):
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
@@ -75,7 +75,7 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterElementDefaultUpscaler(RasterElementUpscaler):
 
     function: UpscalingOption = constants.UP_A
@@ -99,7 +99,7 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
                 id2value[id_] = float64(numpy.nan)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
 
     function: UpscalingOption = constants.UP_A

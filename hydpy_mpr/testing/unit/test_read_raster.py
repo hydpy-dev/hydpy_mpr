@@ -66,7 +66,7 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
     assert raster1 != 1
 
     # compatible subclass:
-    @dataclasses.dataclass
+    @dataclasses.dataclass(kw_only=True)
     class MyRaster1(reading.RasterInt):
         pass
 
@@ -74,7 +74,7 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
     assert raster1 == raster2
 
     # incompatible subclass:
-    @dataclasses.dataclass
+    @dataclasses.dataclass(kw_only=True)
     class MyRaster2(reading.RasterInt):
         test: int = dataclasses.field(init=False)
 

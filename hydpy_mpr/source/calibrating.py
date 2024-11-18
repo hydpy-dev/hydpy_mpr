@@ -11,7 +11,7 @@ from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Calibrator(abc.ABC):
     conditions: typingtools.Conditions = dataclasses.field(init=False)
     hp: hydpy.HydPy = dataclasses.field(init=False)
@@ -66,7 +66,7 @@ class Calibrator(abc.ABC):
         pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class NLOptCalibrator(Calibrator, abc.ABC):
 
     algorithm: int = dataclasses.field(default_factory=lambda: nlopt.LN_BOBYQA)

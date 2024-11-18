@@ -9,7 +9,7 @@ from hydpy_mpr.source import upscaling
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterTransformer(abc.ABC, Generic[TP]):
 
     parameter: type[TP]
@@ -37,7 +37,7 @@ class RasterTransformer(abc.ABC, Generic[TP]):
         pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
 
     upscaler: upscaling.RasterElementUpscaler = dataclasses.field(init=False)
@@ -60,7 +60,7 @@ class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
         pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterSubunitTransformer(RasterTransformer[TP], abc.ABC):
     upscaler: upscaling.RasterSubunitUpscaler = dataclasses.field(init=False)
 

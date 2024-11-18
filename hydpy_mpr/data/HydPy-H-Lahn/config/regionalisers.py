@@ -5,7 +5,7 @@ import numpy
 import hydpy_mpr
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class FC(hydpy_mpr.RasterRegionaliser):
 
     file_clay: str
@@ -26,7 +26,7 @@ class FC(hydpy_mpr.RasterRegionaliser):
         )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Beta(hydpy_mpr.RasterRegionaliser):
 
     file_density: str
@@ -39,7 +39,7 @@ class Beta(hydpy_mpr.RasterRegionaliser):
         self.output[:] = self.coef_factor_density.value * self.data_density.values
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Ks(hydpy_mpr.RasterRegionaliser):
 
     file_sand: str
@@ -59,7 +59,7 @@ class Ks(hydpy_mpr.RasterRegionaliser):
         )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class PercMax(hydpy_mpr.RasterRegionaliser):
 
     file_ks: str

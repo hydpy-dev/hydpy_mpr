@@ -17,7 +17,7 @@ TypeVarRasTransformer = TypeVar(
 )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasTransformer]):
 
     regionaliser: regionalising.RasterRegionaliser
@@ -64,7 +64,7 @@ class RasterSubunitTask(
             transformer.activate(hp=hp, upscaler=self.upscaler)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class MPR:
 
     mprpath: str
@@ -77,7 +77,7 @@ class MPR:
     )
 
     def __post_init__(self) -> None:
-        raster_groups = reading.RasterGroups(self.mprpath)
+        raster_groups = reading.RasterGroups(mprpath=self.mprpath)
         for task in self.tasks:
             task.activate(hp=self.hp, raster_groups=raster_groups)
         self.calibrator.activate(hp=self.hp, tasks=self.tasks)
