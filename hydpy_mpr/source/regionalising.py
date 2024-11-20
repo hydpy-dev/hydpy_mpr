@@ -9,21 +9,17 @@ from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
+@dataclasses.dataclass(kw_only=True, eq=False)
 class Coefficient:
 
-    _value: float
+    name: str
+    default: float
+    lower: float = dataclasses.field(default=-numpy.inf)
+    upper: float = dataclasses.field(default=numpy.inf)
+    _value: float = dataclasses.field(init=False)
 
-    def __init__(
-        self,
-        name: str,
-        default: float,
-        lower: float = -numpy.inf,
-        upper: float = numpy.inf,
-    ) -> None:
-        self.name = name
-        self.lower = lower
-        self.upper = upper
-        self.value = default
+    def __post_init__(self) -> None:
+        self.value = self.default
         self.default = self.value
 
     @property
