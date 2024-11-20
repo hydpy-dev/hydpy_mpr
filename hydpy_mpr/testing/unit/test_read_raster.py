@@ -26,9 +26,9 @@ def test_read_geotiff_int_okay(
 
 
 def test_read_geotiff_float_okay(
-    arrange_project: None, filepath_element_sand: str
+    arrange_project: None, filepath_sand_2m_15km: str
 ) -> None:
-    raster = reading.read_geotiff(filepath_element_sand, datatype="float")
+    raster = reading.read_geotiff(filepath_sand_2m_15km, datatype="float")
     assert raster.shape == (10, 10)
     assert numpy.nanmin(raster.values) == pytest.approx(15.359077453613281)
     assert numpy.nanmax(raster.values) == pytest.approx(24.92906379699707)
@@ -88,8 +88,8 @@ def test_read_rastergroup_okay(
     dirname_raster_15km: str,
     filepath_element_id_15km: str,
     filepath_subunit_id_15km: str,
-    filename_element_sand_15km: str,
-    filepath_element_sand: str,
+    filename_sand_2m_15km: str,
+    filepath_sand_2m_15km: str,
 ) -> None:
     group = reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert group.element_raster == reading.read_geotiff(
@@ -99,8 +99,8 @@ def test_read_rastergroup_okay(
         filepath_subunit_id_15km, datatype="int"
     )
     assert group.data_rasters[
-        filename_element_sand_15km.split(".")[0]
-    ] == reading.read_geotiff(filepath_element_sand, datatype="float")
+        filename_sand_2m_15km.split(".")[0]
+    ] == reading.read_geotiff(filepath_sand_2m_15km, datatype="float")
 
 
 def test_read_rastergroup_missing_dirpath(

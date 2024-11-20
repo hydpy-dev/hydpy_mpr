@@ -16,7 +16,7 @@ mpr = hydpy_mpr.MPR(
     # ],
     tasks=[
         hydpy_mpr.RasterSubunitTask(
-            regionaliser=regionalisers.FC(
+            regionaliser=regionalisers.FC2m(
                 dir_group="raster_15km",
                 file_clay="clay_mean_0_200_res15km_pct",
                 file_density="bdod_mean_0_200_res15km_gcm3",
@@ -33,7 +33,7 @@ mpr = hydpy_mpr.MPR(
         )
     ],
     calibrator=calibrators.MyCalibrator(maxeval=100),
-    writers=[hydpy_mpr.ControlWriter(controldir="experiment_1")],
+    writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
 )
 
 

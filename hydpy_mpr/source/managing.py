@@ -4,6 +4,7 @@ import dataclasses
 import hydpy
 
 from hydpy_mpr.source import calibrating
+from hydpy_mpr.source import preprocessing
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
 from hydpy_mpr.source import upscaling
@@ -69,15 +70,20 @@ class MPR:
 
     mprpath: str
     hp: hydpy.HydPy
+    preprocessors: list[preprocessing.RasterPreprocessor] = dataclasses.field(
+        default_factory=lambda: []
+    )
     tasks: Tasks
+    subequations: list[regionalising.RasterRegionaliser] = dataclasses.field(
+        default_factory=lambda: []
+    )
     calibrator: calibrating.Calibrator
     writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
-    subequations: list[regionalising.RasterRegionaliser] | None = dataclasses.field(
-        default_factory=lambda: None
-    )
 
     def __post_init__(self) -> None:
         raster_groups = reading.RasterGroups(mprpath=self.mprpath)
+        for preprocessor in self.preprocessors:
+            preprocessor.activate(raster_groups=raster_groups)
         for task in self.tasks:
             task.activate(hp=self.hp, raster_groups=raster_groups)
         self.calibrator.activate(hp=self.hp, tasks=self.tasks)

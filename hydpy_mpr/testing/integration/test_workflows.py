@@ -1,12 +1,9 @@
-# pylint: disable=missing-docstring, unused-argument
+# pylint: disable=missing-docstring, too-many-arguments, too-many-positional-arguments, unused-argument
 
 from __future__ import annotations
-import dataclasses
-import os
 
 import hydpy
-from hydpy import pub
-from hydpy.models.hland import hland_control
+import numpy
 import pytest
 
 import hydpy_mpr
@@ -14,91 +11,100 @@ from hydpy_mpr.source.typing_ import *
 
 
 @pytest.mark.integration_test
-def test_raster_workflow(arrange_project: None) -> None:
+def test_raster_element_level(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    hp2: hydpy.HydPy,
+    regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
+    element_transformer_fc: hydpy_mpr.RasterElementIdentityTransformer[Any],
+    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+) -> None:
 
-    @dataclasses.dataclass(kw_only=True)
-    class RasterRegionaliserFC(hydpy_mpr.RasterRegionaliser):
-
-        file_clay: str
-        file_density: str
-
-        data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
-        data_density: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
-
-        coef_const: hydpy_mpr.Coefficient
-        coef_factor_clay: hydpy_mpr.Coefficient
-        coef_factor_density: hydpy_mpr.Coefficient
-
-        @override
-        def apply_coefficients(self) -> None:
-            self.output[:] = 20.0 * (
-                self.coef_const.value
-                + self.coef_factor_clay.value * self.data_clay.values
-                + self.coef_factor_density.value * self.data_density.values
-            )
-
-    fc = RasterRegionaliserFC(
-        dir_group="raster_15km",
-        file_clay="clay_mean_0_200_res15km_pct",
-        file_density="bdod_mean_0_200_res15km_gcm3",
-        coef_const=hydpy_mpr.Coefficient(
-            name="const", default=20.0, lower=5.0, upper=50.0
-        ),
-        coef_factor_clay=hydpy_mpr.Coefficient(
-            name="factor_clay", default=0.5, lower=0.0, upper=1.0
-        ),
-        coef_factor_density=hydpy_mpr.Coefficient(
-            name="factor_density", default=-1.0, lower=-5.0, upper=0.0
-        ),
-    )
-
-    class MyCalibrator(hydpy_mpr.NLOptCalibrator):
-
-        @override
-        def calculate_likelihood(self) -> float:
-            return sum(hydpy.nse(node=node) for node in self.hp.nodes) / 4.0
-
-    hp = hydpy.HydPy("HydPy-H-Lahn")
-    pub.timegrids = "1996-01-01", "1997-01-01", "1d"
-    hp.prepare_everything()
-
-    mpr = hydpy_mpr.MPR(
-        mprpath=os.path.join("HydPy-H-Lahn", "mpr_data"),
-        hp=hp,
+    hydpy_mpr.MPR(
+        mprpath=dirpath_mpr_data,
+        hp=hp2,
         tasks=[
-            hydpy_mpr.RasterSubunitTask(
-                regionaliser=fc,
-                upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
-                transformers=[
-                    hydpy_mpr.RasterSubunitIdentityTransformer(
-                        parameter=hland_control.FC, model="hland_96"
-                    )
-                ],
+            hydpy_mpr.RasterElementTask(
+                regionaliser=regionaliser_fc_2m,
+                upscaler=hydpy_mpr.RasterElementDefaultUpscaler(),
+                transformers=[element_transformer_fc],
             )
         ],
-        calibrator=MyCalibrator(maxeval=100),
-        writers=[hydpy_mpr.ControlWriter(controldir="experiment_1")],
-    )
+        calibrator=nloptcalibrator,
+        writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
+    ).run()
 
-    mpr.run()
-    assert mpr.calibrator.likelihood == pytest.approx(0.818256247212652)
-    assert mpr.calibrator.values == pytest.approx(
+    assert nloptcalibrator.likelihood == pytest.approx(0.8110012729432962)
+    assert nloptcalibrator.values == pytest.approx(
+        [5.0, 0.4132740282002442, -3.215380839645377]
+    )
+    fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
+    assert numpy.min(fc) == numpy.max(fc) == pytest.approx(257.5034399871806)
+
+
+@pytest.mark.integration_test
+def test_raster_subunit_level(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    hp2: hydpy.HydPy,
+    regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
+    subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
+    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+) -> None:
+
+    hydpy_mpr.MPR(
+        mprpath=dirpath_mpr_data,
+        hp=hp2,
+        tasks=[
+            hydpy_mpr.RasterSubunitTask(
+                regionaliser=regionaliser_fc_2m,
+                upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
+                transformers=[subunit_transformer_fc],
+            )
+        ],
+        calibrator=nloptcalibrator,
+        writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
+    ).run()
+
+    assert nloptcalibrator.likelihood == pytest.approx(0.818256247212652)
+    assert nloptcalibrator.values == pytest.approx(
         [5.0, 0.5267278445642123, -4.9999999999925]
     )
-    fc_values = hp.elements["land_dill_assl"].model.parameters.control.fc.values
-    assert fc_values == pytest.approx(
-        [
-            278.0,
-            278.0,
-            278.0,
-            278.0,
-            280.47638276,
-            264.40416301,
-            278.0,
-            278.0,
-            278.0,
-            278.0,
-            278.0,
-            278.0,
-        ]
-    )
+    fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
+    assert numpy.min(fc[:4]) == numpy.max(fc[:4]) == pytest.approx(278.0)
+    assert fc[4:-6] == pytest.approx([280.47638276, 264.40416301])
+    assert numpy.min(fc[-6:]) == numpy.max(fc[-6:]) == pytest.approx(278.0)
+
+
+@pytest.mark.integration_test
+def test_raster_subunit_level_preprocessing(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    hp2: hydpy.HydPy,
+    preprocessors_fc_flexible: list[hydpy_mpr.RasterPreprocessor],
+    regionaliser_fc_flexible: hydpy_mpr.RasterRegionaliser,
+    subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
+    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+) -> None:
+
+    hydpy_mpr.MPR(
+        mprpath=dirpath_mpr_data,
+        hp=hp2,
+        preprocessors=preprocessors_fc_flexible,
+        tasks=[
+            hydpy_mpr.RasterSubunitTask(
+                regionaliser=regionaliser_fc_flexible,
+                upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
+                transformers=[subunit_transformer_fc],
+            )
+        ],
+        calibrator=nloptcalibrator,
+        writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
+    ).run()
+
+    assert nloptcalibrator.likelihood == pytest.approx(0.8154531497952633)
+    assert nloptcalibrator.values == pytest.approx([26.317158773910958, 0.0, -5.0])
+    fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
+    assert numpy.min(fc[:4]) == numpy.max(fc[:4]) == pytest.approx(278.0)
+    assert fc[4:-6] == pytest.approx([194.3148149586912, 382.6925245001308])
+    assert numpy.min(fc[-6:]) == numpy.max(fc[-6:]) == pytest.approx(278.0)

@@ -22,7 +22,7 @@ class RasterEquation(abc.ABC):
         self.mask = numpy.full(self.shape, True, dtype=bool)
         for fieldname, filename in self.fieldname2filename.items():
             rastername = f"data_{fieldname.removeprefix('file_')}"
-            raster = group.data_rasters[filename]
+            raster = group.data_rasters[filename]  # ToDo: error message
             setattr(self, rastername, raster)
             self.mask *= raster.mask
         self.output = numpy.full(self.shape, numpy.nan)

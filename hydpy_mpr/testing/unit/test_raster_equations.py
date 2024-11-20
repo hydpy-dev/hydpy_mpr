@@ -7,13 +7,13 @@ from hydpy_mpr.source import regionalising
 
 
 def test_raster_regionaliser_fc(
-    dirpath_mpr_data: str, regionaliser_fc: regionalising.RasterRegionaliser
+    dirpath_mpr_data: str, regionaliser_fc_2m: regionalising.RasterRegionaliser
 ) -> None:
-    r = regionaliser_fc
+    r = regionaliser_fc_2m
     r.apply_coefficients()
-    assert numpy.nanmin(r.output) == pytest.approx(256.26911878585815)
-    assert numpy.nanmean(r.output) == pytest.approx(291.50745650132495)
-    assert numpy.nanmax(r.output) == pytest.approx(324.20000076293945)
+    assert numpy.nanmin(r.output) == pytest.approx(370.2333354949951)
+    assert numpy.nanmean(r.output) == pytest.approx(371.63908024628955)
+    assert numpy.nanmax(r.output) == pytest.approx(373.8650631904602)
     const, factor_clay, factor_density = r.coefficients
     data_clay, data_density = r.inputs.values()
     i_max = numpy.nanargmax(r.output.flatten())
@@ -22,4 +22,4 @@ def test_raster_regionaliser_fc(
         + factor_clay.value * data_clay.values.flatten()[i_max]
         + factor_density.value * data_density.values.flatten()[i_max]
     )
-    assert fc_max == pytest.approx(324.20000076293945)
+    assert fc_max == pytest.approx(373.8650631904602)
