@@ -13,7 +13,7 @@ class RasterEquation(abc.ABC):
 
     dir_group: str
     group: reading.RasterGroup = dataclasses.field(init=False)
-    mask: MatrixFloat = dataclasses.field(init=False)
+    mask: MatrixBool = dataclasses.field(init=False)
     output: MatrixFloat = dataclasses.field(init=False)
 
     def activate(self, *, raster_groups: reading.RasterGroups) -> None:

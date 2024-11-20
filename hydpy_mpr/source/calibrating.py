@@ -16,17 +16,29 @@ class Calibrator(abc.ABC):
     conditions: typingtools.Conditions = dataclasses.field(init=False)
     hp: hydpy.HydPy = dataclasses.field(init=False)
     tasks: Tasks = dataclasses.field(init=False)
+    subregionalisers: list[regionalising.RasterSubregionaliser] = dataclasses.field(
+        init=False
+    )
     likelihood: float = dataclasses.field(init=False)
 
-    def activate(self, *, hp: hydpy.HydPy, tasks: Tasks) -> None:
+    def activate(
+        self,
+        *,
+        hp: hydpy.HydPy,
+        tasks: Tasks,
+        subregionalisers: list[regionalising.RasterSubregionaliser],
+    ) -> None:
         self.hp = hp
         self.tasks = tasks
+        self.subregionalisers = subregionalisers
         self.conditions = hp.conditions
         self.likelihood = numpy.nan
 
     @property
     def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
         coefficients: set[regionalising.Coefficient] = set()
+        for subregionaliser in self.subregionalisers:
+            coefficients.update(subregionaliser.coefficients)
         for task in self.tasks:
             coefficients.update(task.regionaliser.coefficients)
         return tuple(sorted(coefficients, key=lambda c: c.name))
@@ -54,6 +66,8 @@ class Calibrator(abc.ABC):
     ) -> float:
         for coefficient, value in zip(self.coefficients, values):
             coefficient.value = value
+        for subregionaliser in self.subregionalisers:
+            subregionaliser.apply_coefficients()
         for task in self.tasks:
             task.run()
         self.hp.conditions = self.conditions

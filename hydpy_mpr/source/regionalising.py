@@ -5,6 +5,7 @@ import dataclasses
 import numpy
 
 from hydpy_mpr.source import equations
+from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
@@ -49,3 +50,21 @@ class RasterRegionaliser(equations.RasterEquation, abc.ABC):
     @abc.abstractmethod
     def apply_coefficients(self) -> None:
         pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterSubregionaliser(RasterRegionaliser, abc.ABC):
+
+    name: str
+
+    @override
+    def activate(self, *, raster_groups: reading.RasterGroups) -> None:
+        super().activate(raster_groups=raster_groups)
+        self.mask[:, :] = True
+        for input_ in self.inputs.values():
+            self.mask *= input_.mask
+        raster = reading.RasterFloat(  # pylint: disable=unexpected-keyword-arg
+            values=self.output
+        )
+        raster.mask = self.mask.copy()
+        self.group.data_rasters[self.name] = raster

@@ -113,6 +113,11 @@ def filename_landuse_15km() -> str:
 
 
 @pytest.fixture
+def filename_dh_15km() -> str:
+    return "dh_cop_eu_dem_res15km.tif"
+
+
+@pytest.fixture
 def dirpath_config(dirpath_mpr_data: str) -> str:
     return os.path.join(dirpath_mpr_data, "config")
 
@@ -173,23 +178,102 @@ def regionaliser_fc_2m(
     filename_clay_2m_15km: str,
     filename_density_2m_15km: str,
 ) -> regionalising.RasterRegionaliser:
+
     fc = runpy.run_path(filepath_regionalisers)["FC2m"](
         dir_group=dirname_raster_15km,
         file_clay=filename_clay_2m_15km.split(".")[0],
         file_density=filename_density_2m_15km.split(".")[0],
         coef_const=regionalising.Coefficient(
-            name="const", default=20.0, lower=5.0, upper=50.0
+            name="fc_const", default=20.0, lower=5.0, upper=50.0
         ),
         coef_factor_clay=regionalising.Coefficient(
-            name="factor_clay", default=0.0, lower=0.0, upper=1.0
+            name="fc_factor_clay", default=0.0, lower=0.0, upper=1.0
         ),
         coef_factor_density=regionalising.Coefficient(
-            name="factor_density", default=-1.0, lower=-5.0, upper=0.0
+            name="fc_factor_density", default=-1.0, lower=-5.0, upper=0.0
         ),
     )
+
     assert isinstance(fc, regionalising.RasterRegionaliser)
     fc.activate(raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
     return fc
+
+
+@pytest.fixture
+def regionaliser_percmax_2m(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    filepath_regionalisers: str,
+    dirname_raster_15km: str,
+) -> regionalising.RasterRegionaliser:
+
+    r = runpy.run_path(filepath_regionalisers)["PercMax"](
+        dir_group=dirname_raster_15km,
+        file_ks="ks_2m",
+        coef_factor=regionalising.Coefficient(
+            name="percmax_factor_ks", default=1.0, lower=0.1, upper=10.0
+        ),
+    )
+
+    assert isinstance(r, regionalising.RasterRegionaliser)
+    return r
+
+
+@pytest.fixture
+def regionaliser_k_2m(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    filepath_regionalisers: str,
+    dirname_raster_15km: str,
+    filename_dh_15km: str,
+) -> regionalising.RasterRegionaliser:
+
+    r = runpy.run_path(filepath_regionalisers)["K"](
+        dir_group=dirname_raster_15km,
+        file_ks="ks_2m",
+        file_dh=filename_dh_15km.split(".")[0],
+        coef_const=regionalising.Coefficient(
+            name="k_const", default=0.01, lower=0.0, upper=0.1
+        ),
+        coef_factor_ks=regionalising.Coefficient(
+            name="k_factor_ks", default=0.01, lower=0.0, upper=0.1
+        ),
+        coef_factor_dh=regionalising.Coefficient(
+            name="k_factor_dh", default=0.0001, lower=0.0, upper=0.001
+        ),
+    )
+    assert isinstance(r, regionalising.RasterRegionaliser)
+    return r
+
+
+@pytest.fixture
+def subregionaliser_ks_2m(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    filepath_regionalisers: str,
+    dirname_raster_15km: str,
+    filename_sand_2m_15km: str,
+    filename_clay_2m_15km: str,
+) -> regionalising.RasterRegionaliser:
+
+    r = runpy.run_path(filepath_regionalisers)["KS"](
+        name="ks_2m",
+        dir_group=dirname_raster_15km,
+        file_sand=filename_sand_2m_15km.split(".")[0],
+        file_clay=filename_clay_2m_15km.split(".")[0],
+        coef_factor=regionalising.Coefficient(
+            name="ks_factor", default=1.0, lower=0.1, upper=10.0
+        ),
+        coef_factor_sand=regionalising.Coefficient(
+            name="ks_factor_sand", default=0.01, lower=0.0, upper=0.1
+        ),
+        coef_factor_clay=regionalising.Coefficient(
+            name="ks_factor_clay", default=0.01, lower=0.0, upper=0.1
+        ),
+    )
+
+    assert isinstance(r, regionalising.RasterSubregionaliser)
+    return r
 
 
 @pytest.fixture
@@ -202,7 +286,8 @@ def regionaliser_fc_flexible(
     filename_clay_2m_15km: str,
     filename_density_2m_15km: str,
 ) -> regionalising.RasterRegionaliser:
-    fc = runpy.run_path(filepath_regionalisers)["FCFlex"](
+
+    r = runpy.run_path(filepath_regionalisers)["FCFlex"](
         dir_group=dirname_raster_15km,
         file_clay="clay",
         file_density="bdod",
@@ -217,8 +302,9 @@ def regionaliser_fc_flexible(
             name="factor_density", default=-1.0, lower=-5.0, upper=0.0
         ),
     )
-    assert isinstance(fc, regionalising.RasterRegionaliser)
-    return fc
+
+    assert isinstance(r, regionalising.RasterRegionaliser)
+    return r
 
 
 @pytest.fixture
@@ -232,8 +318,10 @@ def preprocessors_fc_flexible(
     filename_density_2m_15km: str,
     filename_landuse_15km: str,
 ) -> list[preprocessing.RasterPreprocessor]:
+
     classes = runpy.run_path(filepath_preprocessors)
     selector = classes["DataSelector"]
+
     clay = selector(
         name="clay",
         dir_group=dirname_raster_15km,
@@ -242,6 +330,7 @@ def preprocessors_fc_flexible(
         file_landuse=filename_landuse_15km.split(".")[0],
     )
     assert isinstance(clay, preprocessing.RasterPreprocessor)
+
     bdod = selector(
         name="bdod",
         dir_group=dirname_raster_15km,
@@ -250,12 +339,14 @@ def preprocessors_fc_flexible(
         file_landuse=filename_landuse_15km.split(".")[0],
     )
     assert isinstance(bdod, preprocessing.RasterPreprocessor)
+
     depth = classes["SoilDepth"](
         name="depth",
         dir_group=dirname_raster_15km,
         file_landuse=filename_landuse_15km.split(".")[0],
     )
     assert isinstance(depth, preprocessing.RasterPreprocessor)
+
     return [clay, bdod, depth]
 
 
@@ -265,6 +356,24 @@ def element_transformer_fc() -> (
 ):
     return transforming.RasterElementIdentityTransformer(
         parameter=hland_control.FC, model="hland_96"
+    )
+
+
+@pytest.fixture
+def element_transformers_percmax() -> (
+    transforming.RasterElementIdentityTransformer[hland_control.PercMax]
+):
+    return transforming.RasterElementIdentityTransformer(
+        parameter=hland_control.PercMax, model="hland_96"
+    )
+
+
+@pytest.fixture
+def element_transformers_k() -> (
+    transforming.RasterElementIdentityTransformer[hland_control.K]
+):
+    return transforming.RasterElementIdentityTransformer(
+        parameter=hland_control.K, model="hland_96"
     )
 
 

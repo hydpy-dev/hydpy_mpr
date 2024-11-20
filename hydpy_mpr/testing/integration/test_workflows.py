@@ -108,3 +108,52 @@ def test_raster_subunit_level_preprocessing(
     assert numpy.min(fc[:4]) == numpy.max(fc[:4]) == pytest.approx(278.0)
     assert fc[4:-6] == pytest.approx([194.3148149586912, 382.6925245001308])
     assert numpy.min(fc[-6:]) == numpy.max(fc[-6:]) == pytest.approx(278.0)
+
+
+@pytest.mark.integration_test
+def test_raster_element_level_subregionalisers(
+    arrange_project: None,
+    dirpath_mpr_data: str,
+    hp2: hydpy.HydPy,
+    subregionaliser_ks_2m: hydpy_mpr.RasterSubregionaliser,
+    regionaliser_percmax_2m: hydpy_mpr.RasterRegionaliser,
+    regionaliser_k_2m: hydpy_mpr.RasterRegionaliser,
+    element_transformers_percmax: hydpy_mpr.RasterElementIdentityTransformer[Any],
+    element_transformers_k: hydpy_mpr.RasterElementIdentityTransformer[Any],
+    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+) -> None:
+
+    hydpy_mpr.MPR(
+        mprpath=dirpath_mpr_data,
+        hp=hp2,
+        subregionalisers=[subregionaliser_ks_2m],
+        tasks=[
+            hydpy_mpr.RasterElementTask(
+                regionaliser=regionaliser_percmax_2m,
+                upscaler=hydpy_mpr.RasterElementDefaultUpscaler(),
+                transformers=[element_transformers_percmax],
+            ),
+            hydpy_mpr.RasterElementTask(
+                regionaliser=regionaliser_k_2m,
+                upscaler=hydpy_mpr.RasterElementDefaultUpscaler(),
+                transformers=[element_transformers_k],
+            ),
+        ],
+        calibrator=nloptcalibrator,
+        writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
+    ).run()
+
+    assert nloptcalibrator.likelihood == pytest.approx(0.8099391298668452)
+    assert {c.name: c.value for c in nloptcalibrator.coefficients} == {
+        "k_const": pytest.approx(0.0003222911614511848),
+        "k_factor_dh": pytest.approx(1.4129096276679694e-07),
+        "k_factor_ks": pytest.approx(0.003027282691767621),
+        "ks_factor": pytest.approx(0.6053935389318361),
+        "ks_factor_clay": pytest.approx(0.020386867249927554),
+        "ks_factor_sand": pytest.approx(0.004698608966388174),
+        "percmax_factor_ks": pytest.approx(0.9315881628112787),
+    }
+
+    control = hp2.elements["land_dill_assl"].model.parameters.control
+    assert control.percmax.value == pytest.approx(1.2719623289498436)
+    assert control.k.value == pytest.approx(0.004513535211646848)

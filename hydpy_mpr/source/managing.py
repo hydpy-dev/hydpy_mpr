@@ -33,7 +33,7 @@ class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasTransformer]):
 
     def run(self) -> None:
         self.regionaliser.apply_coefficients()
-        self.regionaliser.apply_mask()
+        self.regionaliser.apply_mask()  # ToDo: remove?
         self.upscaler.scale_up()
         for transformer in self.transformers:
             transformer.modify_parameters()
@@ -73,10 +73,10 @@ class MPR:
     preprocessors: list[preprocessing.RasterPreprocessor] = dataclasses.field(
         default_factory=lambda: []
     )
-    tasks: Tasks
-    subequations: list[regionalising.RasterRegionaliser] = dataclasses.field(
+    subregionalisers: list[regionalising.RasterSubregionaliser] = dataclasses.field(
         default_factory=lambda: []
     )
+    tasks: Tasks
     calibrator: calibrating.Calibrator
     writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
 
@@ -84,9 +84,13 @@ class MPR:
         raster_groups = reading.RasterGroups(mprpath=self.mprpath)
         for preprocessor in self.preprocessors:
             preprocessor.activate(raster_groups=raster_groups)
+        for subregionaliser in self.subregionalisers:
+            subregionaliser.activate(raster_groups=raster_groups)
         for task in self.tasks:
             task.activate(hp=self.hp, raster_groups=raster_groups)
-        self.calibrator.activate(hp=self.hp, tasks=self.tasks)
+        self.calibrator.activate(
+            hp=self.hp, tasks=self.tasks, subregionalisers=self.subregionalisers
+        )
         for writer in self.writers:
             writer.activate(hp=self.hp, calibrator=self.calibrator)
 
