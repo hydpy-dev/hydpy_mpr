@@ -17,7 +17,7 @@ from hydpy_mpr.source import reading
 def test_read_geotiff_int_okay(
     arrange_project: None, filepath_element_id_15km: str
 ) -> None:
-    raster = reading.read_geotiff(filepath_element_id_15km, datatype="int")
+    raster = reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     assert raster.shape == (10, 10)
     assert raster.missingvalue == -9999
     values = raster.values
@@ -25,10 +25,24 @@ def test_read_geotiff_int_okay(
     assert tuple(numpy.sum(values == id_) for id_ in range(6)) == (0, 7, 5, 9, 3, 3)
 
 
+def test_read_geotiff_int_but_dtype_is_float(
+    arrange_project: None, filepath_sand_2m_15km: str
+) -> None:
+    with pytest.warns(
+        UserWarning,
+        match=re.escape(
+            f"The data type of tiff file `{filepath_sand_2m_15km}` is `float32` but "
+            f"integer values are expected."
+        ),
+    ):
+        raster = reading.read_geotiff(filepath=filepath_sand_2m_15km, integer=True)
+        assert isinstance(raster, reading.RasterInt)
+
+
 def test_read_geotiff_float_okay(
     arrange_project: None, filepath_sand_2m_15km: str
 ) -> None:
-    raster = reading.read_geotiff(filepath_sand_2m_15km, datatype="float")
+    raster = reading.read_geotiff(filepath=filepath_sand_2m_15km)
     assert raster.shape == (10, 10)
     assert numpy.nanmin(raster.values) == pytest.approx(15.359077453613281)
     assert numpy.nanmax(raster.values) == pytest.approx(24.92906379699707)
@@ -38,12 +52,12 @@ def test_read_geotiff_float_okay(
 
 def test_read_raster_missing_file(filepath_element_id_15km: str) -> None:
     with pytest.raises(FileNotFoundError) as info:
-        reading.read_geotiff(filepath_element_id_15km, datatype="int")
+        reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     assert str(info.value) == (f"GeoTiff `{filepath_element_id_15km}` does not exist.")
 
 
 def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -> None:
-    raster1 = reading.read_geotiff(filepath_element_id_15km, datatype="int")
+    raster1 = reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     raster2 = copy.deepcopy(raster1)
 
     # everything equal:
@@ -93,14 +107,14 @@ def test_read_rastergroup_okay(
 ) -> None:
     group = reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert group.element_raster == reading.read_geotiff(
-        filepath_element_id_15km, datatype="int"
+        filepath=filepath_element_id_15km, integer=True
     )
     assert group.subunit_raster == reading.read_geotiff(
-        filepath_subunit_id_15km, datatype="int"
+        filepath=filepath_subunit_id_15km, integer=True
     )
     assert group.data_rasters[
         filename_sand_2m_15km.split(".")[0]
-    ] == reading.read_geotiff(filepath_sand_2m_15km, datatype="float")
+    ] == reading.read_geotiff(filepath=filepath_sand_2m_15km)
 
 
 def test_read_rastergroup_missing_dirpath(

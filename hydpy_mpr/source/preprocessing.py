@@ -16,11 +16,7 @@ class RasterPreprocessor(equations.RasterEquation, abc.ABC):
     def activate(self, *, raster_groups: reading.RasterGroups) -> None:
         super().activate(raster_groups=raster_groups)
         self.preprocess_data()
-        self.group.data_rasters[self.name] = (
-            reading.RasterFloat(  # pylint: disable=unexpected-keyword-arg
-                values=self.output
-            )
-        )
+        self.group.data_rasters[self.name] = reading.RasterFloat(values=self.output)
 
     @abc.abstractmethod
     def preprocess_data(self) -> None:

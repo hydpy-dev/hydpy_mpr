@@ -76,16 +76,18 @@ def read_mapping_table(*, mprpath: str) -> MappingTable:
 
 
 @overload
-def read_geotiff(filepath: str, datatype: Literal["int"]) -> RasterInt: ...
+def read_geotiff(*, filepath: str, integer: Literal[True]) -> RasterInt: ...
 
 
 @overload
-def read_geotiff(filepath: str, datatype: Literal["float"]) -> RasterFloat: ...
+def read_geotiff(
+    *, filepath: str, integer: Literal[False] = False
+) -> RasterFloat | RasterInt: ...
 
 
 def read_geotiff(  # pylint: disable=inconsistent-return-statements
-    filepath: str, datatype: Literal["int", "float"]
-) -> RasterInt | RasterFloat:
+    *, filepath: str, integer: bool = False
+) -> RasterFloat | RasterInt:
     """
 
     >>> from hydpy_mpr.source.reading import read_geotiff
@@ -94,7 +96,7 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
     >>> reset_workingdir = prepare_project("HydPy-H-Lahn")
 
     >>> filepath = "HydPy-H-Lahn/mpr_data/raster/raster_5km/sand_mean_0_200_res5km.tif"
-    >>> raster = read_geotiff(filepath, datatype="float")
+    >>> raster = read_geotiff(filepath=filepath)
     >>> raster.shape
     >>> raster
 
@@ -113,18 +115,27 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
             f"HydPy-MPR supports only tiff files containing tiff pages, but "
             f"`{filepath}` contains at least one tiff frame."
         )
-        # pylint: disable=unexpected-keyword-arg
-        if datatype == "int":
+        dtype = tiff.pages[0].dtype
+        if dtype is None:
+            warnings.warn(
+                f"The data type of tiff file `{filepath}` cannot be detected.  "
+                f"Assuming `{'integer' if integer else 'float'}`."
+            )
+        elif integer and not numpy.isdtype(dtype, "integral"):
+            warnings.warn(
+                f"The data type of tiff file `{filepath}` is `{dtype.name}` but "
+                f"integer values are expected."
+            )
+        if integer or ((dtype is not None) and numpy.isdtype(dtype, "integral")):
             return RasterInt(
                 values=numpy.array(tiff.asarray(), dtype=int64),
                 missingvalue=int64(page.tags[42113].value),
             )
-        if datatype == "float":
-            values = numpy.array(tiff.asarray(), dtype=float64)
-            missingvalue = float64(page.tags[42113].value)
-            if not numpy.isnan(missingvalue):
-                values[values == missingvalue] = numpy.nan
-            return RasterFloat(values=values)
+        values = numpy.array(tiff.asarray(), dtype=float64)
+        missingvalue = float64(page.tags[42113].value)
+        if not numpy.isnan(missingvalue):
+            values[values == missingvalue] = numpy.nan
+        return RasterFloat(values=values)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -193,7 +204,7 @@ class RasterGroup:
 
     mprpath: str
     name: str
-    data_rasters: dict[str, RasterFloat] = dataclasses.field(init=False)
+    data_rasters: dict[str, RasterFloat | RasterInt] = dataclasses.field(init=False)
     element_raster: RasterInt = dataclasses.field(init=False)
     subunit_raster: RasterInt = dataclasses.field(init=False)
     shape: tuple[int, int] = dataclasses.field(init=False)
@@ -212,7 +223,7 @@ class RasterGroup:
         for idx, filename in enumerate(tuple(filenames)):
             if filename.rsplit(".")[0] == constants.ELEMENT_ID:
                 filepath = os.path.join(dirpath, filename)
-                self.element_raster = read_geotiff(filepath=filepath, datatype="int")
+                self.element_raster = read_geotiff(filepath=filepath, integer=True)
                 self.shape = self.element_raster.shape
                 filenames.pop(idx)
                 break
@@ -226,7 +237,7 @@ class RasterGroup:
         for idx, filename in enumerate(tuple(filenames)):
             if filename.rsplit(".")[0] == constants.SUBUNIT_ID:
                 filepath = os.path.join(dirpath, filename)
-                self.subunit_raster = read_geotiff(filepath=filepath, datatype="int")
+                self.subunit_raster = read_geotiff(filepath=filepath, integer=True)
                 self._check_shape(self.subunit_raster.shape, filename)
                 filenames.pop(idx)
                 break
@@ -240,7 +251,7 @@ class RasterGroup:
         self.data_rasters = {}
         for filename in filenames:
             filepath = os.path.join(dirpath, filename)
-            raster = read_geotiff(filepath=filepath, datatype="float")
+            raster = read_geotiff(filepath=filepath)
             self._check_shape(raster.shape, filename)
             self.data_rasters[filename.rsplit(".")[0]] = raster
 

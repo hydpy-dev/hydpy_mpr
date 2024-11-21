@@ -59,8 +59,6 @@ class RasterSubregionaliser(RasterRegionaliser, abc.ABC):
         self.mask[:, :] = True
         for input_ in self.inputs.values():
             self.mask *= input_.mask
-        raster = reading.RasterFloat(  # pylint: disable=unexpected-keyword-arg
-            values=self.output
-        )
+        raster = reading.RasterFloat(values=self.output)
         raster.mask = self.mask.copy()
         self.group.data_rasters[self.name] = raster
