@@ -25,7 +25,7 @@ from hydpy_mpr.source.transforming import (
     RasterElementTransformer,
     RasterSubunitIdentityTransformer,
     RasterSubunitTransformer,
-    TP,
+    TypeVarParameter,
 )
 from hydpy_mpr.source.upscaling import (
     RasterElementDefaultUpscaler,
@@ -79,6 +79,6 @@ __all__ = [
     "RasterSubunitUpscaler",
     "read_geotiff",
     "read_mapping_table",
-    "TP",
+    "TypeVarParameter",
     "Writer",
 ]

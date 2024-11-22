@@ -10,13 +10,13 @@ from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterTransformer(abc.ABC, Generic[TP]):
+class RasterTransformer(abc.ABC, Generic[TypeVarParameter]):
 
-    parameter: type[TP]
+    parameter: type[TypeVarParameter]
     model: str | None = dataclasses.field(default_factory=lambda: None)
     selection: hydpy.Selection | None = dataclasses.field(default_factory=lambda: None)
     hp: hydpy.HydPy = dataclasses.field(init=False)
-    element2parameter: dict[str, TP] = dataclasses.field(init=False)
+    element2parameter: dict[str, TypeVarParameter] = dataclasses.field(init=False)
 
     def _activate(self, hp: hydpy.HydPy) -> None:
         self.hp = hp
@@ -38,7 +38,7 @@ class RasterTransformer(abc.ABC, Generic[TP]):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
+class RasterElementTransformer(RasterTransformer[TypeVarParameter], abc.ABC):
 
     upscaler: upscaling.RasterElementUpscaler = dataclasses.field(init=False)
 
@@ -56,12 +56,12 @@ class RasterElementTransformer(RasterTransformer[TP], abc.ABC):
                 self.modify_parameter(parameter=parameter, value=value)
 
     @abc.abstractmethod
-    def modify_parameter(self, parameter: TP, value: float64) -> None:
+    def modify_parameter(self, parameter: TypeVarParameter, value: float64) -> None:
         pass
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterSubunitTransformer(RasterTransformer[TP], abc.ABC):
+class RasterSubunitTransformer(RasterTransformer[TypeVarParameter], abc.ABC):
     upscaler: upscaling.RasterSubunitUpscaler = dataclasses.field(init=False)
 
     def activate(
@@ -78,23 +78,27 @@ class RasterSubunitTransformer(RasterTransformer[TP], abc.ABC):
                 self.modify_parameter(parameter=parameter, values=value)
 
     @abc.abstractmethod
-    def modify_parameter(self, parameter: TP, values: dict[int64, float64]) -> None:
+    def modify_parameter(
+        self, parameter: TypeVarParameter, values: dict[int64, float64]
+    ) -> None:
         pass
 
 
-class RasterElementIdentityTransformer(RasterElementTransformer[TP]):
+class RasterElementIdentityTransformer(RasterElementTransformer[TypeVarParameter]):
 
     @override
-    def modify_parameter(self, parameter: TP, value: float64) -> None:
+    def modify_parameter(self, parameter: TypeVarParameter, value: float64) -> None:
         # ToDo: parameterstep
         if not numpy.isnan(value):
             parameter(value)
 
 
-class RasterSubunitIdentityTransformer(RasterSubunitTransformer[TP]):
+class RasterSubunitIdentityTransformer(RasterSubunitTransformer[TypeVarParameter]):
 
     @override
-    def modify_parameter(self, parameter: TP, values: dict[int64, float64]) -> None:
+    def modify_parameter(
+        self, parameter: TypeVarParameter, values: dict[int64, float64]
+    ) -> None:
         # ToDo: parameterstep
         for idx, value in values.items():
             if not numpy.isnan(value):

@@ -14,7 +14,7 @@ from hydpy_mpr.source.constants import ELEMENT_ID, ELEMENT_NAME
 from hydpy_mpr.source.typing_ import *
 
 
-TM = TypeVar("TM", float64, int64)
+TypeVarNumber = TypeVar("TypeVarNumber", float64, int64)
 
 
 def read_mapping_table(*, mprpath: str) -> MappingTable:
@@ -139,8 +139,8 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
 
 
 @dataclasses.dataclass(kw_only=True)
-class Raster(Generic[TM]):
-    values: Matrix[TM]
+class Raster(Generic[TypeVarNumber]):
+    values: Matrix[TypeVarNumber]
     shape: tuple[int, int] = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
 

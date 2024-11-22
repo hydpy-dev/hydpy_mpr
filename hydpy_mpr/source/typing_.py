@@ -34,7 +34,7 @@ from numpy import int64, float64
 from typing_extensions import assert_never, override, Self
 
 
-TP = TypeVar("TP", bound=Parameter)
+TypeVarParameter = TypeVar("TypeVarParameter", bound=Parameter)
 
 
 MappingTable: TypeAlias = dict[int64, str]
@@ -79,9 +79,9 @@ __all__ = [
     "Self",
     "Sequence",
     "Tasks",
-    "TP",
     "TypeAlias",
     "TypeVar",
+    "TypeVarParameter",
     "UpscalingOption",
     "UpscalingFunction",
 ]
