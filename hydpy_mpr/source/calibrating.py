@@ -21,6 +21,7 @@ class Calibrator(abc.ABC):
         init=False
     )
     likelihood: float = dataclasses.field(init=False)
+    nmb_steps: int = dataclasses.field(init=False, default=0)
 
     def activate(
         self,
@@ -77,6 +78,7 @@ class Calibrator(abc.ABC):
         self.hp.conditions = self.conditions
         self.hp.simulate()
         likelihood = self.calculate_likelihood()
+        self.nmb_steps += 1
         return likelihood
 
     @abc.abstractmethod

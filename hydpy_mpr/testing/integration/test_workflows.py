@@ -17,8 +17,10 @@ def test_raster_element_level(
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
     element_transformer_fc: hydpy_mpr.RasterElementIdentityTransformer[Any],
-    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+    gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
+
+    g = gridcalibrator(nmb_nodes=3)
 
     hydpy_mpr.MPR(
         mprpath=dirpath_mpr_data,
@@ -30,16 +32,16 @@ def test_raster_element_level(
                 transformers=[element_transformer_fc],
             )
         ],
-        calibrator=nloptcalibrator,
+        calibrator=g,
         writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
     ).run()
 
-    assert nloptcalibrator.likelihood == pytest.approx(0.8110012729432962)
-    assert nloptcalibrator.values == pytest.approx(
-        [5.0, 0.4132740282002442, -3.215380839645377]
-    )
+    assert len(tuple(g.gridpoints)) == 27
+    assert g.nmb_steps == 28
+    assert g.likelihood == pytest.approx(0.8122366228601621)
+    assert g.values == pytest.approx([5.0, 0.5, -5.0])
     fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
-    assert numpy.min(fc) == numpy.max(fc) == pytest.approx(257.5034399871806)
+    assert numpy.min(fc) == numpy.max(fc) == pytest.approx(259.0249554316203)
 
 
 @pytest.mark.integration_test
@@ -49,8 +51,10 @@ def test_raster_subunit_level(
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
     subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
-    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+    gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
+
+    g = gridcalibrator(nmb_nodes=3)
 
     hydpy_mpr.MPR(
         mprpath=dirpath_mpr_data,
@@ -62,17 +66,17 @@ def test_raster_subunit_level(
                 transformers=[subunit_transformer_fc],
             )
         ],
-        calibrator=nloptcalibrator,
+        calibrator=g,
         writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
     ).run()
 
-    assert nloptcalibrator.likelihood == pytest.approx(0.818256247212652)
-    assert nloptcalibrator.values == pytest.approx(
-        [5.0, 0.5267278445642123, -4.9999999999925]
-    )
+    assert len(tuple(g.gridpoints)) == 27
+    assert g.nmb_steps == 28
+    assert g.likelihood == pytest.approx(0.8165275073538124)
+    assert g.values == pytest.approx([5.0, 0.5, -5.0])
     fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
     assert numpy.min(fc[:4]) == numpy.max(fc[:4]) == pytest.approx(278.0)
-    assert fc[4:-6] == pytest.approx([280.47638276, 264.40416301])
+    assert fc[4:-6] == pytest.approx([264.1511917114258, 248.77248287200928])
     assert numpy.min(fc[-6:]) == numpy.max(fc[-6:]) == pytest.approx(278.0)
 
 
@@ -84,8 +88,10 @@ def test_raster_subunit_level_preprocessing(
     preprocessors_fc_flexible: list[hydpy_mpr.RasterPreprocessor],
     regionaliser_fc_flexible: hydpy_mpr.RasterRegionaliser,
     subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
-    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+    gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
+
+    g = gridcalibrator(nmb_nodes=3)
 
     hydpy_mpr.MPR(
         mprpath=dirpath_mpr_data,
@@ -98,15 +104,17 @@ def test_raster_subunit_level_preprocessing(
                 transformers=[subunit_transformer_fc],
             )
         ],
-        calibrator=nloptcalibrator,
+        calibrator=g,
         writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
     ).run()
 
-    assert nloptcalibrator.likelihood == pytest.approx(0.8154531497952633)
-    assert nloptcalibrator.values == pytest.approx([26.317158773910958, 0.0, -5.0])
+    assert len(tuple(g.gridpoints)) == 27
+    assert g.nmb_steps == 28
+    assert g.likelihood == pytest.approx(0.8144729720191278)
+    assert g.values == pytest.approx([5.0, 0.5, 0.0])
     fc = hp2.elements["land_dill_assl"].model.parameters.control.fc.values
     assert numpy.min(fc[:4]) == numpy.max(fc[:4]) == pytest.approx(278.0)
-    assert fc[4:-6] == pytest.approx([194.3148149586912, 382.6925245001308])
+    assert fc[4:-6] == pytest.approx([199.29243564605713, 392.42313385009766])
     assert numpy.min(fc[-6:]) == numpy.max(fc[-6:]) == pytest.approx(278.0)
 
 
@@ -120,8 +128,10 @@ def test_raster_element_level_subregionalisers(
     regionaliser_k_2m: hydpy_mpr.RasterRegionaliser,
     element_transformers_percmax: hydpy_mpr.RasterElementIdentityTransformer[Any],
     element_transformers_k: hydpy_mpr.RasterElementIdentityTransformer[Any],
-    nloptcalibrator: hydpy_mpr.NLOptCalibrator,
+    gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
+
+    g = gridcalibrator(nmb_nodes=1)
 
     hydpy_mpr.MPR(
         mprpath=dirpath_mpr_data,
@@ -139,21 +149,23 @@ def test_raster_element_level_subregionalisers(
                 transformers=[element_transformers_k],
             ),
         ],
-        calibrator=nloptcalibrator,
+        calibrator=g,
         writers=[hydpy_mpr.ControlWriter(controldir="calibrated")],
     ).run()
 
-    assert nloptcalibrator.likelihood == pytest.approx(0.8099391298668452)
-    assert {c.name: c.value for c in nloptcalibrator.coefficients} == {
-        "k_const": pytest.approx(0.0003222911614511848),
-        "k_factor_dh": pytest.approx(1.4129096276679694e-07),
-        "k_factor_ks": pytest.approx(0.003027282691767621),
-        "ks_factor": pytest.approx(0.6053935389318361),
-        "ks_factor_clay": pytest.approx(0.020386867249927554),
-        "ks_factor_sand": pytest.approx(0.004698608966388174),
-        "percmax_factor_ks": pytest.approx(0.9315881628112787),
+    assert len(tuple(g.gridpoints)) == 1
+    assert g.nmb_steps == 2
+    assert g.likelihood == pytest.approx(0.5826522238266516)
+    assert {c.name: c.value for c in g.coefficients} == {
+        "k_const": 0.05,
+        "k_factor_dh": 0.0005,
+        "k_factor_ks": 0.05,
+        "ks_factor": 5.05,
+        "ks_factor_clay": 0.05,
+        "ks_factor_sand": 0.05,
+        "percmax_factor_ks": 5.05,
     }
 
     control = hp2.elements["land_dill_assl"].model.parameters.control
-    assert control.percmax.value == pytest.approx(1.2719623289498436)
-    assert control.k.value == pytest.approx(0.004513535211646848)
+    assert control.percmax.value == pytest.approx(23.105109819742168)
+    assert control.k.value == pytest.approx(0.4836022341103063)

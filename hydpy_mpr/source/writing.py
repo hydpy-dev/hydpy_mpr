@@ -30,6 +30,5 @@ class ControlWriter(Writer):
 
     @override
     def write(self) -> None:
-        self.calibrator.perform_calibrationstep(self.calibrator.values)
         pub.controlmanager.currentdir = self.controldir
         self.hp.save_controls()

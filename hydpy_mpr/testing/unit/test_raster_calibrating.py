@@ -8,18 +8,18 @@ from hydpy_mpr.source.typing_ import *
 
 
 def test_grid_calibrator_nmb_nodes_1_okay(
-    gridcalibrator: type[hydpy_mpr.GridCalibrator],
+    gridcalibrator_with_dummy_coefficients: type[hydpy_mpr.GridCalibrator],
 ) -> None:
-    c = gridcalibrator(nmb_nodes=1)
+    c = gridcalibrator_with_dummy_coefficients(nmb_nodes=1)
     values = tuple(c.gridpoints)
     assert len(values) == 1
     assert values[0] == (0.0, 4.0)
 
 
 def test_grid_calibrator_nmb_nodes_3_okay(
-    gridcalibrator: type[hydpy_mpr.GridCalibrator],
+    gridcalibrator_with_dummy_coefficients: type[hydpy_mpr.GridCalibrator],
 ) -> None:
-    c = gridcalibrator(nmb_nodes=3)
+    c = gridcalibrator_with_dummy_coefficients(nmb_nodes=3)
     values = tuple(c.gridpoints)
     assert len(values) == 9
     assert values == (
@@ -36,9 +36,9 @@ def test_grid_calibrator_nmb_nodes_3_okay(
 
 
 def test_grid_calibrator_missing_bounds(
-    gridcalibrator: type[hydpy_mpr.GridCalibrator],
+    gridcalibrator_with_dummy_coefficients: type[hydpy_mpr.GridCalibrator],
 ) -> None:
-    c = gridcalibrator(nmb_nodes=1)
+    c = gridcalibrator_with_dummy_coefficients(nmb_nodes=1)
     c.coefficients[1].upper = numpy.inf
     with pytest.raises(ValueError) as info:
         tuple(c.gridpoints)
@@ -56,7 +56,8 @@ def test_grid_calibrator_missing_bounds(
 
 
 def test_grid_calibrator_calibrate(
-    monkeypatch: pytest.MonkeyPatch, gridcalibrator: type[hydpy_mpr.GridCalibrator]
+    monkeypatch: pytest.MonkeyPatch,
+    gridcalibrator_with_dummy_coefficients: type[hydpy_mpr.GridCalibrator],
 ) -> None:
 
     last_values: Sequence[float] = (9.0, 9.0)
@@ -70,7 +71,7 @@ def test_grid_calibrator_calibrate(
         last_values = values
         return 1.0 if values == (0.0, 4.0) else 0.0
 
-    c = gridcalibrator(nmb_nodes=3)
+    c = gridcalibrator_with_dummy_coefficients(nmb_nodes=3)
     monkeypatch.setattr(
         hydpy_mpr.GridCalibrator, "perform_calibrationstep", perform_calibrationstep
     )
