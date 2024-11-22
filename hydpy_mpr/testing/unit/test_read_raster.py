@@ -10,14 +10,14 @@ import shutil
 import numpy
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import reading
 
 
 def test_read_geotiff_int_okay(
     arrange_project: None, filepath_element_id_15km: str
 ) -> None:
-    raster = reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
+    raster = hydpy_mpr.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     assert raster.shape == (10, 10)
     assert raster.missingvalue == -9999
     values = raster.values
@@ -35,14 +35,14 @@ def test_read_geotiff_int_but_dtype_is_float(
             f"integer values are expected."
         ),
     ):
-        raster = reading.read_geotiff(filepath=filepath_sand_2m_15km, integer=True)
-        assert isinstance(raster, reading.RasterInt)
+        raster = hydpy_mpr.read_geotiff(filepath=filepath_sand_2m_15km, integer=True)
+        assert isinstance(raster, hydpy_mpr.RasterInt)
 
 
 def test_read_geotiff_float_okay(
     arrange_project: None, filepath_sand_2m_15km: str
 ) -> None:
-    raster = reading.read_geotiff(filepath=filepath_sand_2m_15km)
+    raster = hydpy_mpr.read_geotiff(filepath=filepath_sand_2m_15km)
     assert raster.shape == (10, 10)
     assert numpy.nanmin(raster.values) == pytest.approx(15.359077453613281)
     assert numpy.nanmax(raster.values) == pytest.approx(24.92906379699707)
@@ -52,12 +52,12 @@ def test_read_geotiff_float_okay(
 
 def test_read_raster_missing_file(filepath_element_id_15km: str) -> None:
     with pytest.raises(FileNotFoundError) as info:
-        reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
+        hydpy_mpr.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     assert str(info.value) == (f"GeoTiff `{filepath_element_id_15km}` does not exist.")
 
 
 def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -> None:
-    raster1 = reading.read_geotiff(filepath=filepath_element_id_15km, integer=True)
+    raster1 = hydpy_mpr.read_geotiff(filepath=filepath_element_id_15km, integer=True)
     raster2 = copy.deepcopy(raster1)
 
     # everything equal:
@@ -81,7 +81,7 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
 
     # compatible subclass:
     @dataclasses.dataclass(kw_only=True)
-    class MyRaster1(reading.RasterInt):
+    class MyRaster1(hydpy_mpr.RasterInt):
         pass
 
     raster2.__class__ = MyRaster1
@@ -89,7 +89,7 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
 
     # incompatible subclass:
     @dataclasses.dataclass(kw_only=True)
-    class MyRaster2(reading.RasterInt):
+    class MyRaster2(hydpy_mpr.RasterInt):
         test: int = dataclasses.field(init=False)
 
     raster2.__class__ = MyRaster2
@@ -105,23 +105,23 @@ def test_read_rastergroup_okay(
     filename_sand_2m_15km: str,
     filepath_sand_2m_15km: str,
 ) -> None:
-    group = reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
-    assert group.element_raster == reading.read_geotiff(
+    group = hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+    assert group.element_raster == hydpy_mpr.read_geotiff(
         filepath=filepath_element_id_15km, integer=True
     )
-    assert group.subunit_raster == reading.read_geotiff(
+    assert group.subunit_raster == hydpy_mpr.read_geotiff(
         filepath=filepath_subunit_id_15km, integer=True
     )
     assert group.data_rasters[
         filename_sand_2m_15km.split(".")[0]
-    ] == reading.read_geotiff(filepath=filepath_sand_2m_15km)
+    ] == hydpy_mpr.read_geotiff(filepath=filepath_sand_2m_15km)
 
 
 def test_read_rastergroup_missing_dirpath(
     dirpath_mpr_data: str, dirname_raster_15km: str, dirpath_raster_15km: str
 ) -> None:
     with pytest.raises(FileNotFoundError) as info:
-        reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+        hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert str(info.value) == (
         f"The requested raster group directory `{dirpath_raster_15km}` does not exist."
     )
@@ -136,7 +136,7 @@ def test_read_rastergroup_missing_element_id_file(
 ) -> None:
     os.remove(filepath_element_id_15km)
     with pytest.raises(FileNotFoundError) as info:
-        reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+        hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert str(info.value) == (
         f"The raster group directory `{dirpath_raster_15km}` does not contain an "
         f"`{constants.ELEMENT_ID}` raster file."
@@ -158,7 +158,7 @@ def test_read_rastergroup_missing_subunit_id_file(
             f"`{constants.SUBUNIT_ID}` raster file."
         ),
     ):
-        reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+        hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
 
 
 def test_read_rastergroup_inconsistent_shape(
@@ -170,7 +170,7 @@ def test_read_rastergroup_inconsistent_shape(
 ) -> None:
     shutil.copy(filepath_element_id_5km, filepath_element_id_15km)
     with pytest.raises(TypeError) as info:
-        reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+        hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert str(info.value) == (
         f"Raster group `{dirname_raster_15km}` is inconsistent: shape `(28, 29)` of "
         f"raster `{constants.ELEMENT_ID}` conflicts with shape `(10, 10)` of raster "
@@ -181,6 +181,6 @@ def test_read_rastergroup_inconsistent_shape(
 def test_read_rastergroups_okay(
     arrange_project: None, dirpath_mpr_data: str, dirname_raster_15km: str
 ) -> None:
-    groups = reading.RasterGroups(mprpath=dirpath_mpr_data)
-    group = reading.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
+    groups = hydpy_mpr.RasterGroups(mprpath=dirpath_mpr_data)
+    group = hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
     assert groups[dirname_raster_15km] == group

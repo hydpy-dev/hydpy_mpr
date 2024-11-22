@@ -3,16 +3,14 @@
 import numpy
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import managing
-from hydpy_mpr.source import upscaling
-from hydpy_mpr.source import transforming
 from hydpy_mpr.source.typing_ import *
 
-UpElement = upscaling.RasterElementDefaultUpscaler
-UpSubunit = upscaling.RasterSubunitDefaultUpscaler
-TransElement = transforming.RasterElementIdentityTransformer
-TransSubunit = transforming.RasterSubunitIdentityTransformer
+UpElement = hydpy_mpr.RasterElementDefaultUpscaler
+UpSubunit = hydpy_mpr.RasterSubunitDefaultUpscaler
+TransElement = hydpy_mpr.RasterElementIdentityTransformer
+TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
@@ -26,7 +24,7 @@ TransSubunit = transforming.RasterSubunitIdentityTransformer
     indirect=True,
 )
 def test_raster_element_default_upscaler_okay(
-    task_element: managing.RasterElementTask, expected: float
+    task_element: hydpy_mpr.RasterElementTask, expected: float
 ) -> None:
     r = task_element.regionaliser
     u = task_element.upscaler
@@ -47,7 +45,7 @@ def test_raster_element_default_upscaler_okay(
     "task_element", [(UpElement, constants.UP_A, TransElement)], indirect=True
 )
 def test_raster_element_default_upscaler_missing_id(
-    task_element: managing.RasterElementTask,
+    task_element: hydpy_mpr.RasterElementTask,
 ) -> None:
     r = task_element.regionaliser
     u = task_element.upscaler
@@ -71,7 +69,7 @@ def test_raster_element_default_upscaler_missing_id(
     indirect=True,
 )
 def test_raster_element_default_upscaler_missing_value(
-    task_element: managing.RasterElementTask,
+    task_element: hydpy_mpr.RasterElementTask,
 ) -> None:
     r = task_element.regionaliser
     u = task_element.upscaler
@@ -95,7 +93,7 @@ def test_raster_element_default_upscaler_missing_value(
     indirect=True,
 )
 def test_raster_subunit_default_upscaler_okay(
-    task_subunit: managing.RasterSubunitTask, expected: float
+    task_subunit: hydpy_mpr.RasterSubunitTask, expected: float
 ) -> None:
     u = task_subunit.upscaler
     o = task_subunit.regionaliser.output
@@ -112,7 +110,7 @@ def test_raster_subunit_default_upscaler_okay(
     "task_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
 def test_raster_subunit_default_upscaler_missing_id(
-    task_subunit: managing.RasterSubunitTask,
+    task_subunit: hydpy_mpr.RasterSubunitTask,
 ) -> None:
     u = task_subunit.upscaler
     e = task_subunit.regionaliser.group.element_raster.values
@@ -136,7 +134,7 @@ def test_raster_subunit_default_upscaler_missing_id(
     indirect=True,
 )
 def test_raster_subunit_default_upscaler_missing_value(
-    task_subunit: managing.RasterSubunitTask,
+    task_subunit: hydpy_mpr.RasterSubunitTask,
 ) -> None:
     o = task_subunit.regionaliser.output
     u = task_subunit.upscaler

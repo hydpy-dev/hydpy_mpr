@@ -3,19 +3,17 @@
 import numpy
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import managing
-from hydpy_mpr.source import transforming
-from hydpy_mpr.source import upscaling
 
-UpSubunit = upscaling.RasterSubunitDefaultUpscaler
-TransSubunit = transforming.RasterSubunitIdentityTransformer
+UpSubunit = hydpy_mpr.RasterSubunitDefaultUpscaler
+TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
     "task_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
-def test_raster_masking(task_subunit: managing.RasterSubunitTask) -> None:
+def test_raster_masking(task_subunit: hydpy_mpr.RasterSubunitTask) -> None:
     mask = task_subunit.upscaler.mask
     regionaliser = task_subunit.regionaliser
     element = regionaliser.group.element_raster

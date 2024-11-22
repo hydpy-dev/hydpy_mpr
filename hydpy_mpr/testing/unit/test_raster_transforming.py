@@ -3,23 +3,21 @@
 import numpy
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import managing
-from hydpy_mpr.source import upscaling
-from hydpy_mpr.source import transforming
 from hydpy_mpr.source.typing_ import *
 
-UpElement = upscaling.RasterElementDefaultUpscaler
-UpSubunit = upscaling.RasterSubunitDefaultUpscaler
-TransElement = transforming.RasterElementIdentityTransformer
-TransSubunit = transforming.RasterSubunitIdentityTransformer
+UpElement = hydpy_mpr.RasterElementDefaultUpscaler
+UpSubunit = hydpy_mpr.RasterSubunitDefaultUpscaler
+TransElement = hydpy_mpr.RasterElementIdentityTransformer
+TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
     "task_element", [(UpElement, constants.UP_A, TransElement)], indirect=True
 )
 def test_raster_element_default_upscaler(
-    task_element: managing.RasterElementTask,
+    task_element: hydpy_mpr.RasterElementTask,
 ) -> None:
     u = task_element.upscaler
     assert isinstance(u, UpElement)
@@ -37,7 +35,7 @@ def test_raster_element_default_upscaler(
     "task_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
 def test_raster_subunit_default_upscaler(
-    task_subunit: managing.RasterSubunitTask,
+    task_subunit: hydpy_mpr.RasterSubunitTask,
 ) -> None:
     u = task_subunit.upscaler
     assert isinstance(u, UpSubunit)

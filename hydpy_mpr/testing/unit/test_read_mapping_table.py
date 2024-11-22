@@ -7,8 +7,8 @@ import re
 from fudgeo import geopkg
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import constants
-from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
@@ -19,7 +19,7 @@ def modify_table(*fields: geopkg.Field, filepath: str) -> geopkg.GeoPackage:
 
 
 def test_everything_okay(arrange_project: None, dirpath_mpr_data: str) -> None:
-    assert reading.read_mapping_table(mprpath=dirpath_mpr_data) == {
+    assert hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data) == {
         int64(1): "land_lahn_marb",
         int64(2): "land_lahn_leun",
         int64(3): "land_lahn_kalk",
@@ -30,7 +30,7 @@ def test_everything_okay(arrange_project: None, dirpath_mpr_data: str) -> None:
 
 def test_missing_file(tmp_path: str) -> None:
     with pytest.raises(FileNotFoundError) as info:
-        reading.read_mapping_table(mprpath=tmp_path)
+        hydpy_mpr.read_mapping_table(mprpath=tmp_path)
     assert str(info.value) == (
         f"Geopackage `{os.path.join(tmp_path, constants.FEATURE_GPKG)}` does not exist."
     )
@@ -43,7 +43,7 @@ def test_missing_table(
     gpkg.tables[constants.MAPPING_TABLE].drop()
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert str(info.value) == (
         f"Geopackage `{filepath_feature}` does not contain the required mapping table "
         f"`element_id2name`."
@@ -55,7 +55,7 @@ def test_missing_column(
 ) -> None:
     modify_table(filepath=filepath_feature).connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert str(info.value) == (
         f"Geopackage `{filepath_feature}` does not contain a column named `element_id`."
     )
@@ -84,7 +84,7 @@ def test_missing_id(
             f"`{filepath_feature}` contains at least one missing value."
         ),
     ):
-        table = reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        table = hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert table == {int64(1): "one", int64(3): "three"}
 
 
@@ -111,7 +111,7 @@ def test_missing_name(
             f"`{filepath_feature}` contains at least one missing value."
         ),
     ):
-        table = reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        table = hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert table == {int64(1): "one", int64(3): "three"}
 
 
@@ -130,7 +130,7 @@ def test_wrong_id_type(
         )
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert str(info.value) == (
         "Column `element_id` of table `element_id2name` of geopackage "
         f"`{filepath_feature}` contains non-integer values."
@@ -152,7 +152,7 @@ def test_wrong_name_type(
         )
     gpkg.connection.close()
     with pytest.raises(TypeError) as info:
-        reading.read_mapping_table(mprpath=dirpath_mpr_data)
+        hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data)
     assert str(info.value) == (
         "Column `element_name` of table `element_id2name` of geopackage "
         f"`{filepath_feature}` contains non-string values."
