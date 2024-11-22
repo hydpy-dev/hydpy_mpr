@@ -1,6 +1,7 @@
 from __future__ import annotations
 import abc
 import dataclasses
+import itertools
 
 import hydpy
 from hydpy.core import typingtools
@@ -55,6 +56,10 @@ class Calibrator(abc.ABC):
     def values(self) -> tuple[float, ...]:
         return tuple(c.value for c in self.coefficients)
 
+    def update_coefficients(self, values: Sequence[float]) -> None:
+        for coefficient, value in zip(self.coefficients, values):
+            coefficient.value = value
+
     @abc.abstractmethod
     def calculate_likelihood(self) -> float: ...
 
@@ -64,8 +69,7 @@ class Calibrator(abc.ABC):
         *args: Any,
         **kwargs: Any,
     ) -> float:
-        for coefficient, value in zip(self.coefficients, values):
-            coefficient.value = value
+        self.update_coefficients(values)
         for subregionaliser in self.subregionalisers:
             subregionaliser.apply_coefficients()
         for task in self.tasks:
@@ -78,6 +82,52 @@ class Calibrator(abc.ABC):
     @abc.abstractmethod
     def calibrate(self) -> None:
         pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class GridCalibrator(Calibrator, abc.ABC):
+
+    nmb_nodes: int
+
+    def check_coefficients(self) -> None:
+
+        def _raise_error(upper_or_lower: Literal["lower", "upper"]) -> NoReturn:
+            raise ValueError(
+                f"Class `{type(self).__name__}` requires lower and upper bounds for "
+                f"all coefficients, but coefficient `{coef.name}` defines no "
+                f"{upper_or_lower} bound."
+            )
+
+        for coef in self.coefficients:
+            if numpy.isinf(coef.lower):
+                _raise_error("lower")
+            if numpy.isinf(coef.upper):
+                _raise_error("upper")
+
+    @property
+    def gridpoints(self) -> Iterator[tuple[float, ...]]:
+        self.check_coefficients()
+        if self.nmb_nodes == 1:
+            nodes = (0.5,)
+        else:
+            nodes = tuple(numpy.linspace(0.0, 1.0, self.nmb_nodes))
+        coefs = self.coefficients
+        for factors in itertools.product(nodes, repeat=len(coefs)):
+            yield tuple(
+                coef.lower + factor * (coef.upper - coef.lower)
+                for coef, factor in zip(coefs, factors)
+            )
+
+    @override
+    def calibrate(self) -> None:
+        best_likelihood = -numpy.inf
+        best_values = len(self.coefficients) * (numpy.nan,)
+        for values in self.gridpoints:
+            likelihood = self.perform_calibrationstep(values)
+            if likelihood > best_likelihood:
+                best_likelihood = likelihood
+                best_values = values
+        self.likelihood = self.perform_calibrationstep(best_values)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -95,6 +145,5 @@ class NLOptCalibrator(Calibrator, abc.ABC):
         optimiser.set_upper_bounds(self.uppers)
         optimiser.set_max_objective(self.perform_calibrationstep)
         values = optimiser.optimize(self.values)
-        for coefficient, value in zip(self.coefficients, values):
-            coefficient.value = value
+        self.update_coefficients(values)
         self.likelihood = self.perform_calibrationstep(self.values)

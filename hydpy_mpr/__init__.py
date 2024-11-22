@@ -4,7 +4,7 @@ import os
 from hydpy_mpr import testing
 
 
-from hydpy_mpr.source.calibrating import Calibrator, NLOptCalibrator
+from hydpy_mpr.source.calibrating import Calibrator, GridCalibrator, NLOptCalibrator
 from hydpy_mpr.source.managing import MPR, RasterElementTask, RasterSubunitTask
 from hydpy_mpr.source.preprocessing import RasterPreprocessor
 from hydpy_mpr.source.reading import RasterFloat, RasterGroup, RasterInt
@@ -51,6 +51,7 @@ __all__ = [
     "Coefficient",
     "MPR",
     "ControlWriter",
+    "GridCalibrator",
     "NLOptCalibrator",
     "RasterElementDefaultUpscaler",
     "RasterElementIdentityTransformer",

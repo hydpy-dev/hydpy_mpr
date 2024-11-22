@@ -439,3 +439,22 @@ def nloptcalibrator() -> calibrating.NLOptCalibrator:
             return sum(hydpy.nse(node=node) for node in self.hp.nodes) / 4.0
 
     return MyCalibrator(maxeval=100)
+
+
+@pytest.fixture
+def gridcalibrator() -> type[calibrating.GridCalibrator]:
+
+    c1 = regionalising.Coefficient(name="c1", default=1.0, lower=-1.0, upper=1.0)
+    c2 = regionalising.Coefficient(name="c2", default=2.0, lower=2.0, upper=6.0)
+
+    class TestGridCalibrator(calibrating.GridCalibrator):
+        @override
+        @property
+        def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
+            return (c1, c2)
+
+        @override
+        def calculate_likelihood(self) -> float:
+            assert False
+
+    return TestGridCalibrator
