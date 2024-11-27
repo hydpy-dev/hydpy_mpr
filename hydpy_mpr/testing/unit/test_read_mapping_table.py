@@ -71,7 +71,7 @@ def test_missing_id(
     )
     with gpkg.connection as connection:
         for id_, name in ((1, '"one"'), ("NULL", '"two"'), (3, '"three"')):
-            _ = connection.execute(
+            connection.execute(
                 f"INSERT INTO {constants.MAPPING_TABLE}"
                 f"({constants.ELEMENT_ID}, {constants.ELEMENT_NAME}) "
                 f"VALUES ({id_}, {name})"
@@ -98,7 +98,7 @@ def test_missing_name(
     )
     with gpkg.connection as connection:
         for id_, name in ((1, '"one"'), (2, "NULL"), (3, '"three"')):
-            _ = connection.execute(
+            connection.execute(
                 f"INSERT INTO {constants.MAPPING_TABLE}"
                 f"({constants.ELEMENT_ID}, {constants.ELEMENT_NAME}) "
                 f"VALUES ({id_}, {name})"

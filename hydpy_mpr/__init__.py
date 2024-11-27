@@ -8,6 +8,9 @@ from hydpy_mpr.source.calibrating import Calibrator, GridCalibrator, NLOptCalibr
 from hydpy_mpr.source.managing import MPR, RasterElementTask, RasterSubunitTask
 from hydpy_mpr.source.preprocessing import RasterPreprocessor
 from hydpy_mpr.source.reading import (
+    AttributeFloat,
+    AttributeInt,
+    FeatureClass,
     RasterFloat,
     RasterGroup,
     RasterGroups,
@@ -54,8 +57,11 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 
 
 __all__ = [
+    "AttributeInt",
+    "AttributeFloat",
     "Calibrator",
     "Coefficient",
+    "FeatureClass",
     "MPR",
     "ControlWriter",
     "GridCalibrator",

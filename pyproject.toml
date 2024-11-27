@@ -27,6 +27,7 @@ disable = [
     "fixme",  # ToDo
     "missing-docstring",  # ToDo
     "too-few-public-methods",  # unnecessary
+    "too-many-instance-attributes",  # unnecessary
     "unexpected-keyword-arg",  # buggy in combination with some data classes
     "unused-wildcard-import",  # to allow `from hydpy_mpr.source.typing_ import *`
 ]

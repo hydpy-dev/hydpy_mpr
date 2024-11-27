@@ -38,6 +38,16 @@ def filepath_feature(dirpath_mpr_data: str) -> str:
 
 
 @pytest.fixture
+def name_feature_class() -> str:
+    return "LBM2018_huek250_DGMglo_Element_Subunit_DISS_MP_simply10m"
+
+
+@pytest.fixture
+def name_attribute_kf() -> str:
+    return "kf"
+
+
+@pytest.fixture
 def dirpath_raster(dirpath_mpr_data: str) -> str:
     return os.path.join(dirpath_mpr_data, constants.RASTER)
 

@@ -6,6 +6,7 @@ import os
 import warnings
 
 from fudgeo import geopkg
+from hydpy.core import objecttools
 import numpy
 import tifffile
 
@@ -17,11 +18,16 @@ from hydpy_mpr.source.typing_ import *
 TypeVarNumber = TypeVar("TypeVarNumber", float64, int64)
 
 
+def _get_path_geopackage(*, mprpath: str) -> str:
+    filepath = os.path.join(mprpath, constants.FEATURE_GPKG)
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Geopackage `{filepath}` does not exist.")
+    return filepath
+
+
 def read_mapping_table(*, mprpath: str) -> MappingTable:
     """Read the table for mapping element IDs to element names required when working
     with raster files."""
-
-    filepath = os.path.join(mprpath, constants.FEATURE_GPKG)
 
     def _column_contains(column: str) -> str:
         return (
@@ -29,9 +35,9 @@ def read_mapping_table(*, mprpath: str) -> MappingTable:
             f"`{filepath}` contains"
         )
 
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"Geopackage `{filepath}` does not exist.")
+    filepath = _get_path_geopackage(mprpath=mprpath)
     gpkg = geopkg.GeoPackage(filepath)
+
     try:
         table = gpkg.tables.get(constants.MAPPING_TABLE)
         if table is None:
@@ -139,17 +145,11 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
 
 
 @dataclasses.dataclass(kw_only=True)
-class Raster(Generic[TypeVarNumber]):
-    values: Matrix[TypeVarNumber]
-    shape: tuple[int, int] = dataclasses.field(init=False)
-    mask: MatrixBool = dataclasses.field(init=False)
-
-    def __post_init__(self) -> None:
-        self.shape = self.values.shape
+class Data(Generic[TypeVarNumber]):
 
     @override
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, Raster):
+        if isinstance(other, type(self)):
             fields_self = tuple(field.name for field in dataclasses.fields(self))
             fields_other = tuple(field.name for field in dataclasses.fields(other))
             if fields_self != fields_other:
@@ -167,7 +167,17 @@ class Raster(Generic[TypeVarNumber]):
         return False
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, eq=False)
+class Raster(Data[TypeVarNumber]):
+    values: Matrix[TypeVarNumber]
+    shape: tuple[int, int] = dataclasses.field(init=False)
+    mask: MatrixBool = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self.shape = self.values.shape
+
+
+@dataclasses.dataclass(kw_only=True, eq=False)
 class RasterInt(Raster[int64]):
 
     missingvalue: int64
@@ -177,12 +187,8 @@ class RasterInt(Raster[int64]):
         super().__post_init__()
         self.mask = self.values != self.missingvalue
 
-    @override
-    def __eq__(self, other: object) -> bool:
-        return super().__eq__(other)
 
-
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, eq=False)
 class RasterFloat(Raster[float64]):
 
     @override
@@ -190,9 +196,49 @@ class RasterFloat(Raster[float64]):
         super().__post_init__()
         self.mask = ~numpy.isnan(self.values)
 
+
+@dataclasses.dataclass(kw_only=True, eq=False)
+class Attribute(Data[TypeVarNumber]):
+    values: Vector[TypeVarNumber]
+    shape: int = dataclasses.field(init=False)
+    mask: VectorBool = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self.shape = self.values.shape[0]
+
+
+@dataclasses.dataclass(kw_only=True, eq=False)
+class AttributeInt(Attribute[int64]):
+
+    missingvalue: int64
+
     @override
-    def __eq__(self, other: object) -> bool:
-        return super().__eq__(other)
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.mask = self.values != self.missingvalue
+
+    @classmethod
+    def from_vector(cls, vector: Vector[numpy.object_], /) -> Self:
+        vector = vector.copy()
+        idxs = vector != None  # pylint: disable=singleton-comparison
+        missingvalue = int64(min(int(numpy.min(vector[idxs])) - 1, -9999))
+        vector[~idxs] = missingvalue
+        return cls(values=vector.astype(int64), missingvalue=missingvalue)
+
+
+@dataclasses.dataclass(kw_only=True, eq=False)
+class AttributeFloat(Attribute[float64]):
+
+    @override
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.mask = ~numpy.isnan(self.values)
+
+    @classmethod
+    def from_vector(cls, vector: Vector[numpy.object_], /) -> Self:
+        vector = vector.copy()
+        vector[vector == None] = numpy.nan  # pylint: disable=singleton-comparison
+        return cls(values=vector.astype(float64))
 
 
 def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
@@ -265,6 +311,176 @@ class RasterGroup:
                 f"raster `{constants.ELEMENT_ID}` conflicts with shape `{shape}` of "
                 f"raster `{filename}`."
             )
+
+
+@dataclasses.dataclass(kw_only=True)
+class FeatureClass:
+    mprpath: str
+    name: str
+    attribute_names: tuple[str, ...]
+    element_attribute: AttributeInt = dataclasses.field(init=False)
+    subunit_attribute: AttributeInt = dataclasses.field(init=False)
+    size_attribute: AttributeFloat = dataclasses.field(init=False)
+    data_attribute: dict[str, AttributeInt | AttributeFloat] = dataclasses.field(
+        init=False
+    )
+
+    nmb_features: int = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+
+        filepath = _get_path_geopackage(mprpath=self.mprpath)
+        gpkg = geopkg.GeoPackage(filepath)
+
+        try:
+
+            featureclass = gpkg.feature_classes.get(self.name)
+            if featureclass is None:
+                raise TypeError(
+                    f"Geopackage `{filepath}` does not contain the required feature "
+                    f"class `{self.name}`."
+                )
+
+            # Determine the relevant headers (field names), typically something like
+            # ["element_id", "subunit_id", "Area", "field_capacity", "landuse"]
+            headers = self._prepare_headers(
+                filepath=filepath, name=self.name, field_names=featureclass.field_names
+            )
+            self._append_size_header(
+                filepath=filepath,
+                name=self.name,
+                headers=headers,
+                geometry_type=featureclass.geometry_type,
+            )
+            headers.extend(self.attribute_names)
+
+            # Determine the corresponding types, for the above example something like
+            # [int64, int64, float64, float64, int64]
+            types = self._get_types(
+                filepath=filepath,
+                name=self.name,
+                headers=headers,
+                field_names=featureclass.field_names,
+                fields=featureclass.fields,
+            )
+
+            # Query the relevant data:
+            try:
+                cursor = featureclass.select(fields=headers, include_geometry=False)
+                data = numpy.asarray(cursor.fetchall(), dtype=object)
+            finally:
+                cursor.close()
+
+        finally:
+            gpkg.connection.close()
+
+        self.element_attribute = AttributeInt.from_vector(data[:, 0])
+        if delta := constants.SUBUNIT_ID in headers:
+            self.subunit_attribute = AttributeInt.from_vector(data[:, 1])
+        self.size_attribute = AttributeFloat.from_vector(data[:, 1 + delta])
+
+        self.data_attribute = {}
+        for idx, (header, type_) in enumerate(
+            zip(headers[1 + delta :], types[1 + delta :])
+        ):
+            self.data_attribute[header] = type_.from_vector(data[:, 1 + delta + idx])
+
+        self.nmb_features = self.element_attribute.shape
+
+    @staticmethod
+    def _prepare_headers(filepath: str, name: str, field_names: list[str]) -> list[str]:
+        headers = [constants.ELEMENT_ID]
+        if constants.SUBUNIT_ID in field_names:
+            headers.append(constants.SUBUNIT_ID)
+        else:
+            warnings.warn(
+                f"Feature class `{name}` of geopackage `{filepath}` does not contain "
+                f"a `{constants.SUBUNIT_ID}` attribute."
+            )
+        return headers
+
+    @staticmethod
+    def _append_size_header(
+        *, filepath: str, name: str, headers: list[str], geometry_type: str | None
+    ) -> None:
+
+        polygontypes = ("POLYGON", "MULTIPOLYGON")
+        linetypes = ("LINESTRING", "MULTILINESTRING")
+
+        if geometry_type is None:
+            raise TypeError(
+                f"Feature class `{name}` of geopackage `{filepath}` does not specify "
+                f"its geometry type."
+            )
+        geometry_type = geometry_type.upper()
+        if geometry_type in polygontypes:
+            headers.append(constants.Size.AREA)
+        elif geometry_type in linetypes:
+            headers.append(constants.Size.LENGTH)
+        else:
+            raise TypeError(
+                f"Feature class `{name}` of geopackage `{filepath}` defines the "
+                f"geometry type `{geometry_type}` but only the types "
+                f"{objecttools.enumeration(polygontypes + linetypes)} are supported."
+            )
+
+    @staticmethod
+    def _get_types(
+        filepath: str,
+        name: str,
+        headers: list[str],
+        field_names: list[str],
+        fields: list[geopkg.Field],
+    ) -> list[type[AttributeInt | AttributeFloat]]:
+
+        integers = ("TINYINT", "SMALLINT", "MEDIUMINT", "INTEGER", "INT")
+        floats = ("FLOAT", "DOUBLE", "REAL")
+
+        header2idx = {}
+        for header in headers:
+            if header not in field_names:
+                raise TypeError(
+                    f"Feature class `{name}` of geopackage `{filepath}` does not "
+                    f"provide an attribute named `{header}`."
+                )
+            header2idx[header] = field_names.index(header)
+
+        types: list[type[AttributeInt | AttributeFloat]] = []
+        for header in headers:
+
+            field = fields[header2idx[header]]
+            datatype = field.data_type.upper()
+
+            if header in constants.Size:
+                types.append(AttributeFloat)
+                if datatype not in floats:
+                    available_types = objecttools.enumeration(floats, conjunction="or")
+                    warnings.warn(
+                        f"The data type of attribute `{header}` of feature class "
+                        f"`{name}` of geopackage `{filepath}` is `{field.data_type}` "
+                        f"but {available_types} is expected."
+                    )
+            elif datatype in integers:
+                types.append(AttributeInt)
+            elif header in (constants.ELEMENT_ID, constants.SUBUNIT_ID):
+                types.append(AttributeInt)
+                available_types = objecttools.enumeration(integers, conjunction="or")
+                warnings.warn(
+                    f"The data type of attribute `{header}` of feature class `{name}` "
+                    f"of geopackage `{filepath}` is `{field.data_type}` but "
+                    f"{available_types} is expected."
+                )
+            else:
+                types.append(AttributeFloat)
+                if datatype not in floats:
+                    available_types = objecttools.enumeration(integers + floats)
+                    warnings.warn(
+                        f"The data type of attribute `{header}` of feature class "
+                        f"`{name}` of geopackage `{filepath}` is `{field.data_type}` "
+                        f"but only the types {available_types} are supported."
+                    )
+
+        return types
 
 
 @dataclasses.dataclass(kw_only=True)
