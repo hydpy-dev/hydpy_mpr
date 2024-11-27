@@ -4,10 +4,11 @@ import numpy
 import pytest
 
 import hydpy_mpr
+from hydpy_mpr.source.typing_ import *
 
 
 def test_raster_regionaliser_fc(
-    dirpath_mpr_data: str, regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser
+    dirpath_mpr_data: DirpathMPRData, regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser
 ) -> None:
     r = regionaliser_fc_2m
     r.apply_coefficients()

@@ -8,6 +8,7 @@ from hydpy_mpr.source import preprocessing
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
 from hydpy_mpr.source import upscaling
+from hydpy_mpr.source import utilities
 from hydpy_mpr.source import transforming
 from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
@@ -68,7 +69,9 @@ class RasterSubunitTask(
 @dataclasses.dataclass(kw_only=True)
 class MPR:
 
-    mprpath: str
+    mprpath: utilities.NewTypeDataclassDescriptor[str, DirpathMPRData] = (
+        utilities.NewTypeDataclassDescriptor()
+    )
     hp: hydpy.HydPy
     preprocessors: list[preprocessing.RasterPreprocessor] = dataclasses.field(
         default_factory=lambda: []

@@ -18,14 +18,14 @@ from hydpy_mpr.source.typing_ import *
 TypeVarNumber = TypeVar("TypeVarNumber", float64, int64)
 
 
-def _get_path_geopackage(*, mprpath: str) -> str:
+def _get_path_geopackage(*, mprpath: DirpathMPRData) -> FilepathGeopackage:
     filepath = os.path.join(mprpath, constants.FEATURE_GPKG)
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Geopackage `{filepath}` does not exist.")
-    return filepath
+    return FilepathGeopackage(filepath)
 
 
-def read_mapping_table(*, mprpath: str) -> MappingTable:
+def read_mapping_table(*, mprpath: DirpathMPRData) -> MappingTable:
     """Read the table for mapping element IDs to element names required when working
     with raster files."""
 
@@ -248,8 +248,8 @@ def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
 @dataclasses.dataclass(kw_only=True)
 class RasterGroup:
 
-    mprpath: str
-    name: str
+    mprpath: DirpathMPRData
+    name: NameRasterGroup
     data_rasters: dict[str, RasterFloat | RasterInt] = dataclasses.field(init=False)
     element_raster: RasterInt = dataclasses.field(init=False)
     subunit_raster: RasterInt = dataclasses.field(init=False)
@@ -315,14 +315,14 @@ class RasterGroup:
 
 @dataclasses.dataclass(kw_only=True)
 class FeatureClass:
-    mprpath: str
-    name: str
-    attribute_names: tuple[str, ...]
+    mprpath: DirpathMPRData
+    name: NameFeatureClass
+    attribute_names: tuple[NameAttribute, ...]
     element_attribute: AttributeInt = dataclasses.field(init=False)
     subunit_attribute: AttributeInt = dataclasses.field(init=False)
     size_attribute: AttributeFloat = dataclasses.field(init=False)
-    data_attribute: dict[str, AttributeInt | AttributeFloat] = dataclasses.field(
-        init=False
+    data_attribute: dict[NameAttribute, AttributeInt | AttributeFloat] = (
+        dataclasses.field(init=False)
     )
 
     nmb_features: int = dataclasses.field(init=False)
@@ -388,10 +388,12 @@ class FeatureClass:
         self.nmb_features = self.element_attribute.shape
 
     @staticmethod
-    def _prepare_headers(filepath: str, name: str, field_names: list[str]) -> list[str]:
-        headers = [constants.ELEMENT_ID]
+    def _prepare_headers(
+        filepath: FilepathGeopackage, name: NameFeatureClass, field_names: list[str]
+    ) -> list[NameAttribute]:
+        headers = [NameAttribute(constants.ELEMENT_ID)]
         if constants.SUBUNIT_ID in field_names:
-            headers.append(constants.SUBUNIT_ID)
+            headers.append(NameAttribute(constants.SUBUNIT_ID))
         else:
             warnings.warn(
                 f"Feature class `{name}` of geopackage `{filepath}` does not contain "
@@ -401,7 +403,11 @@ class FeatureClass:
 
     @staticmethod
     def _append_size_header(
-        *, filepath: str, name: str, headers: list[str], geometry_type: str | None
+        *,
+        filepath: FilepathGeopackage,
+        name: NameFeatureClass,
+        headers: list[NameAttribute],
+        geometry_type: str | None,
     ) -> None:
 
         polygontypes = ("POLYGON", "MULTIPOLYGON")
@@ -414,9 +420,9 @@ class FeatureClass:
             )
         geometry_type = geometry_type.upper()
         if geometry_type in polygontypes:
-            headers.append(constants.Size.AREA)
+            headers.append(NameAttribute(constants.Size.AREA))
         elif geometry_type in linetypes:
-            headers.append(constants.Size.LENGTH)
+            headers.append(NameAttribute(constants.Size.LENGTH))
         else:
             raise TypeError(
                 f"Feature class `{name}` of geopackage `{filepath}` defines the "
@@ -426,9 +432,9 @@ class FeatureClass:
 
     @staticmethod
     def _get_types(
-        filepath: str,
-        name: str,
-        headers: list[str],
+        filepath: FilepathGeopackage,
+        name: NameFeatureClass,
+        headers: list[NameAttribute],
         field_names: list[str],
         fields: list[geopkg.Field],
     ) -> list[type[AttributeInt | AttributeFloat]]:
@@ -485,13 +491,13 @@ class FeatureClass:
 
 @dataclasses.dataclass(kw_only=True)
 class RasterGroups:
-    mprpath: str
+    mprpath: DirpathMPRData
     groups: dict[str, RasterGroup] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self.groups = {}
 
-    def __getitem__(self, name: str) -> RasterGroup:
+    def __getitem__(self, name: NameRasterGroup) -> RasterGroup:
         if name not in self.groups:
             self.groups[name] = RasterGroup(mprpath=self.mprpath, name=name)
         return self.groups[name]

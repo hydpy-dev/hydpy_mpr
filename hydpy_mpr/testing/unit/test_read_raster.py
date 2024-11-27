@@ -12,6 +12,7 @@ import pytest
 
 import hydpy_mpr
 from hydpy_mpr.source import constants
+from hydpy_mpr.source.typing_ import *
 
 
 def test_read_geotiff_int_okay(
@@ -98,8 +99,8 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
 
 def test_read_rastergroup_okay(
     arrange_project: None,
-    dirpath_mpr_data: str,
-    dirname_raster_15km: str,
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
     filepath_element_id_15km: str,
     filepath_subunit_id_15km: str,
     filename_sand_2m_15km: str,
@@ -118,7 +119,9 @@ def test_read_rastergroup_okay(
 
 
 def test_read_rastergroup_missing_dirpath(
-    dirpath_mpr_data: str, dirname_raster_15km: str, dirpath_raster_15km: str
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
+    dirpath_raster_15km: str,
 ) -> None:
     with pytest.raises(FileNotFoundError) as info:
         hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)
@@ -129,8 +132,8 @@ def test_read_rastergroup_missing_dirpath(
 
 def test_read_rastergroup_missing_element_id_file(
     arrange_project: None,
-    dirpath_mpr_data: str,
-    dirname_raster_15km: str,
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
     dirpath_raster_15km: str,
     filepath_element_id_15km: str,
 ) -> None:
@@ -145,8 +148,8 @@ def test_read_rastergroup_missing_element_id_file(
 
 def test_read_rastergroup_missing_subunit_id_file(
     arrange_project: None,
-    dirpath_mpr_data: str,
-    dirname_raster_15km: str,
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
     dirpath_raster_15km: str,
     filepath_subunit_id_15km: str,
 ) -> None:
@@ -163,8 +166,8 @@ def test_read_rastergroup_missing_subunit_id_file(
 
 def test_read_rastergroup_inconsistent_shape(
     arrange_project: None,
-    dirpath_mpr_data: str,
-    dirname_raster_15km: str,
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
     filepath_element_id_5km: str,
     filepath_element_id_15km: str,
 ) -> None:
@@ -179,7 +182,9 @@ def test_read_rastergroup_inconsistent_shape(
 
 
 def test_read_rastergroups_okay(
-    arrange_project: None, dirpath_mpr_data: str, dirname_raster_15km: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    dirname_raster_15km: NameRasterGroup,
 ) -> None:
     groups = hydpy_mpr.RasterGroups(mprpath=dirpath_mpr_data)
     group = hydpy_mpr.RasterGroup(mprpath=dirpath_mpr_data, name=dirname_raster_15km)

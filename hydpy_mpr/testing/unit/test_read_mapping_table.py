@@ -12,13 +12,17 @@ from hydpy_mpr.source import constants
 from hydpy_mpr.source.typing_ import *
 
 
-def modify_table(*fields: geopkg.Field, filepath: str) -> geopkg.GeoPackage:
+def modify_table(
+    *fields: geopkg.Field, filepath: FilepathGeopackage
+) -> geopkg.GeoPackage:
     gpkg = geopkg.GeoPackage(filepath)
     gpkg.create_table(constants.MAPPING_TABLE, fields=fields, overwrite=True)
     return gpkg
 
 
-def test_everything_okay(arrange_project: None, dirpath_mpr_data: str) -> None:
+def test_everything_okay(
+    arrange_project: None, dirpath_mpr_data: DirpathMPRData
+) -> None:
     assert hydpy_mpr.read_mapping_table(mprpath=dirpath_mpr_data) == {
         int64(1): "land_lahn_marb",
         int64(2): "land_lahn_leun",
@@ -28,7 +32,7 @@ def test_everything_okay(arrange_project: None, dirpath_mpr_data: str) -> None:
     }
 
 
-def test_missing_file(tmp_path: str) -> None:
+def test_missing_file(tmp_path: DirpathMPRData) -> None:
     with pytest.raises(FileNotFoundError) as info:
         hydpy_mpr.read_mapping_table(mprpath=tmp_path)
     assert str(info.value) == (
@@ -37,7 +41,9 @@ def test_missing_file(tmp_path: str) -> None:
 
 
 def test_missing_table(
-    arrange_project: None, filepath_feature: str, dirpath_mpr_data: str
+    arrange_project: None,
+    filepath_feature: FilepathGeopackage,
+    dirpath_mpr_data: DirpathMPRData,
 ) -> None:
     gpkg = geopkg.GeoPackage(filepath_feature)
     gpkg.tables[constants.MAPPING_TABLE].drop()
@@ -51,7 +57,9 @@ def test_missing_table(
 
 
 def test_missing_column(
-    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_feature: FilepathGeopackage,
 ) -> None:
     modify_table(filepath=filepath_feature).connection.close()
     with pytest.raises(TypeError) as info:
@@ -62,7 +70,9 @@ def test_missing_column(
 
 
 def test_missing_id(
-    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_feature: FilepathGeopackage,
 ) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),
@@ -89,7 +99,9 @@ def test_missing_id(
 
 
 def test_missing_name(
-    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_feature: FilepathGeopackage,
 ) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),
@@ -116,7 +128,9 @@ def test_missing_name(
 
 
 def test_wrong_id_type(
-    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_feature: FilepathGeopackage,
 ) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="DOUBLE"),
@@ -138,7 +152,9 @@ def test_wrong_id_type(
 
 
 def test_wrong_name_type(
-    arrange_project: None, dirpath_mpr_data: str, filepath_feature: str
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_feature: FilepathGeopackage,
 ) -> None:
     gpkg = modify_table(
         geopkg.Field(name=constants.ELEMENT_ID, data_type="INTEGER"),

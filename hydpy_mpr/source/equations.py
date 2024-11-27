@@ -5,13 +5,16 @@ import dataclasses
 import numpy
 
 from hydpy_mpr.source import reading
+from hydpy_mpr.source import utilities
 from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
 class RasterEquation(abc.ABC):
 
-    dir_group: str
+    dir_group: utilities.NewTypeDataclassDescriptor[str, NameRasterGroup] = (
+        utilities.NewTypeDataclassDescriptor()
+    )
     group: reading.RasterGroup = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
     output: MatrixFloat = dataclasses.field(init=False)

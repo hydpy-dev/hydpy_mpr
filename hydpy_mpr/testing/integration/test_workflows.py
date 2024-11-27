@@ -13,7 +13,7 @@ from hydpy_mpr.source.typing_ import *
 @pytest.mark.integration_test
 def test_raster_element_level(
     arrange_project: None,
-    dirpath_mpr_data: str,
+    dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
     element_transformer_fc: hydpy_mpr.RasterElementIdentityTransformer[Any],
@@ -47,7 +47,7 @@ def test_raster_element_level(
 @pytest.mark.integration_test
 def test_raster_subunit_level(
     arrange_project: None,
-    dirpath_mpr_data: str,
+    dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
     subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
@@ -83,7 +83,7 @@ def test_raster_subunit_level(
 @pytest.mark.integration_test
 def test_raster_subunit_level_preprocessing(
     arrange_project: None,
-    dirpath_mpr_data: str,
+    dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     preprocessors_fc_flexible: list[hydpy_mpr.RasterPreprocessor],
     regionaliser_fc_flexible: hydpy_mpr.RasterRegionaliser,
@@ -121,7 +121,7 @@ def test_raster_subunit_level_preprocessing(
 @pytest.mark.integration_test
 def test_raster_element_level_subregionalisers(
     arrange_project: None,
-    dirpath_mpr_data: str,
+    dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     subregionaliser_ks_2m: hydpy_mpr.RasterSubregionaliser,
     regionaliser_percmax_2m: hydpy_mpr.RasterRegionaliser,
