@@ -38,9 +38,9 @@ class RasterEquation(abc.ABC):
         return shape
 
     @property
-    def fieldname2filename(self) -> dict[str, str]:
+    def fieldname2filename(self) -> dict[str, NameRaster]:
         return {
-            field.name: getattr(self, field.name)
+            field.name: NameRaster(getattr(self, field.name))
             for field in dataclasses.fields(self)
             if (field.name).startswith("file_")
         }

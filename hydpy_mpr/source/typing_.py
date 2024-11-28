@@ -63,6 +63,7 @@ FilepathGeopackage = NewType("FilepathGeopackage", str)
 NameAttribute = NewType("NameAttribute", str)
 NameFeatureClass = NewType("NameFeatureClass", str)
 NameRasterGroup = NewType("NameRasterGroup", str)
+NameRaster = NewType("NameRaster", str)
 
 
 __all__ = [
@@ -86,6 +87,7 @@ __all__ = [
     "MatrixInt",
     "NameAttribute",
     "NameFeatureClass",
+    "NameRaster",
     "NameRasterGroup",
     "NoReturn",
     "overload",

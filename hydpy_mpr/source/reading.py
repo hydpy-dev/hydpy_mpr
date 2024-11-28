@@ -250,7 +250,9 @@ class RasterGroup:
 
     mprpath: DirpathMPRData
     name: NameRasterGroup
-    data_rasters: dict[str, RasterFloat | RasterInt] = dataclasses.field(init=False)
+    data_rasters: dict[NameRaster, RasterFloat | RasterInt] = dataclasses.field(
+        init=False
+    )
     element_raster: RasterInt = dataclasses.field(init=False)
     subunit_raster: RasterInt = dataclasses.field(init=False)
     shape: tuple[int, int] = dataclasses.field(init=False)
@@ -267,7 +269,7 @@ class RasterGroup:
 
         # Read the element ID raster:
         for idx, filename in enumerate(tuple(filenames)):
-            if filename.rsplit(".")[0] == constants.ELEMENT_ID:
+            if self.filename2rastername(filename) == constants.ELEMENT_ID:
                 filepath = os.path.join(dirpath, filename)
                 self.element_raster = read_geotiff(filepath=filepath, integer=True)
                 self.shape = self.element_raster.shape
@@ -281,7 +283,7 @@ class RasterGroup:
 
         # Read the subunit ID raster:
         for idx, filename in enumerate(tuple(filenames)):
-            if filename.rsplit(".")[0] == constants.SUBUNIT_ID:
+            if self.filename2rastername(filename) == constants.SUBUNIT_ID:
                 filepath = os.path.join(dirpath, filename)
                 self.subunit_raster = read_geotiff(filepath=filepath, integer=True)
                 self._check_shape(self.subunit_raster.shape, filename)
@@ -299,7 +301,7 @@ class RasterGroup:
             filepath = os.path.join(dirpath, filename)
             raster = read_geotiff(filepath=filepath)
             self._check_shape(raster.shape, filename)
-            self.data_rasters[filename.rsplit(".")[0]] = raster
+            self.data_rasters[self.filename2rastername(filename)] = raster
 
         # Read the mapping table:
         self.id2element = read_mapping_table(mprpath=self.mprpath)
@@ -311,6 +313,10 @@ class RasterGroup:
                 f"raster `{constants.ELEMENT_ID}` conflicts with shape `{shape}` of "
                 f"raster `{filename}`."
             )
+
+    @staticmethod
+    def filename2rastername(filename: str, /) -> NameRaster:
+        return NameRaster(filename.rsplit(".")[0])
 
 
 @dataclasses.dataclass(kw_only=True)

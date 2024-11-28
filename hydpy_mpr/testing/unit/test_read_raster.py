@@ -114,7 +114,7 @@ def test_read_rastergroup_okay(
         filepath=filepath_subunit_id_15km, integer=True
     )
     assert group.data_rasters[
-        filename_sand_2m_15km.split(".")[0]
+        hydpy_mpr.RasterGroup.filename2rastername(filename_sand_2m_15km)
     ] == hydpy_mpr.read_geotiff(filepath=filepath_sand_2m_15km)
 
 
