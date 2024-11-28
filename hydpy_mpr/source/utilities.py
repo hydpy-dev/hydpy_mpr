@@ -8,10 +8,10 @@ New = TypeVar("New")
 
 class NewTypeDataclassDescriptor(Generic[Orig, New]):
 
-    id2data: dict[int, New]
+    mangled_name: str
 
-    def __init__(self) -> None:
-        self.id2data = {}
+    def __set_name__(self, owner: object, name: str) -> None:
+        self.mangled_name = f"__newtype_dataclass_descriptor__{name}__"
 
     @overload
     def __get__(self, obj: None, owner: type[object], /) -> Self: ...
@@ -21,7 +21,7 @@ class NewTypeDataclassDescriptor(Generic[Orig, New]):
     def __get__(self, obj: object | None, owner: type[object], /) -> New | Self:
         if obj is None:
             return self
-        return self.id2data[id(obj)]
+        return cast(New, getattr(obj, self.mangled_name))
 
     def __set__(self, obj: object, value: New | Orig) -> None:
-        self.id2data[id(obj)] = cast(New, value)
+        setattr(obj, self.mangled_name, value)
