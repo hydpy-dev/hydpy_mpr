@@ -10,8 +10,6 @@ from hydpy_mpr.source.typing_ import *
 @dataclasses.dataclass(kw_only=True)
 class RasterPreprocessor(equations.RasterEquation, abc.ABC):
 
-    name: NameRaster
-
     @override
     def activate(self, *, raster_groups: reading.RasterGroups) -> None:
         super().activate(raster_groups=raster_groups)

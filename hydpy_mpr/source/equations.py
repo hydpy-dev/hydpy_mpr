@@ -15,15 +15,20 @@ class RasterEquation(abc.ABC):
     dir_group: utilities.NewTypeDataclassDescriptor[str, NameRasterGroup] = (
         utilities.NewTypeDataclassDescriptor()
     )
+    name: NameRaster = dataclasses.field(default=NameRaster(""))
     group: reading.RasterGroup = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
     output: MatrixFloat = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            self.name = NameRaster(type(self).__qualname__.lower())
 
     def activate(self, *, raster_groups: reading.RasterGroups) -> None:
         group = raster_groups[self.dir_group]
         self.group = group
         self.mask = numpy.full(self.shape, True, dtype=bool)
-        for fieldname, filename in self.fieldname2filename.items():
+        for fieldname, filename in self.fieldname2rasterame.items():
             rastername = f"data_{fieldname.removeprefix('file_')}"
             raster = group.data_rasters[filename]  # ToDo: error message
             setattr(self, rastername, raster)  # ToDo: check type?
@@ -38,7 +43,7 @@ class RasterEquation(abc.ABC):
         return shape
 
     @property
-    def fieldname2filename(self) -> dict[str, NameRaster]:
+    def fieldname2rasterame(self) -> dict[str, NameRaster]:
         return {
             field.name: NameRaster(getattr(self, field.name))
             for field in dataclasses.fields(self)

@@ -51,8 +51,6 @@ class RasterRegionaliser(equations.RasterEquation, abc.ABC):
 @dataclasses.dataclass(kw_only=True)
 class RasterSubregionaliser(RasterRegionaliser, abc.ABC):
 
-    name: NameRaster
-
     @override
     def activate(self, *, raster_groups: reading.RasterGroups) -> None:
         super().activate(raster_groups=raster_groups)

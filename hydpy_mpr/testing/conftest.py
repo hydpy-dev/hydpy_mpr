@@ -10,6 +10,7 @@ from hydpy import pub
 from hydpy.models.hland import hland_control
 import pytest
 
+import hydpy_mpr
 from hydpy_mpr.source import calibrating
 from hydpy_mpr.source import constants
 from hydpy_mpr.source import managing
@@ -95,6 +96,11 @@ def filename_sand_2m_15km() -> str:
 
 
 @pytest.fixture
+def rastername_sand_2m_15km(filename_sand_2m_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_sand_2m_15km)
+
+
+@pytest.fixture
 def filepath_sand_2m_15km(dirpath_raster_15km: str, filename_sand_2m_15km: str) -> str:
     return os.path.join(dirpath_raster_15km, filename_sand_2m_15km)
 
@@ -105,8 +111,18 @@ def filename_clay_1m_15km() -> str:
 
 
 @pytest.fixture
+def rastername_clay_1m_15km(filename_clay_1m_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_1m_15km)
+
+
+@pytest.fixture
 def filename_clay_2m_15km() -> str:
     return "clay_mean_0_200_res15km_pct.tif"
+
+
+@pytest.fixture
+def rastername_clay_2m_15km(filename_clay_2m_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_2m_15km)
 
 
 @pytest.fixture
@@ -115,8 +131,18 @@ def filename_density_1m_15km() -> str:
 
 
 @pytest.fixture
+def rastername_density_1m_15km(filename_density_1m_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_density_1m_15km)
+
+
+@pytest.fixture
 def filename_density_2m_15km() -> str:
     return "bdod_mean_0_200_res15km_gcm3.tif"
+
+
+@pytest.fixture
+def rastername_density_2m_15km(filename_density_2m_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_density_2m_15km)
 
 
 @pytest.fixture
@@ -125,8 +151,18 @@ def filename_landuse_15km() -> str:
 
 
 @pytest.fixture
+def rastername_landuse_15km(filename_landuse_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_landuse_15km)
+
+
+@pytest.fixture
 def filename_dh_15km() -> str:
     return "dh_cop_eu_dem_res15km.tif"
+
+
+@pytest.fixture
+def rasterfilename_dh_15km(filename_dh_15km: str) -> NameRaster:
+    return hydpy_mpr.RasterGroup.filename2rastername(filename_dh_15km)
 
 
 @pytest.fixture
@@ -187,14 +223,14 @@ def regionaliser_fc_2m(
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
     dirname_raster_15km: NameRasterGroup,
-    filename_clay_2m_15km: str,
-    filename_density_2m_15km: str,
+    rastername_clay_2m_15km: NameRaster,
+    rastername_density_2m_15km: NameRaster,
 ) -> regionalising.RasterRegionaliser:
 
     fc = runpy.run_path(filepath_regionalisers)["FC2m"](
         dir_group=dirname_raster_15km,
-        file_clay=filename_clay_2m_15km.split(".")[0],
-        file_density=filename_density_2m_15km.split(".")[0],
+        file_clay=rastername_clay_2m_15km,
+        file_density=rastername_density_2m_15km,
         coef_const=regionalising.Coefficient(
             name="fc_const", default=20.0, lower=5.0, upper=50.0
         ),
@@ -207,7 +243,9 @@ def regionaliser_fc_2m(
     )
 
     assert isinstance(fc, regionalising.RasterRegionaliser)
-    fc.activate(raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
+    fc.activate(
+        raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data, equations=(fc,))
+    )
     return fc
 
 
@@ -416,7 +454,12 @@ def task_element(
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
-    task.activate(hp=hp1, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
+    task.activate(
+        hp=hp1,
+        raster_groups=reading.RasterGroups(
+            mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
+        ),
+    )
     return task
 
 
@@ -438,7 +481,12 @@ def task_subunit(
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
-    task.activate(hp=hp1, raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data))
+    task.activate(
+        hp=hp1,
+        raster_groups=reading.RasterGroups(
+            mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
+        ),
+    )
     return task
 
 

@@ -11,6 +11,7 @@ import numpy
 import tifffile
 
 from hydpy_mpr.source import constants
+from hydpy_mpr.source import equations
 from hydpy_mpr.source.constants import ELEMENT_ID, ELEMENT_NAME
 from hydpy_mpr.source.typing_ import *
 
@@ -250,6 +251,7 @@ class RasterGroup:
 
     mprpath: DirpathMPRData
     name: NameRasterGroup
+    raster_names: tuple[NameRaster, ...]
     data_rasters: dict[NameRaster, RasterFloat | RasterInt] = dataclasses.field(
         init=False
     )
@@ -266,52 +268,52 @@ class RasterGroup:
                 f"The requested raster group directory `{dirpath}` does not exist."
             )
         filenames = _extract_tiffiles(os.listdir(dirpath))
+        rastername2filename = {self.filename2rastername(fn): fn for fn in filenames}
 
         # Read the element ID raster:
-        for idx, filename in enumerate(tuple(filenames)):
-            if self.filename2rastername(filename) == constants.ELEMENT_ID:
-                filepath = os.path.join(dirpath, filename)
-                self.element_raster = read_geotiff(filepath=filepath, integer=True)
-                self.shape = self.element_raster.shape
-                filenames.pop(idx)
-                break
+        if (element_id := NameRaster(constants.ELEMENT_ID)) in rastername2filename:
+            filepath = os.path.join(dirpath, rastername2filename[element_id])
+            self.element_raster = read_geotiff(filepath=filepath, integer=True)
+            self.shape = self.element_raster.shape
         else:
             raise FileNotFoundError(
                 f"The raster group directory `{dirpath}` does not contain an "
-                f"`{constants.ELEMENT_ID}` raster file."
+                f"`{element_id}` raster file."
             )
 
         # Read the subunit ID raster:
-        for idx, filename in enumerate(tuple(filenames)):
-            if self.filename2rastername(filename) == constants.SUBUNIT_ID:
-                filepath = os.path.join(dirpath, filename)
-                self.subunit_raster = read_geotiff(filepath=filepath, integer=True)
-                self._check_shape(self.subunit_raster.shape, filename)
-                filenames.pop(idx)
-                break
+        if (subunit_id := NameRaster(constants.SUBUNIT_ID)) in rastername2filename:
+            filepath = os.path.join(dirpath, rastername2filename[subunit_id])
+            self.subunit_raster = read_geotiff(filepath=filepath, integer=True)
+            self._check_shape(self.subunit_raster.shape, subunit_id)
         else:
             warnings.warn(
                 f"The raster group directory `{dirpath}` does not contain a "
-                f"`{constants.SUBUNIT_ID}` raster file."
+                f"`{subunit_id}` raster file."
             )
 
         # Read the geodata rasters:
         self.data_rasters = {}
-        for filename in filenames:
-            filepath = os.path.join(dirpath, filename)
-            raster = read_geotiff(filepath=filepath)
-            self._check_shape(raster.shape, filename)
-            self.data_rasters[self.filename2rastername(filename)] = raster
+        for name in self.raster_names:
+            if (filename := rastername2filename.get(name)) is not None:
+                raster = read_geotiff(filepath=os.path.join(dirpath, filename))
+                self._check_shape(raster.shape, name)
+                self.data_rasters[name] = raster
+            else:
+                raise FileNotFoundError(
+                    f"The raster group directory `{dirpath}` does not contain a file "
+                    f"defining geodata for raster `{name}`."
+                )
 
         # Read the mapping table:
         self.id2element = read_mapping_table(mprpath=self.mprpath)
 
-    def _check_shape(self, shape: tuple[int, int], filename: str, /) -> None:
+    def _check_shape(self, shape: tuple[int, int], name: NameRaster, /) -> None:
         if self.shape != shape:
             raise TypeError(
                 f"Raster group `{self.name}` is inconsistent: shape `{self.shape}` of "
                 f"raster `{constants.ELEMENT_ID}` conflicts with shape `{shape}` of "
-                f"raster `{filename}`."
+                f"raster `{name}`."
             )
 
     @staticmethod
@@ -498,12 +500,30 @@ class FeatureClass:
 @dataclasses.dataclass(kw_only=True)
 class RasterGroups:
     mprpath: DirpathMPRData
-    groups: dict[str, RasterGroup] = dataclasses.field(init=False)
+    equations: tuple[equations.RasterEquation, ...]
+    _groups: dict[str, RasterGroup] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
-        self.groups = {}
+
+        required_rasters: dict[NameRasterGroup, set[NameRaster]] = {}
+        available_rasters: dict[NameRasterGroup, set[NameRaster]] = {}
+        for equation in self.equations:
+            if (groupname := equation.dir_group) not in required_rasters:
+                required_rasters[groupname] = set()
+                available_rasters[groupname] = set()
+            required_rasters[groupname].update(equation.fieldname2rasterame.values())
+            available_rasters[groupname].add(equation.name)
+
+        self._groups = {}
+        for groupname in required_rasters:  # pylint: disable=consider-using-dict-items
+            file_rasters = required_rasters[groupname] - available_rasters[groupname]
+            self._groups[groupname] = RasterGroup(
+                mprpath=self.mprpath,
+                name=groupname,
+                raster_names=tuple(sorted(file_rasters)),
+            )
 
     def __getitem__(self, name: NameRasterGroup) -> RasterGroup:
-        if name not in self.groups:
-            self.groups[name] = RasterGroup(mprpath=self.mprpath, name=name)
-        return self.groups[name]
+        if (group := self._groups.get(name)) is None:
+            raise KeyError(f"No raster group named `{name}` available.")
+        return group

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import dataclasses
+import itertools
 
 import hydpy
 
@@ -84,7 +85,16 @@ class MPR:
     writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
 
     def __post_init__(self) -> None:
-        raster_groups = reading.RasterGroups(mprpath=self.mprpath)
+        raster_groups = reading.RasterGroups(
+            mprpath=self.mprpath,
+            equations=tuple(
+                itertools.chain(
+                    self.preprocessors,
+                    self.subregionalisers,
+                    (task.regionaliser for task in self.tasks),
+                )
+            ),
+        )
         for preprocessor in self.preprocessors:
             preprocessor.activate(raster_groups=raster_groups)
         for subregionaliser in self.subregionalisers:
