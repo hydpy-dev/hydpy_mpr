@@ -48,7 +48,7 @@ def test_read_features_everything_okay(
     assert numpy.min(a.values) == pytest.approx(0.9527015089988708)
     assert numpy.max(a.values) == pytest.approx(232333792.0)
 
-    k = f.data_attribute[name_attribute_kf]
+    k = f.data_attributes[name_attribute_kf]
     assert isinstance(k, hydpy_mpr.AttributeInt)
     assert numpy.all(k.values[:3] == (2, 3, 3))
     assert numpy.min(k.values) == 2.0

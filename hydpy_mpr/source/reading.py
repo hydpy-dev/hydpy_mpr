@@ -321,7 +321,7 @@ class FeatureClass:
     element_attribute: AttributeInt = dataclasses.field(init=False)
     subunit_attribute: AttributeInt = dataclasses.field(init=False)
     size_attribute: AttributeFloat = dataclasses.field(init=False)
-    data_attribute: dict[NameAttribute, AttributeInt | AttributeFloat] = (
+    data_attributes: dict[NameAttribute, AttributeInt | AttributeFloat] = (
         dataclasses.field(init=False)
     )
 
@@ -379,11 +379,11 @@ class FeatureClass:
             self.subunit_attribute = AttributeInt.from_vector(data[:, 1])
         self.size_attribute = AttributeFloat.from_vector(data[:, 1 + delta])
 
-        self.data_attribute = {}
+        self.data_attributes = {}
         for idx, (header, type_) in enumerate(
             zip(headers[1 + delta :], types[1 + delta :])
         ):
-            self.data_attribute[header] = type_.from_vector(data[:, 1 + delta + idx])
+            self.data_attributes[header] = type_.from_vector(data[:, 1 + delta + idx])
 
         self.nmb_features = self.element_attribute.shape
 
