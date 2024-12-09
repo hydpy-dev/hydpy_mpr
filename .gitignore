@@ -1,7 +1,7 @@
 .git
 .idea
 .nox
-.venv
+.venv*
 dist
 hydpy_mpr/testing/iotesting
 temp
