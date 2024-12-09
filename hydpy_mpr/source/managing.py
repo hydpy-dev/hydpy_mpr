@@ -15,17 +15,17 @@ from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
 TypeVarRasterUpscaler = TypeVar("TypeVarRasterUpscaler", bound=upscaling.RasterUpscaler)
-TypeVarRasTransformer = TypeVar(
-    "TypeVarRasTransformer", bound=transforming.RasterTransformer[Any]
+TypeVarRasterTransformer = TypeVar(
+    "TypeVarRasterTransformer", bound=transforming.RasterTransformer[Any]
 )
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasTransformer]):
+class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasterTransformer]):
 
     regionaliser: regionalising.RasterRegionaliser
     upscaler: TypeVarRasterUpscaler
-    transformers: list[TypeVarRasTransformer]
+    transformers: list[TypeVarRasterTransformer]
     hp: hydpy.HydPy = dataclasses.field(init=False)
 
     def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
