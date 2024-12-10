@@ -10,13 +10,17 @@ from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterTransformer(abc.ABC, Generic[TypeVarParameter]):
+class RasterTransformer(abc.ABC, Generic[TypeVarRasterUpscaler, TypeVarParameter]):
 
     parameter: type[TypeVarParameter]
     model: str | None = dataclasses.field(default_factory=lambda: None)
     selection: hydpy.Selection | None = dataclasses.field(default_factory=lambda: None)
     hp: hydpy.HydPy = dataclasses.field(init=False)
     element2parameter: dict[str, TypeVarParameter] = dataclasses.field(init=False)
+
+    @abc.abstractmethod
+    def activate(self, *, hp: hydpy.HydPy, upscaler: TypeVarRasterUpscaler) -> None:
+        pass
 
     def _activate(self, hp: hydpy.HydPy) -> None:
         self.hp = hp
@@ -38,10 +42,13 @@ class RasterTransformer(abc.ABC, Generic[TypeVarParameter]):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterElementTransformer(RasterTransformer[TypeVarParameter], abc.ABC):
+class RasterElementTransformer(
+    RasterTransformer[upscaling.RasterElementUpscaler, TypeVarParameter], abc.ABC
+):
 
     upscaler: upscaling.RasterElementUpscaler = dataclasses.field(init=False)
 
+    @override
     def activate(
         self, *, hp: hydpy.HydPy, upscaler: upscaling.RasterElementUpscaler
     ) -> None:
@@ -61,9 +68,12 @@ class RasterElementTransformer(RasterTransformer[TypeVarParameter], abc.ABC):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterSubunitTransformer(RasterTransformer[TypeVarParameter], abc.ABC):
+class RasterSubunitTransformer(
+    RasterTransformer[upscaling.RasterSubunitUpscaler, TypeVarParameter], abc.ABC
+):
     upscaler: upscaling.RasterSubunitUpscaler = dataclasses.field(init=False)
 
+    @override
     def activate(
         self, *, hp: hydpy.HydPy, upscaler: upscaling.RasterSubunitUpscaler
     ) -> None:

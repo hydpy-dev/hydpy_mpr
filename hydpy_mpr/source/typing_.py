@@ -34,9 +34,24 @@ from hydpy.core.typingtools import (
 from numpy import int64, float64
 from typing_extensions import assert_never, override, Self
 
+
 # type variables
 
 TypeVarParameter = TypeVar("TypeVarParameter", bound=Parameter)
+
+if TYPE_CHECKING:
+    from hydpy_mpr.source import upscaling
+    from hydpy_mpr.source import transforming
+
+    TypeVarRasterUpscaler = TypeVar(
+        "TypeVarRasterUpscaler", bound=upscaling.RasterUpscaler
+    )
+    TypeVarRasterTransformer = TypeVar(
+        "TypeVarRasterTransformer", bound=transforming.RasterTransformer[Any, Any]
+    )
+else:
+    TypeVarRasterUpscaler = TypeVar("TypeVarRasterUpscaler")
+    TypeVarRasterTransformer = TypeVar("TypeVarRasterTransformer")
 
 # type aliases
 
@@ -102,6 +117,8 @@ __all__ = [
     "TypeAlias",
     "TypeVar",
     "TypeVarParameter",
+    "TypeVarRasterUpscaler",
+    "TypeVarRasterTransformer",
     "UpscalingOption",
     "UpscalingFunction",
 ]

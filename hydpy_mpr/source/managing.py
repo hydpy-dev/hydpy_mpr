@@ -14,11 +14,6 @@ from hydpy_mpr.source import transforming
 from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
-TypeVarRasterUpscaler = TypeVar("TypeVarRasterUpscaler", bound=upscaling.RasterUpscaler)
-TypeVarRasterTransformer = TypeVar(
-    "TypeVarRasterTransformer", bound=transforming.RasterTransformer[Any]
-)
-
 
 @dataclasses.dataclass(kw_only=True)
 class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasterTransformer]):
@@ -32,6 +27,8 @@ class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasterTransformer]):
         self.hp = hp
         self.regionaliser.activate(raster_groups=raster_groups)
         self.upscaler.activate(regionaliser=self.regionaliser)
+        for transformer in self.transformers:
+            transformer.activate(hp=hp, upscaler=self.upscaler)
 
     def run(self) -> None:
         self.regionaliser.apply_coefficients()
@@ -46,12 +43,7 @@ class RasterElementTask(
         upscaling.RasterElementUpscaler, transforming.RasterElementTransformer[Any]
     ]
 ):
-
-    @override
-    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
-        super().activate(hp=hp, raster_groups=raster_groups)
-        for transformer in self.transformers:
-            transformer.activate(hp=hp, upscaler=self.upscaler)
+    pass
 
 
 class RasterSubunitTask(
@@ -59,12 +51,7 @@ class RasterSubunitTask(
         upscaling.RasterSubunitUpscaler, transforming.RasterSubunitTransformer[Any]
     ]
 ):
-
-    @override
-    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
-        super().activate(hp=hp, raster_groups=raster_groups)
-        for transformer in self.transformers:
-            transformer.activate(hp=hp, upscaler=self.upscaler)
+    pass
 
 
 @dataclasses.dataclass(kw_only=True)
