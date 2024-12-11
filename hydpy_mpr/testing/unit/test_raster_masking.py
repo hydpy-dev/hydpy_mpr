@@ -11,11 +11,11 @@ TransSubunit = hydpy_mpr.SubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
-    "task_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
+    "task_raster_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
-def test_raster_masking(task_subunit: hydpy_mpr.RasterSubunitTask) -> None:
-    mask = task_subunit.upscaler.mask
-    regionaliser = task_subunit.regionaliser
+def test_raster_masking(task_raster_subunit: hydpy_mpr.RasterSubunitTask) -> None:
+    mask = task_raster_subunit.upscaler.mask
+    regionaliser = task_raster_subunit.regionaliser
     element = regionaliser.provider.element_id
     subunit = regionaliser.provider.subunit_id
     clay = regionaliser.data_clay  # type: ignore[attr-defined]

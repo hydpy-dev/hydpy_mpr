@@ -434,14 +434,14 @@ def subunit_transformer_fc() -> (
 
 
 @pytest.fixture
-def task_element(
+def task_raster_element(
     hp1: hydpy.HydPy,
     dirpath_mpr_data: DirpathMPRData,
     regionaliser_fc_2m: regionalising.RasterRegionaliser,
     request: pytest.FixtureRequest,
 ) -> managing.RasterElementTask:
 
-    function: UpscalingOption
+    function: RasterUpscalingOption
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterElementUpscaler)
     assert issubclass(transformer, transforming.ElementTransformer)
@@ -459,14 +459,14 @@ def task_element(
 
 
 @pytest.fixture
-def task_subunit(
+def task_raster_subunit(
     hp1: hydpy.HydPy,
     dirpath_mpr_data: DirpathMPRData,
     regionaliser_fc_2m: regionalising.RasterRegionaliser,
     request: pytest.FixtureRequest,
 ) -> managing.RasterSubunitTask:
 
-    function: UpscalingOption
+    function: RasterUpscalingOption
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterSubunitUpscaler)
     assert issubclass(transformer, transforming.SubunitTransformer)
