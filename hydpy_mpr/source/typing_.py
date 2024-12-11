@@ -15,6 +15,7 @@ from typing import (
     NewType,
     NoReturn,
     overload,
+    Protocol,
     Sequence,
     TypeAlias,
     TYPE_CHECKING,
@@ -79,7 +80,28 @@ else:
     TypeVarUpscaler = TypeVar("TypeVarUpscaler")
     TypeVarTransformer = TypeVar("TypeVarTransformer")
 
+
+# protocols
+
+
+class AttributeUpscalingFunction(Protocol):
+    def __call__(self, values: VectorFloat, /, *, weights: VectorFloat) -> float64: ...
+
+
+class RasterUpscalingFunction(Protocol):
+    def __call__(self, values: MatrixFloat, /) -> float64: ...
+
+
 # type aliases
+
+AttributeUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
+    AttributeUpscalingFunction
+    | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
+)
+RasterUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
+    RasterUpscalingFunction
+    | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
+)
 
 MappingTable: TypeAlias = Mapping[int64, str]
 
@@ -95,12 +117,6 @@ if TYPE_CHECKING:
 else:
     Tasks = Sequence
 
-UpscalingFunction: TypeAlias = Callable[[MatrixFloat], float64]
-
-UpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
-    UpscalingFunction | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
-)
-
 
 # new types
 
@@ -113,6 +129,8 @@ NameDataset = NewType("NameDataset", str)
 __all__ = [
     "Any",
     "assert_never",
+    "AttributeUpscalingFunction",
+    "AttributeUpscalingOption",
     "Callable",
     "cast",
     "ClassVar",
@@ -140,6 +158,8 @@ __all__ = [
     "VectorBool",
     "VectorFloat",
     "VectorInt",
+    "RasterUpscalingFunction",
+    "RasterUpscalingOption",
     "Self",
     "Sequence",
     "Tasks",
@@ -157,6 +177,4 @@ __all__ = [
     "TypeVarRegionaliser",
     "TypeVarUpscaler",
     "TypeVarTransformer",
-    "UpscalingOption",
-    "UpscalingFunction",
 ]

@@ -122,22 +122,38 @@ class AttributeSubunitUpscaler(
 
 
 @dataclasses.dataclass(kw_only=True)
-class DefaultUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool]):
-
-    function: UpscalingOption = constants.UP_A
-
-
-@dataclasses.dataclass(kw_only=True)
-class RasterDefaultUpscaler(
-    DefaultUpscaler[regionalising.RasterRegionaliser, MatrixBool], RasterUpscaler
-):
-    _function: UpscalingFunction = dataclasses.field(init=False)
+class AttributeDefaultUpscaler(AttributeUpscaler):
+    function: AttributeUpscalingOption = constants.UP_A
+    _function: AttributeUpscalingFunction = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self._function = self._query_function(self.function)
 
     @staticmethod
-    def _query_function(function: UpscalingOption) -> UpscalingFunction:
+    def _query_function(
+        function: AttributeUpscalingOption,
+    ) -> AttributeUpscalingFunction:
+        match function:
+            case constants.UP_A:
+                return numpy.average
+            case constants.UP_H:
+                return stats.hmean  # type: ignore[no-any-return]
+            case constants.UP_G:
+                return stats.gmean  # type: ignore[no-any-return]
+            case _:
+                return function
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterDefaultUpscaler(RasterUpscaler):
+    function: RasterUpscalingOption = constants.UP_A
+    _function: RasterUpscalingFunction = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self._function = self._query_function(self.function)
+
+    @staticmethod
+    def _query_function(function: RasterUpscalingOption) -> RasterUpscalingFunction:
         match function:
             case constants.UP_A:
                 return numpy.mean
@@ -150,21 +166,66 @@ class RasterDefaultUpscaler(
 
 
 @dataclasses.dataclass(kw_only=True)
+class AttributeElementDefaultUpscaler(
+    AttributeDefaultUpscaler, AttributeElementUpscaler
+):
+
+    @override
+    def scale_up(self) -> None:
+        id2value = self.id2value
+        output = self.regionaliser.output[self.mask]
+        provider = self.regionaliser.provider
+        ids = provider.element_id.values[self.mask]
+        weights = provider.size.values[self.mask]
+        function = self._function
+        for id_ in id2value:
+            idxs = id_ == ids
+            if numpy.any(idxs):
+                id2value[id_] = function(output[idxs], weights=weights)
+            else:
+                id2value[id_] = float64(numpy.nan)
+
+
+@dataclasses.dataclass(kw_only=True)
 class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler):
 
     @override
     def scale_up(self) -> None:
         id2value = self.id2value
         output = self.regionaliser.output[self.mask]
-        group = self.regionaliser.provider
-        id_raster = group.element_id.values[self.mask]
+        ids = self.regionaliser.provider.element_id.values[self.mask]
         function = self._function
         for id_ in id2value:
-            idxs = id_ == id_raster
+            idxs = id_ == ids
             if numpy.any(idxs):
                 id2value[id_] = function(output[idxs])
             else:
                 id2value[id_] = float64(numpy.nan)
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeSubunitDefaultUpscaler(
+    AttributeDefaultUpscaler, AttributeSubunitUpscaler
+):
+
+    @override
+    def scale_up(self) -> None:
+        output = self.regionaliser.output[self.mask]
+        provider = self.regionaliser.provider
+        element_id = provider.element_id.values[self.mask]
+        subunit_id = provider.subunit_id.values[self.mask]
+        weights = provider.subunit_id.values[self.mask]
+        function = self._function
+        for id_, idx2value in self.id2idx2value.items():
+            idx_element = element_id == id_
+            for idx in idx2value:
+                idx_subunit = idx_element * (subunit_id == idx)
+                if numpy.any(idx_subunit):
+                    idx2value[idx] = function(
+                        output[idx_subunit], weights=weights[idx_subunit]
+                    )
+                else:
+                    idx2value[idx] = float64(numpy.nan)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -173,13 +234,13 @@ class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler)
     @override
     def scale_up(self) -> None:
         output = self.regionaliser.output[self.mask]
-        element_raster = self.regionaliser.provider.element_id.values[self.mask]
-        subunit_raster = self.regionaliser.provider.subunit_id.values[self.mask]
+        element_id = self.regionaliser.provider.element_id.values[self.mask]
+        subunit_id = self.regionaliser.provider.subunit_id.values[self.mask]
         function = self._function
         for id_, idx2value in self.id2idx2value.items():
-            idx_raster_element = element_raster == id_
+            idx_raster_element = element_id == id_
             for idx in idx2value:
-                idx_raster_subunit = idx_raster_element * (subunit_raster == idx)
+                idx_raster_subunit = idx_raster_element * (subunit_id == idx)
                 if numpy.any(idx_raster_subunit):
                     idx2value[idx] = function(output[idx_raster_subunit])
                 else:

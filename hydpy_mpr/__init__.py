@@ -34,7 +34,9 @@ from hydpy_mpr.source.transforming import (
     TypeVarParameter,
 )
 from hydpy_mpr.source.upscaling import (
+    AttributeElementDefaultUpscaler,
     AttributeElementUpscaler,
+    AttributeSubunitDefaultUpscaler,
     AttributeSubunitUpscaler,
     AttributeUpscaler,
     ElementUpscaler,
@@ -67,11 +69,13 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 
 
 __all__ = [
+    "AttributeElementDefaultUpscaler",
     "AttributeElementUpscaler",
     "AttributeFloat",
     "AttributeInt",
     "AttributeRegionaliser",
     "AttributeSubregionaliser",
+    "AttributeSubunitDefaultUpscaler",
     "AttributeSubunitUpscaler",
     "AttributeUpscaler",
     "Calibrator",
