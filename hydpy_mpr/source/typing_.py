@@ -107,7 +107,7 @@ UpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
 DirpathMPRData = NewType("DirpathMPRData", str)
 FilepathGeopackage = NewType("FilepathGeopackage", str)
 NameProvider = NewType("NameProvider", str)
-NameData = NewType("NameData", str)
+NameDataset = NewType("NameDataset", str)
 
 
 __all__ = [
@@ -130,9 +130,9 @@ __all__ = [
     "MatrixBool",
     "MatrixFloat",
     "MatrixInt",
-    "NameData",
+    "NameDataset",
     "NameProvider",
-    "NameData",
+    "NameDataset",
     "NoReturn",
     "overload",
     "override",

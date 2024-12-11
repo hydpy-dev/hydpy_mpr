@@ -17,12 +17,10 @@ def test_read_features_everything_okay(
     arrange_project: None,  # pylint: disable=unused-argument
     dirpath_mpr_data: DirpathMPRData,
     name_feature_class: NameProvider,
-    name_attribute_kf: NameData,
+    name_attribute_kf: NameDataset,
 ) -> None:
     f = hydpy_mpr.FeatureClass(
-        mprpath=dirpath_mpr_data,
-        name=name_feature_class,
-        names_data=(name_attribute_kf,),
+        mprpath=dirpath_mpr_data, name=name_feature_class, datasets=(name_attribute_kf,)
     )
     e = f.element_id
 
@@ -57,7 +55,7 @@ def test_read_features_everything_okay(
 
 def test_read_features_missing_geopackage(tmp_path: DirpathMPRData) -> None:
     with pytest.raises(FileNotFoundError) as info:
-        hydpy_mpr.FeatureClass(mprpath=tmp_path, name=NameProvider(""), names_data=())
+        hydpy_mpr.FeatureClass(mprpath=tmp_path, name=NameProvider(""), datasets=())
     assert str(info.value) == (
         f"Geopackage `{os.path.join(tmp_path, constants.FEATURE_GPKG)}` does not exist."
     )
@@ -70,7 +68,7 @@ def test_read_features_missing_feature_class(
 ) -> None:
     with pytest.raises(TypeError) as info:
         hydpy_mpr.FeatureClass(
-            mprpath=dirpath_mpr_data, name=NameProvider("wrong"), names_data=()
+            mprpath=dirpath_mpr_data, name=NameProvider("wrong"), datasets=()
         )
     assert str(info.value) == (
         f"Geopackage `{filepath_feature}` does not contain the required feature class "
@@ -115,7 +113,7 @@ def test_read_features_subunit_id_missing() -> None:
 def test_read_features_geometry_type_everything_okay(
     geometry_type: str, expected: constants.Size
 ) -> None:
-    headers = cast(list[NameData], ["x", "y"])
+    headers = cast(list[NameDataset], ["x", "y"])
     hydpy_mpr.FeatureClass._append_size_header(
         filepath=FilepathGeopackage("path_geopackage"),
         name=NameProvider("name_featureclass"),
@@ -159,7 +157,7 @@ def test_read_features_missing_attribute() -> None:
         hydpy_mpr.FeatureClass._get_types(
             filepath=FilepathGeopackage("path_geopackage"),
             name=NameProvider("name_featureclass"),
-            headers=cast(list[NameData], ["x", "y", "z"]),
+            headers=cast(list[NameDataset], ["x", "y", "z"]),
             field_names=["z", "x"],
             fields=[],
         )
@@ -185,7 +183,7 @@ def test_read_features_types_okay() -> None:
     types = hydpy_mpr.FeatureClass._get_types(
         filepath=FilepathGeopackage("path_geopackage"),
         name=NameProvider("name_featureclass"),
-        headers=cast(list[NameData], [i5, i4, f3, "i6", "i7", "i8", "f1", "f2"]),
+        headers=cast(list[NameDataset], [i5, i4, f3, "i6", "i7", "i8", "f1", "f2"]),
         field_names=field_names,
         fields=fields,
     )
@@ -216,7 +214,7 @@ def test_read_features_id_should_be_int() -> None:
         hydpy_mpr.FeatureClass._get_types(
             filepath=FilepathGeopackage("path_geopackage"),
             name=NameProvider("name_featureclass"),
-            headers=cast(list[NameData], [constants.ELEMENT_ID, "x", "y", "z"]),
+            headers=cast(list[NameDataset], [constants.ELEMENT_ID, "x", "y", "z"]),
             field_names=field_names,
             fields=fields,
         )
@@ -238,7 +236,7 @@ def test_read_features_size_should_be_float() -> None:
             filepath=FilepathGeopackage("path_geopackage"),
             name=NameProvider("name_featureclass"),
             headers=cast(
-                list[NameData],
+                list[NameDataset],
                 [constants.ELEMENT_ID, constants.Size.AREA, "x", "y", "z"],
             ),
             field_names=field_names,
@@ -261,7 +259,7 @@ def test_read_features_geodata_should_be_int_or_float() -> None:
         hydpy_mpr.FeatureClass._get_types(
             filepath=FilepathGeopackage("path_geopackage"),
             name=NameProvider("name_featureclass"),
-            headers=cast(list[NameData], [constants.ELEMENT_ID, "x", "y", "z"]),
+            headers=cast(list[NameDataset], [constants.ELEMENT_ID, "x", "y", "z"]),
             field_names=field_names,
             fields=fields,
         )
@@ -272,7 +270,7 @@ def test_read_features_missing_values(
     dirpath_mpr_data: DirpathMPRData,
     filepath_feature: FilepathGeopackage,
     name_feature_class: NameProvider,
-    name_attribute_kf: NameData,
+    name_attribute_kf: NameDataset,
 ) -> None:
     gpkg = geopkg.GeoPackage(filepath_feature)
     f = gpkg.feature_classes.get(name_feature_class)
@@ -285,9 +283,7 @@ def test_read_features_missing_values(
     gpkg.connection.close()
 
     f = hydpy_mpr.FeatureClass(
-        mprpath=dirpath_mpr_data,
-        name=name_feature_class,
-        names_data=(name_attribute_kf,),
+        mprpath=dirpath_mpr_data, name=name_feature_class, datasets=(name_attribute_kf,)
     )
     e = f.element_id
 

@@ -85,7 +85,7 @@ class Subregionaliser(
             self.mask *= input_.mask
         raster = reading.RasterFloat(values=self.output)
         raster.mask = self.mask.copy()
-        self.provider.data[self.name] = raster
+        self.provider.name2dataset[self.name] = raster
 
 
 @dataclasses.dataclass(kw_only=True)

@@ -18,7 +18,7 @@ class Equation(
     source: utilities.NewTypeDataclassDescriptor[str, NameProvider] = (
         utilities.NewTypeDataclassDescriptor()
     )
-    name: NameData = dataclasses.field(default=NameData(""))
+    name: NameDataset = dataclasses.field(default=NameDataset(""))
 
     provider: TypeVarProvider = dataclasses.field(init=False)
     mask: TypeVarArrayBool = dataclasses.field(init=False)
@@ -37,9 +37,9 @@ class Equation(
     def activate(self, *, provider: TypeVarProvider) -> None:
         self.provider = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
-        for fieldname, filename in self.fieldname2dataname.items():
+        for fieldname, filename in self.name_field2dataset.items():
             rastername = f"data_{fieldname.removeprefix('file_')}"
-            raster = provider.data[filename]  # ToDo: error message
+            raster = provider.name2dataset[filename]  # ToDo: error message
             setattr(self, rastername, raster)  # ToDo: check type?
             self.mask *= raster.mask
         self.output = numpy.full(self.shape, numpy.nan)
@@ -54,9 +54,9 @@ class Equation(
         }
 
     @property
-    def fieldname2dataname(self) -> dict[str, NameData]:
+    def name_field2dataset(self) -> dict[str, NameDataset]:
         return {
-            field.name: NameData(getattr(self, field.name))
+            field.name: NameDataset(getattr(self, field.name))
             for field in dataclasses.fields(self)
             if (field.name).startswith("file_")
         }
@@ -88,7 +88,7 @@ class RasterEquation(
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = NameData(type(self).__qualname__.lower())
+            self.name = NameDataset(type(self).__qualname__.lower())
 
     @property
     @override

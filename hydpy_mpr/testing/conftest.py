@@ -44,8 +44,8 @@ def name_feature_class() -> NameProvider:
 
 
 @pytest.fixture
-def name_attribute_kf() -> NameData:
-    return NameData("kf")
+def name_attribute_kf() -> NameDataset:
+    return NameDataset("kf")
 
 
 @pytest.fixture
@@ -94,8 +94,8 @@ def filename_sand_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_sand_2m_15km(filename_sand_2m_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_sand_2m_15km)
+def rastername_sand_2m_15km(filename_sand_2m_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_sand_2m_15km)
 
 
 @pytest.fixture
@@ -109,8 +109,8 @@ def filename_clay_1m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_clay_1m_15km(filename_clay_1m_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_1m_15km)
+def rastername_clay_1m_15km(filename_clay_1m_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_clay_1m_15km)
 
 
 @pytest.fixture
@@ -119,8 +119,8 @@ def filename_clay_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_clay_2m_15km(filename_clay_2m_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_2m_15km)
+def rastername_clay_2m_15km(filename_clay_2m_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_clay_2m_15km)
 
 
 @pytest.fixture
@@ -129,8 +129,8 @@ def filename_density_1m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_density_1m_15km(filename_density_1m_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_density_1m_15km)
+def rastername_density_1m_15km(filename_density_1m_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_density_1m_15km)
 
 
 @pytest.fixture
@@ -139,8 +139,8 @@ def filename_density_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_density_2m_15km(filename_density_2m_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_density_2m_15km)
+def rastername_density_2m_15km(filename_density_2m_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_density_2m_15km)
 
 
 @pytest.fixture
@@ -149,8 +149,8 @@ def filename_landuse_15km() -> str:
 
 
 @pytest.fixture
-def rastername_landuse_15km(filename_landuse_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_landuse_15km)
+def rastername_landuse_15km(filename_landuse_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_landuse_15km)
 
 
 @pytest.fixture
@@ -159,8 +159,8 @@ def filename_dh_15km() -> str:
 
 
 @pytest.fixture
-def rasterfilename_dh_15km(filename_dh_15km: str) -> NameData:
-    return hydpy_mpr.RasterGroup.filename2rastername(filename_dh_15km)
+def rasterfilename_dh_15km(filename_dh_15km: str) -> NameDataset:
+    return hydpy_mpr.RasterGroup.extract_name_dataset(filename_dh_15km)
 
 
 @pytest.fixture
@@ -221,8 +221,8 @@ def regionaliser_fc_2m(
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
     dirname_raster_15km: NameProvider,
-    rastername_clay_2m_15km: NameData,
-    rastername_density_2m_15km: NameData,
+    rastername_clay_2m_15km: NameDataset,
+    rastername_density_2m_15km: NameDataset,
 ) -> regionalising.RasterRegionaliser:
 
     fc = runpy.run_path(filepath_regionalisers)["FC2m"](

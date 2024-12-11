@@ -252,11 +252,11 @@ def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
 class Provider(Generic[TypeVarDataInt, TypeVarData]):
     mprpath: DirpathMPRData
     name: NameProvider
+    datasets: tuple[NameDataset, ...]
 
-    names_data: tuple[NameData, ...]
-    data: dict[NameData, TypeVarData] = dataclasses.field(init=False)
     element_id: TypeVarDataInt = dataclasses.field(init=False)
     subunit_id: TypeVarDataInt = dataclasses.field(init=False)
+    name2dataset: dict[NameDataset, TypeVarData] = dataclasses.field(init=False)
     id2element: MappingTable = dataclasses.field(init=False)
 
 
@@ -273,10 +273,10 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
                 f"The requested raster group directory `{dirpath}` does not exist."
             )
         filenames = _extract_tiffiles(os.listdir(dirpath))
-        rastername2filename = {self.filename2rastername(fn): fn for fn in filenames}
+        rastername2filename = {self.extract_name_dataset(fn): fn for fn in filenames}
 
         # Read the element ID raster:
-        if (element_id := NameData(constants.ELEMENT_ID)) in rastername2filename:
+        if (element_id := NameDataset(constants.ELEMENT_ID)) in rastername2filename:
             filepath = os.path.join(dirpath, rastername2filename[element_id])
             self.element_id = read_geotiff(filepath=filepath, integer=True)
             self.shape = self.element_id.shape
@@ -287,7 +287,7 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
             )
 
         # Read the subunit ID raster:
-        if (subunit_id := NameData(constants.SUBUNIT_ID)) in rastername2filename:
+        if (subunit_id := NameDataset(constants.SUBUNIT_ID)) in rastername2filename:
             filepath = os.path.join(dirpath, rastername2filename[subunit_id])
             self.subunit_id = read_geotiff(filepath=filepath, integer=True)
             self._check_shape(self.subunit_id.shape, subunit_id)
@@ -298,12 +298,12 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
             )
 
         # Read the geodata rasters:
-        self.data = {}
-        for name in self.names_data:
+        self.name2dataset = {}
+        for name in self.datasets:
             if (filename := rastername2filename.get(name)) is not None:
                 raster = read_geotiff(filepath=os.path.join(dirpath, filename))
                 self._check_shape(raster.shape, name)
-                self.data[name] = raster
+                self.name2dataset[name] = raster
             else:
                 raise FileNotFoundError(
                     f"The raster group directory `{dirpath}` does not contain a file "
@@ -313,7 +313,7 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
         # Read the mapping table:
         self.id2element = read_mapping_table(mprpath=self.mprpath)
 
-    def _check_shape(self, shape: tuple[int, int], name: NameData, /) -> None:
+    def _check_shape(self, shape: tuple[int, int], name: NameDataset, /) -> None:
         if self.shape != shape:
             raise TypeError(
                 f"Raster group `{self.name}` is inconsistent: shape `{self.shape}` of "
@@ -322,8 +322,8 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
             )
 
     @staticmethod
-    def filename2rastername(filename: str, /) -> NameData:
-        return NameData(filename.rsplit(".")[0])
+    def extract_name_dataset(filename: str, /) -> NameDataset:
+        return NameDataset(filename.rsplit(".")[0])
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -356,7 +356,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
                 headers=headers,
                 geometry_type=featureclass.geometry_type,
             )
-            headers.extend(self.names_data)
+            headers.extend(self.datasets)
 
             # Determine the corresponding types, for the above example something like
             # [int64, int64, float64, float64, int64]
@@ -396,10 +396,10 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
     @staticmethod
     def _prepare_headers(
         filepath: FilepathGeopackage, name: NameProvider, field_names: list[str]
-    ) -> list[NameData]:
-        headers = [NameData(constants.ELEMENT_ID)]
+    ) -> list[NameDataset]:
+        headers = [NameDataset(constants.ELEMENT_ID)]
         if constants.SUBUNIT_ID in field_names:
-            headers.append(NameData(constants.SUBUNIT_ID))
+            headers.append(NameDataset(constants.SUBUNIT_ID))
         else:
             warnings.warn(
                 f"Feature class `{name}` of geopackage `{filepath}` does not contain "
@@ -412,7 +412,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
         *,
         filepath: FilepathGeopackage,
         name: NameProvider,
-        headers: list[NameData],
+        headers: list[NameDataset],
         geometry_type: str | None,
     ) -> None:
 
@@ -426,9 +426,9 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
             )
         geometry_type = geometry_type.upper()
         if geometry_type in polygontypes:
-            headers.append(NameData(constants.Size.AREA))
+            headers.append(NameDataset(constants.Size.AREA))
         elif geometry_type in linetypes:
-            headers.append(NameData(constants.Size.LENGTH))
+            headers.append(NameDataset(constants.Size.LENGTH))
         else:
             raise TypeError(
                 f"Feature class `{name}` of geopackage `{filepath}` defines the "
@@ -440,7 +440,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
     def _get_types(
         filepath: FilepathGeopackage,
         name: NameProvider,
-        headers: list[NameData],
+        headers: list[NameDataset],
         field_names: list[str],
         fields: list[geopkg.Field],
     ) -> list[type[AttributeInt | AttributeFloat]]:
@@ -507,20 +507,20 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
 
     def __post_init__(self) -> None:
 
-        required_rasters: dict[NameProvider, set[NameData]] = {}
-        available_rasters: dict[NameProvider, set[NameData]] = {}
+        required_rasters: dict[NameProvider, set[NameDataset]] = {}
+        available_rasters: dict[NameProvider, set[NameDataset]] = {}
         for equation in self.equations:
             if (name := equation.source) not in required_rasters:
                 required_rasters[name] = set()
                 available_rasters[name] = set()
-            required_rasters[name].update(equation.fieldname2dataname.values())
+            required_rasters[name].update(equation.name_field2dataset.values())
             available_rasters[name].add(equation.name)
 
         self._providers = {}
         for name in required_rasters:  # pylint: disable=consider-using-dict-items
             file_rasters = required_rasters[name] - available_rasters[name]
             self._providers[name] = RasterGroup(
-                mprpath=self.mprpath, name=name, names_data=tuple(sorted(file_rasters))
+                mprpath=self.mprpath, name=name, datasets=tuple(sorted(file_rasters))
             )
 
     def __getitem__(self, name: NameProvider) -> RasterGroup:
