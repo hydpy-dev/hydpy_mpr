@@ -40,7 +40,7 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         }
 
     @property
-    def name2value(self) -> dict[str, float64]:
+    def name2value(self) -> Mapping[str, float64]:
         id2element = self.regionaliser.provider.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
@@ -68,7 +68,7 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         self.id2idx2value = id2idx2value
 
     @property
-    def name2idx2value(self) -> dict[str, dict[int64, float64]]:
+    def name2idx2value(self) -> Mapping[str, Mapping[int64, float64]]:
         id2element = self.regionaliser.provider.id2element
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 

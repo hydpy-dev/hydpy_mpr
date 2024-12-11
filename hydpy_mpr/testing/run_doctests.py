@@ -6,7 +6,7 @@ import importlib
 import os
 import sys
 import unittest
-from typing import NoReturn, TypeAlias
+from typing import NoReturn, Sequence, TypeAlias
 
 import click
 
@@ -34,7 +34,7 @@ Results: TypeAlias = dict[str, tuple[unittest.TestResult, int]]
     default=(),
     help="Names of the analysed files.",
 )
-def main(path: str | None, files: list[str]) -> NoReturn:
+def main(path: str | None, files: Sequence[str]) -> NoReturn:
     """Search for and analyse files that contain doctests."""
 
     _filter_filenames = _FilterFilenames(files)
@@ -69,10 +69,10 @@ def _print(*args: str) -> None:
 class _FilterFilenames:
     _files_doctests: set[str] | None
 
-    def __init__(self, files_doctests: list[str] | None, /) -> None:
+    def __init__(self, files_doctests: Sequence[str] | None, /) -> None:
         self._files_doctests = set(files_doctests) if files_doctests else None
 
-    def __call__(self, filenames: list[str], /) -> list[str]:
+    def __call__(self, filenames: Sequence[str], /) -> Sequence[str]:
         if self._files_doctests is not None:
             filenames = [fn for fn in filenames if fn in self._files_doctests]
         return [fn for fn in filenames if fn.rsplit(".")[-1] in ("py", "pyx", "md")]

@@ -244,7 +244,7 @@ class AttributeFloat(Attribute[float64]):
         return cls(values=vector.astype(float64))
 
 
-def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
+def _extract_tiffiles(filenames: Iterable[str]) -> Sequence[str]:
     return [fn for fn in filenames if fn.rsplit(".")[-1] in ("tif", "tiff")]
 
 
@@ -252,7 +252,7 @@ def _extract_tiffiles(filenames: Iterable[str]) -> list[str]:
 class Provider(Generic[TypeVarDataInt, TypeVarData]):
     mprpath: DirpathMPRData
     name: NameProvider
-    datasets: tuple[NameDataset, ...]
+    datasets: Sequence[NameDataset]
 
     element_id: TypeVarDataInt = dataclasses.field(init=False)
     subunit_id: TypeVarDataInt = dataclasses.field(init=False)
@@ -395,7 +395,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
 
     @staticmethod
     def _prepare_headers(
-        filepath: FilepathGeopackage, name: NameProvider, field_names: list[str]
+        filepath: FilepathGeopackage, name: NameProvider, field_names: Sequence[str]
     ) -> list[NameDataset]:
         headers = [NameDataset(constants.ELEMENT_ID)]
         if constants.SUBUNIT_ID in field_names:
@@ -440,10 +440,10 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
     def _get_types(
         filepath: FilepathGeopackage,
         name: NameProvider,
-        headers: list[NameDataset],
-        field_names: list[str],
-        fields: list[geopkg.Field],
-    ) -> list[type[AttributeInt | AttributeFloat]]:
+        headers: Sequence[NameDataset],
+        field_names: Sequence[str],
+        fields: Sequence[geopkg.Field],
+    ) -> Sequence[type[AttributeInt | AttributeFloat]]:
 
         integers = ("TINYINT", "SMALLINT", "MEDIUMINT", "INTEGER", "INT")
         floats = ("FLOAT", "DOUBLE", "REAL")
@@ -498,8 +498,8 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
 @dataclasses.dataclass(kw_only=True)
 class Providers(Generic[TypeVarProvider, TypeVarEquation]):
     mprpath: DirpathMPRData
-    equations: tuple[TypeVarEquation, ...]
-    _providers: dict[NameProvider, TypeVarProvider] = dataclasses.field(init=False)
+    equations: Sequence[TypeVarEquation]
+    _providers: Mapping[NameProvider, TypeVarProvider] = dataclasses.field(init=False)
 
 
 @dataclasses.dataclass(kw_only=True)

@@ -54,7 +54,7 @@ class Equation(
         }
 
     @property
-    def name_field2dataset(self) -> dict[str, NameDataset]:
+    def name_field2dataset(self) -> Mapping[str, NameDataset]:
         return {
             field.name: NameDataset(getattr(self, field.name))
             for field in dataclasses.fields(self)

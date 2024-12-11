@@ -39,7 +39,7 @@ class Calibrator(abc.ABC):
         self.likelihood = numpy.nan
 
     @property
-    def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
+    def coefficients(self) -> Sequence[regionalising.Coefficient]:
         coefficients: set[regionalising.Coefficient] = set()
         for subregionaliser in self.subregionalisers:
             coefficients.update(subregionaliser.coefficients)
@@ -48,15 +48,15 @@ class Calibrator(abc.ABC):
         return tuple(sorted(coefficients, key=lambda c: c.name))
 
     @property
-    def lowers(self) -> tuple[float, ...]:
+    def lowers(self) -> Sequence[float]:
         return tuple(c.lower for c in self.coefficients)
 
     @property
-    def uppers(self) -> tuple[float, ...]:
+    def uppers(self) -> Sequence[float]:
         return tuple(c.upper for c in self.coefficients)
 
     @property
-    def values(self) -> tuple[float, ...]:
+    def values(self) -> Sequence[float]:
         return tuple(c.value for c in self.coefficients)
 
     def update_coefficients(self, values: Sequence[float]) -> None:
@@ -109,7 +109,7 @@ class GridCalibrator(Calibrator, abc.ABC):
                 _raise_error("upper")
 
     @property
-    def gridpoints(self) -> Iterator[tuple[float, ...]]:
+    def gridpoints(self) -> Iterator[Sequence[float]]:
         self.check_coefficients()
         if self.nmb_nodes == 1:
             nodes = (0.5,)
@@ -125,7 +125,7 @@ class GridCalibrator(Calibrator, abc.ABC):
     @override
     def calibrate(self) -> None:
         best_likelihood = -numpy.inf
-        best_values = len(self.coefficients) * (numpy.nan,)
+        best_values: Sequence[float] = len(self.coefficients) * (numpy.nan,)
         for values in self.gridpoints:
             likelihood = self.perform_calibrationstep(values)
             if likelihood > best_likelihood:

@@ -23,7 +23,7 @@ class Task(
 
     regionaliser: TypeVarRegionaliser
     upscaler: TypeVarUpscaler
-    transformers: list[TypeVarTransformer]
+    transformers: Sequence[TypeVarTransformer]
     hp: hydpy.HydPy = dataclasses.field(init=False)
 
     def activate(self, *, hp: hydpy.HydPy, provider: TypeVarProvider) -> None:
@@ -153,40 +153,34 @@ class MPR:
             writer.activate(hp=self.hp, calibrator=self.calibrator)
 
     @property
-    def attribute_preprocessors(
-        self,
-    ) -> tuple[preprocessing.AttributePreprocessor, ...]:
+    def attribute_preprocessors(self) -> Sequence[preprocessing.AttributePreprocessor]:
         t = preprocessing.AttributePreprocessor
         return tuple(p for p in self.preprocessors if isinstance(p, t))
 
     @property
-    def raster_preprocessors(self) -> tuple[preprocessing.RasterPreprocessor, ...]:
+    def raster_preprocessors(self) -> Sequence[preprocessing.RasterPreprocessor]:
         type_ = preprocessing.RasterPreprocessor
         return tuple(p for p in self.preprocessors if isinstance(p, type_))
 
     @property
     def attribute_subregionalisers(
         self,
-    ) -> tuple[regionalising.AttributeSubregionaliser, ...]:
+    ) -> Sequence[regionalising.AttributeSubregionaliser]:
         type_ = regionalising.AttributeSubregionaliser
         return tuple(p for p in self.subregionalisers if isinstance(p, type_))
 
     @property
-    def raster_subregionalisers(
-        self,
-    ) -> tuple[regionalising.RasterSubregionaliser, ...]:
+    def raster_subregionalisers(self) -> Sequence[regionalising.RasterSubregionaliser]:
         type_ = regionalising.RasterSubregionaliser
         return tuple(p for p in self.subregionalisers if isinstance(p, type_))
 
     @property
-    def attribute_tasks(
-        self,
-    ) -> tuple[AttributeElementTask | AttributeSubunitTask, ...]:
+    def attribute_tasks(self) -> Sequence[AttributeElementTask | AttributeSubunitTask]:
         type_ = (AttributeElementTask, AttributeSubunitTask)
         return tuple(p for p in self.tasks if isinstance(p, type_))
 
     @property
-    def raster_tasks(self) -> tuple[RasterElementTask | RasterSubunitTask, ...]:
+    def raster_tasks(self) -> Sequence[RasterElementTask | RasterSubunitTask]:
         type_ = (RasterElementTask, RasterSubunitTask)
         return tuple(p for p in self.tasks if isinstance(p, type_))
 

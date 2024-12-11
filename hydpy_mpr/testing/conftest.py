@@ -515,7 +515,7 @@ def gridcalibrator_with_dummy_coefficients() -> type[calibrating.GridCalibrator]
     class TestGridCalibrator(calibrating.GridCalibrator):
         @override
         @property
-        def coefficients(self) -> tuple[regionalising.Coefficient, ...]:
+        def coefficients(self) -> Sequence[regionalising.Coefficient]:
             return (c1, c2)
 
         @override

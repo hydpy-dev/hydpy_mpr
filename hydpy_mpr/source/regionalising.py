@@ -40,7 +40,7 @@ class Regionaliser(
     abc.ABC,
 ):
     @property
-    def coefficients(self) -> tuple[Coefficient, ...]:
+    def coefficients(self) -> Sequence[Coefficient]:
         return tuple(
             value
             for field in dataclasses.fields(self)

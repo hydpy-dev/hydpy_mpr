@@ -17,7 +17,7 @@ class Transformer(Generic[TypeVarUpscaler, TypeVarParameter], abc.ABC):
     selection: hydpy.Selection | None = dataclasses.field(default_factory=lambda: None)
     hp: hydpy.HydPy = dataclasses.field(init=False)
     upscaler: TypeVarUpscaler = dataclasses.field(init=False)
-    element2parameter: dict[str, TypeVarParameter] = dataclasses.field(init=False)
+    element2parameter: Mapping[str, TypeVarParameter] = dataclasses.field(init=False)
 
     def activate(self, *, hp: hydpy.HydPy, upscaler: TypeVarUpscaler) -> None:
         self.hp = hp
@@ -70,7 +70,7 @@ class SubunitTransformer(
 
     @abc.abstractmethod
     def modify_parameter(
-        self, parameter: TypeVarParameter, values: dict[int64, float64]
+        self, parameter: TypeVarParameter, values: Mapping[int64, float64]
     ) -> None:
         pass
 
@@ -88,7 +88,7 @@ class SubunitIdentityTransformer(SubunitTransformer[TypeVarParameter]):
 
     @override
     def modify_parameter(
-        self, parameter: TypeVarParameter, values: dict[int64, float64]
+        self, parameter: TypeVarParameter, values: Mapping[int64, float64]
     ) -> None:
         # ToDo: parameterstep
         for idx, value in values.items():

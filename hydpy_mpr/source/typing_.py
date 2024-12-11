@@ -81,7 +81,7 @@ else:
 
 # type aliases
 
-MappingTable: TypeAlias = dict[int64, str]
+MappingTable: TypeAlias = Mapping[int64, str]
 
 if TYPE_CHECKING:
     from hydpy_mpr.source import managing
