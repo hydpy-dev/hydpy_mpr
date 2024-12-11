@@ -74,41 +74,83 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
 
 @dataclasses.dataclass(kw_only=True)
+class AttributeUpscaler(
+    Upscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterUpscaler(Upscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
 class RasterElementUpscaler(
-    ElementUpscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC
+    RasterUpscaler,
+    ElementUpscaler[regionalising.RasterRegionaliser, MatrixBool],
+    abc.ABC,
 ):
     pass
 
 
 @dataclasses.dataclass(kw_only=True)
 class RasterSubunitUpscaler(
-    SubunitUpscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC
+    RasterUpscaler,
+    SubunitUpscaler[regionalising.RasterRegionaliser, MatrixBool],
+    abc.ABC,
 ):
     pass
 
 
 @dataclasses.dataclass(kw_only=True)
 class AttributeElementUpscaler(
-    ElementUpscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
+    AttributeUpscaler,
+    ElementUpscaler[regionalising.AttributeRegionaliser, VectorBool],
+    abc.ABC,
 ):
     pass
 
 
 @dataclasses.dataclass(kw_only=True)
 class AttributeSubunitUpscaler(
-    SubunitUpscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
+    AttributeUpscaler,
+    SubunitUpscaler[regionalising.AttributeRegionaliser, VectorBool],
+    abc.ABC,
 ):
     pass
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterElementDefaultUpscaler(RasterElementUpscaler):
+class DefaultUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool]):
 
     function: UpscalingOption = constants.UP_A
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterDefaultUpscaler(
+    DefaultUpscaler[regionalising.RasterRegionaliser, MatrixBool], RasterUpscaler
+):
     _function: UpscalingFunction = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
-        self._function = _query_function(self.function)
+        self._function = self._query_function(self.function)
+
+    @staticmethod
+    def _query_function(function: UpscalingOption) -> UpscalingFunction:
+        match function:
+            case constants.UP_A:
+                return numpy.mean
+            case constants.UP_H:
+                return stats.hmean  # type: ignore[no-any-return]
+            case constants.UP_G:
+                return stats.gmean  # type: ignore[no-any-return]
+            case _:
+                return function
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler):
 
     @override
     def scale_up(self) -> None:
@@ -126,13 +168,7 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
-
-    function: UpscalingOption = constants.UP_A
-    _function: UpscalingFunction = dataclasses.field(init=False)
-
-    def __post_init__(self) -> None:
-        self._function = _query_function(self.function)
+class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler):
 
     @override
     def scale_up(self) -> None:
@@ -148,15 +184,3 @@ class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
                     idx2value[idx] = function(output[idx_raster_subunit])
                 else:
                     idx2value[idx] = float64(numpy.nan)
-
-
-def _query_function(function: UpscalingOption) -> UpscalingFunction:
-    match function:
-        case constants.UP_A:
-            return numpy.mean
-        case constants.UP_H:
-            return stats.hmean  # type: ignore[no-any-return]
-        case constants.UP_G:
-            return stats.gmean  # type: ignore[no-any-return]
-        case _:
-            return function

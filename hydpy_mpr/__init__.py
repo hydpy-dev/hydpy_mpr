@@ -36,10 +36,15 @@ from hydpy_mpr.source.transforming import (
 from hydpy_mpr.source.upscaling import (
     AttributeElementUpscaler,
     AttributeSubunitUpscaler,
+    AttributeUpscaler,
+    ElementUpscaler,
     RasterElementDefaultUpscaler,
     RasterElementUpscaler,
     RasterSubunitDefaultUpscaler,
     RasterSubunitUpscaler,
+    RasterUpscaler,
+    SubunitUpscaler,
+    Upscaler,
 )
 from hydpy_mpr.source.writing import ControlWriter, Writer
 
@@ -68,11 +73,13 @@ __all__ = [
     "AttributeRegionaliser",
     "AttributeSubregionaliser",
     "AttributeSubunitUpscaler",
+    "AttributeUpscaler",
     "Calibrator",
     "Coefficient",
     "ControlWriter",
     "ElementIdentityTransformer",
     "ElementTransformer",
+    "ElementUpscaler",
     "FeatureClass",
     "GridCalibrator",
     "MPR",
@@ -90,10 +97,13 @@ __all__ = [
     "RasterSubunitDefaultUpscaler",
     "RasterSubunitTask",
     "RasterSubunitUpscaler",
+    "RasterUpscaler",
     "SubunitIdentityTransformer",
     "SubunitTransformer",
+    "SubunitUpscaler",
     "read_geotiff",
     "read_mapping_table",
     "TypeVarParameter",
+    "Upscaler",
     "Writer",
 ]
