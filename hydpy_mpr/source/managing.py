@@ -5,6 +5,7 @@ import itertools
 import hydpy
 
 from hydpy_mpr.source import calibrating
+from hydpy_mpr.source import equations
 from hydpy_mpr.source import preprocessing
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
@@ -16,19 +17,27 @@ from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasterTransformer]):
+class Task(
+    Generic[TypeVarProvider, TypeVarRegionaliser, TypeVarUpscaler, TypeVarTransformer]
+):
 
-    regionaliser: regionalising.RasterRegionaliser
-    upscaler: TypeVarRasterUpscaler
-    transformers: list[TypeVarRasterTransformer]
+    regionaliser: TypeVarRegionaliser
+    upscaler: TypeVarUpscaler
+    transformers: list[TypeVarTransformer]
     hp: hydpy.HydPy = dataclasses.field(init=False)
 
-    def activate(self, *, hp: hydpy.HydPy, raster_groups: reading.RasterGroups) -> None:
+    def activate(self, *, hp: hydpy.HydPy, provider: TypeVarProvider) -> None:
         self.hp = hp
-        self.regionaliser.activate(raster_groups=raster_groups)
+        self.regionaliser.activate(provider=provider)
         self.upscaler.activate(regionaliser=self.regionaliser)
         for transformer in self.transformers:
             transformer.activate(hp=hp, upscaler=self.upscaler)
+
+    @property
+    def source(self) -> NameProvider:
+        source = self.regionaliser.source
+        # ToDo: check source is consistently defined
+        return source
 
     def run(self) -> None:
         self.regionaliser.apply_coefficients()
@@ -38,17 +47,45 @@ class RasterTask(Generic[TypeVarRasterUpscaler, TypeVarRasterTransformer]):
             transformer.modify_parameters()
 
 
+class AttributeElementTask(
+    Task[
+        reading.FeatureClass,
+        regionalising.AttributeRegionaliser,
+        upscaling.AttributeElementUpscaler,
+        transforming.ElementTransformer[Any],
+    ]
+):
+    pass
+
+
+class AttributeSubunitTask(
+    Task[
+        reading.FeatureClass,
+        regionalising.AttributeRegionaliser,
+        upscaling.AttributeSubunitUpscaler,
+        transforming.SubunitTransformer[Any],
+    ]
+):
+    pass
+
+
 class RasterElementTask(
-    RasterTask[
-        upscaling.RasterElementUpscaler, transforming.RasterElementTransformer[Any]
+    Task[
+        reading.RasterGroup,
+        regionalising.RasterRegionaliser,
+        upscaling.RasterElementUpscaler,
+        transforming.ElementTransformer[Any],
     ]
 ):
     pass
 
 
 class RasterSubunitTask(
-    RasterTask[
-        upscaling.RasterSubunitUpscaler, transforming.RasterSubunitTransformer[Any]
+    Task[
+        reading.RasterGroup,
+        regionalising.RasterRegionaliser,
+        upscaling.RasterSubunitUpscaler,
+        transforming.SubunitTransformer[Any],
     ]
 ):
     pass
@@ -61,38 +98,97 @@ class MPR:
         utilities.NewTypeDataclassDescriptor()
     )
     hp: hydpy.HydPy
-    preprocessors: list[preprocessing.RasterPreprocessor] = dataclasses.field(
-        default_factory=lambda: []
-    )
-    subregionalisers: list[regionalising.RasterSubregionaliser] = dataclasses.field(
-        default_factory=lambda: []
-    )
+    preprocessors: Sequence[
+        preprocessing.AttributePreprocessor | preprocessing.RasterPreprocessor
+    ] = dataclasses.field(default_factory=lambda: [])
+    subregionalisers: Sequence[
+        regionalising.AttributeSubregionaliser | regionalising.RasterSubregionaliser
+    ] = dataclasses.field(default_factory=lambda: [])
     tasks: Tasks
     calibrator: calibrating.Calibrator
-    writers: list[writing.Writer] = dataclasses.field(default_factory=lambda: [])
+    writers: Sequence[writing.Writer] = dataclasses.field(default_factory=lambda: [])
 
     def __post_init__(self) -> None:
+
         raster_groups = reading.RasterGroups(
             mprpath=self.mprpath,
             equations=tuple(
                 itertools.chain(
-                    self.preprocessors,
-                    self.subregionalisers,
-                    (task.regionaliser for task in self.tasks),
+                    self.raster_preprocessors,
+                    self.raster_subregionalisers,
+                    (task.regionaliser for task in self.raster_tasks),
                 )
             ),
         )
+        feature_class = reading.FeatureClasses(
+            mprpath=self.mprpath,
+            equations=tuple(
+                itertools.chain(
+                    self.attribute_preprocessors,
+                    self.attribute_subregionalisers,
+                    (task.regionaliser for task in self.attribute_tasks),
+                )
+            ),
+        )
+
         for preprocessor in self.preprocessors:
-            preprocessor.activate(raster_groups=raster_groups)
+            if isinstance(preprocessor, equations.RasterEquation):
+                preprocessor.activate(provider=raster_groups[preprocessor.source])
+            else:
+                preprocessor.activate(provider=feature_class[preprocessor.source])
         for subregionaliser in self.subregionalisers:
-            subregionaliser.activate(raster_groups=raster_groups)
+            if isinstance(subregionaliser, regionalising.RasterSubregionaliser):
+                subregionaliser.activate(provider=raster_groups[subregionaliser.source])
+            else:
+                subregionaliser.activate(provider=feature_class[subregionaliser.source])
         for task in self.tasks:
-            task.activate(hp=self.hp, raster_groups=raster_groups)
+            if isinstance(task, RasterElementTask | RasterSubunitTask):
+                task.activate(hp=self.hp, provider=raster_groups[task.source])
+            else:
+                task.activate(hp=self.hp, provider=feature_class[task.source])
         self.calibrator.activate(
             hp=self.hp, tasks=self.tasks, subregionalisers=self.subregionalisers
         )
         for writer in self.writers:
             writer.activate(hp=self.hp, calibrator=self.calibrator)
+
+    @property
+    def attribute_preprocessors(
+        self,
+    ) -> tuple[preprocessing.AttributePreprocessor, ...]:
+        t = preprocessing.AttributePreprocessor
+        return tuple(p for p in self.preprocessors if isinstance(p, t))
+
+    @property
+    def raster_preprocessors(self) -> tuple[preprocessing.RasterPreprocessor, ...]:
+        type_ = preprocessing.RasterPreprocessor
+        return tuple(p for p in self.preprocessors if isinstance(p, type_))
+
+    @property
+    def attribute_subregionalisers(
+        self,
+    ) -> tuple[regionalising.AttributeSubregionaliser, ...]:
+        type_ = regionalising.AttributeSubregionaliser
+        return tuple(p for p in self.subregionalisers if isinstance(p, type_))
+
+    @property
+    def raster_subregionalisers(
+        self,
+    ) -> tuple[regionalising.RasterSubregionaliser, ...]:
+        type_ = regionalising.RasterSubregionaliser
+        return tuple(p for p in self.subregionalisers if isinstance(p, type_))
+
+    @property
+    def attribute_tasks(
+        self,
+    ) -> tuple[AttributeElementTask | AttributeSubunitTask, ...]:
+        type_ = (AttributeElementTask, AttributeSubunitTask)
+        return tuple(p for p in self.tasks if isinstance(p, type_))
+
+    @property
+    def raster_tasks(self) -> tuple[RasterElementTask | RasterSubunitTask, ...]:
+        type_ = (RasterElementTask, RasterSubunitTask)
+        return tuple(p for p in self.tasks if isinstance(p, type_))
 
     def run(self) -> None:
         self.calibrator.calibrate()

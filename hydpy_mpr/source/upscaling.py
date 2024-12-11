@@ -11,14 +11,14 @@ from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterUpscaler(abc.ABC):
+class Upscaler(Generic[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
-    regionaliser: regionalising.RasterRegionaliser = dataclasses.field(init=False)
-    mask: MatrixBool = dataclasses.field(init=False)
+    regionaliser: TypeVarRegionaliser = dataclasses.field(init=False)
+    mask: TypeVarArrayBool = dataclasses.field(init=False)
 
-    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+    def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         self.regionaliser = regionaliser
-        self.mask = regionaliser.group.element_raster.mask.copy()
+        self.mask = regionaliser.provider.element_id.mask.copy()
         for raster in regionaliser.inputs.values():
             self.mask *= raster.mask
 
@@ -28,40 +28,38 @@ class RasterUpscaler(abc.ABC):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterElementUpscaler(RasterUpscaler, abc.ABC):
+class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2value: dict[int64, float64] = dataclasses.field(init=False)
 
     @override
-    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+    def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         super().activate(regionaliser=regionaliser)
         self.id2value = {
-            id_: float64(numpy.nan) for id_ in self.regionaliser.group.id2element
+            id_: float64(numpy.nan) for id_ in self.regionaliser.provider.id2element
         }
 
     @property
     def name2value(self) -> dict[str, float64]:
-        id2element = self.regionaliser.group.id2element
+        id2element = self.regionaliser.provider.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
+class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
 
     @override
-    def activate(self, *, regionaliser: regionalising.RasterRegionaliser) -> None:
+    def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         super().activate(regionaliser=regionaliser)
 
-        self.mask *= (
-            regionaliser.group.subunit_raster.mask
-        )  # ToDo: better error message
+        self.mask *= regionaliser.provider.subunit_id.mask  # ToDo: better error message
 
-        element_raster = regionaliser.group.element_raster.values
-        subunit_raster = regionaliser.group.subunit_raster.values
+        element_raster = regionaliser.provider.element_id.values
+        subunit_raster = regionaliser.provider.subunit_id.values
         id2idx2value = {}
-        for id_ in regionaliser.group.id2element:
+        for id_ in regionaliser.provider.id2element:
             idx2value = {}
             idxs = numpy.unique(subunit_raster[numpy.where(element_raster == id_)])
             for idx in sorted(idxs):
@@ -71,8 +69,36 @@ class RasterSubunitUpscaler(RasterUpscaler, abc.ABC):
 
     @property
     def name2idx2value(self) -> dict[str, dict[int64, float64]]:
-        id2element = self.regionaliser.group.id2element
+        id2element = self.regionaliser.provider.id2element
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterElementUpscaler(
+    ElementUpscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterSubunitUpscaler(
+    SubunitUpscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeElementUpscaler(
+    ElementUpscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeSubunitUpscaler(
+    SubunitUpscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
+):
+    pass
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -88,8 +114,8 @@ class RasterElementDefaultUpscaler(RasterElementUpscaler):
     def scale_up(self) -> None:
         id2value = self.id2value
         output = self.regionaliser.output[self.mask]
-        group = self.regionaliser.group
-        id_raster = group.element_raster.values[self.mask]
+        group = self.regionaliser.provider
+        id_raster = group.element_id.values[self.mask]
         function = self._function
         for id_ in id2value:
             idxs = id_ == id_raster
@@ -111,8 +137,8 @@ class RasterSubunitDefaultUpscaler(RasterSubunitUpscaler):
     @override
     def scale_up(self) -> None:
         output = self.regionaliser.output[self.mask]
-        element_raster = self.regionaliser.group.element_raster.values[self.mask]
-        subunit_raster = self.regionaliser.group.subunit_raster.values[self.mask]
+        element_raster = self.regionaliser.provider.element_id.values[self.mask]
+        subunit_raster = self.regionaliser.provider.subunit_id.values[self.mask]
         function = self._function
         for id_, idx2value in self.id2idx2value.items():
             idx_raster_element = element_raster == id_

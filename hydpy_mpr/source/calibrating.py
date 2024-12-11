@@ -17,9 +17,9 @@ class Calibrator(abc.ABC):
     conditions: typingtools.Conditions = dataclasses.field(init=False)
     hp: hydpy.HydPy = dataclasses.field(init=False)
     tasks: Tasks = dataclasses.field(init=False)
-    subregionalisers: list[regionalising.RasterSubregionaliser] = dataclasses.field(
-        init=False
-    )
+    subregionalisers: Sequence[
+        regionalising.AttributeSubregionaliser | regionalising.RasterSubregionaliser
+    ] = dataclasses.field(init=False)
     likelihood: float = dataclasses.field(init=False)
     nmb_steps: int = dataclasses.field(init=False, default=0)
 
@@ -28,7 +28,9 @@ class Calibrator(abc.ABC):
         *,
         hp: hydpy.HydPy,
         tasks: Tasks,
-        subregionalisers: list[regionalising.RasterSubregionaliser],
+        subregionalisers: Sequence[
+            regionalising.AttributeSubregionaliser | regionalising.RasterSubregionaliser
+        ],
     ) -> None:
         self.hp = hp
         self.tasks = tasks

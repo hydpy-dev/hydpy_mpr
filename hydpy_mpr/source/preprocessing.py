@@ -7,15 +7,37 @@ from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
-class RasterPreprocessor(equations.RasterEquation, abc.ABC):
+class Preprocessor(
+    equations.Equation[
+        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+    ],
+    abc.ABC,
+):
 
     @override
-    def activate(self, *, raster_groups: reading.RasterGroups) -> None:
-        super().activate(raster_groups=raster_groups)
+    def activate(self, *, provider: TypeVarProvider) -> None:
+        super().activate(provider=provider)
         self.preprocess_data()
-        self.group.data_rasters[self.name] = reading.RasterFloat(values=self.output)
+        self.provider.data[self.name] = self.TYPE_DATA_FLOAT(values=self.output)
 
     @abc.abstractmethod
     def preprocess_data(self) -> None:
         pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributePreprocessor(
+    Preprocessor[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
+    equations.AttributeEquation,
+    abc.ABC,
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterPreprocessor(
+    Preprocessor[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
+    equations.RasterEquation,
+    abc.ABC,
+):
+    pass

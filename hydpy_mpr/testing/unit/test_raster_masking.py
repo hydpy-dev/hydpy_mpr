@@ -7,7 +7,7 @@ import hydpy_mpr
 from hydpy_mpr.source import constants
 
 UpSubunit = hydpy_mpr.RasterSubunitDefaultUpscaler
-TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
+TransSubunit = hydpy_mpr.SubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(
@@ -16,8 +16,8 @@ TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
 def test_raster_masking(task_subunit: hydpy_mpr.RasterSubunitTask) -> None:
     mask = task_subunit.upscaler.mask
     regionaliser = task_subunit.regionaliser
-    element = regionaliser.group.element_raster
-    subunit = regionaliser.group.subunit_raster
+    element = regionaliser.provider.element_id
+    subunit = regionaliser.provider.subunit_id
     clay = regionaliser.data_clay  # type: ignore[attr-defined]
     density = regionaliser.data_density  # type: ignore[attr-defined]
     assert not numpy.any(numpy.isnan(clay.values[mask]))

@@ -10,54 +10,90 @@ from hydpy_mpr.source.typing_ import *
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterEquation(abc.ABC):
+class Equation(
+    Generic[TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat],
+    abc.ABC,
+):
 
-    dir_group: utilities.NewTypeDataclassDescriptor[str, NameRasterGroup] = (
+    source: utilities.NewTypeDataclassDescriptor[str, NameProvider] = (
         utilities.NewTypeDataclassDescriptor()
     )
-    name: NameRaster = dataclasses.field(default=NameRaster(""))
-    group: reading.RasterGroup = dataclasses.field(init=False)
-    mask: MatrixBool = dataclasses.field(init=False)
-    output: MatrixFloat = dataclasses.field(init=False)
+    name: NameData = dataclasses.field(default=NameData(""))
 
-    def __post_init__(self) -> None:
-        if not self.name:
-            self.name = NameRaster(type(self).__qualname__.lower())
+    provider: TypeVarProvider = dataclasses.field(init=False)
+    mask: TypeVarArrayBool = dataclasses.field(init=False)
+    output: TypeVarArrayFloat = dataclasses.field(init=False)
 
-    def activate(self, *, raster_groups: reading.RasterGroups) -> None:
-        group = raster_groups[self.dir_group]
-        self.group = group
+    @property
+    @abc.abstractmethod
+    def TYPE_DATA_FLOAT(self) -> type[TypeVarDataFloat]:  # pylint: disable=invalid-name
+        pass
+
+    @property
+    @abc.abstractmethod
+    def shape(self) -> int | tuple[int, int]:
+        pass
+
+    def activate(self, *, provider: TypeVarProvider) -> None:
+        self.provider = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
-        for fieldname, filename in self.fieldname2rasterame.items():
+        for fieldname, filename in self.fieldname2dataname.items():
             rastername = f"data_{fieldname.removeprefix('file_')}"
-            raster = group.data_rasters[filename]  # ToDo: error message
+            raster = provider.data[filename]  # ToDo: error message
             setattr(self, rastername, raster)  # ToDo: check type?
             self.mask *= raster.mask
         self.output = numpy.full(self.shape, numpy.nan)
 
     @property
-    def shape(self) -> tuple[int, int]:
-        shape = self.group.shape
-        assert isinstance(shape, tuple)
-        assert len(shape) == 2
-        return shape
-
-    @property
-    def fieldname2rasterame(self) -> dict[str, NameRaster]:
-        return {
-            field.name: NameRaster(getattr(self, field.name))
-            for field in dataclasses.fields(self)
-            if (field.name).startswith("file_")
-        }
-
-    @property
-    def inputs(self) -> Mapping[str, reading.RasterFloat]:
+    def inputs(self) -> Mapping[str, TypeVarDataFloat]:
         return {
             name: value
             for field in dataclasses.fields(self)
             if ((name := field.name) != "output")
-            and isinstance(value := getattr(self, name), reading.RasterFloat)
+            and isinstance(value := getattr(self, name), self.TYPE_DATA_FLOAT)
+        }
+
+    @property
+    def fieldname2dataname(self) -> dict[str, NameData]:
+        return {
+            field.name: NameData(getattr(self, field.name))
+            for field in dataclasses.fields(self)
+            if (field.name).startswith("file_")
         }
 
     def apply_mask(self) -> None:
         self.output[~self.mask] = numpy.nan
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeEquation(
+    Equation[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
+    abc.ABC,
+):
+
+    TYPE_DATA_FLOAT: ClassVar[type[reading.AttributeFloat]] = reading.AttributeFloat
+
+    @property
+    @override
+    def shape(self) -> int:
+        return self.provider.shape
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterEquation(
+    Equation[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat], abc.ABC
+):
+
+    TYPE_DATA_FLOAT: ClassVar[type[reading.RasterFloat]] = reading.RasterFloat
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            self.name = NameData(type(self).__qualname__.lower())
+
+    @property
+    @override
+    def shape(self) -> tuple[int, int]:
+        shape = self.provider.shape
+        assert isinstance(shape, tuple)
+        assert len(shape) == 2
+        return shape

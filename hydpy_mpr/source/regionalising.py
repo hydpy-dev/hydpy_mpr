@@ -33,8 +33,12 @@ class Coefficient:
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterRegionaliser(equations.RasterEquation, abc.ABC):
-
+class Regionaliser(
+    equations.Equation[
+        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+    ],
+    abc.ABC,
+):
     @property
     def coefficients(self) -> tuple[Coefficient, ...]:
         return tuple(
@@ -49,14 +53,56 @@ class RasterRegionaliser(equations.RasterEquation, abc.ABC):
 
 
 @dataclasses.dataclass(kw_only=True)
-class RasterSubregionaliser(RasterRegionaliser, abc.ABC):
+class RasterRegionaliser(
+    Regionaliser[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
+    equations.RasterEquation,
+    abc.ABC,
+):
+    pass
 
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeRegionaliser(
+    Regionaliser[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
+    equations.AttributeEquation,
+    abc.ABC,
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class Subregionaliser(
+    Regionaliser[
+        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+    ],
+    abc.ABC,
+):
     @override
-    def activate(self, *, raster_groups: reading.RasterGroups) -> None:
-        super().activate(raster_groups=raster_groups)
+    def activate(self, *, provider: TypeVarProvider) -> None:
+        super().activate(provider=provider)
         self.mask[:, :] = True
         for input_ in self.inputs.values():
             self.mask *= input_.mask
         raster = reading.RasterFloat(values=self.output)
         raster.mask = self.mask.copy()
-        self.group.data_rasters[self.name] = raster
+        self.provider.data[self.name] = raster
+
+
+@dataclasses.dataclass(kw_only=True)
+class AttributeSubregionaliser(
+    Subregionaliser[
+        reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat
+    ],
+    AttributeRegionaliser,
+    abc.ABC,
+):
+    pass
+
+
+@dataclasses.dataclass(kw_only=True)
+class RasterSubregionaliser(
+    Subregionaliser[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
+    RasterRegionaliser,
+    abc.ABC,
+):
+    pass

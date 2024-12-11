@@ -16,7 +16,7 @@ def test_raster_element_level(
     dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
-    element_transformer_fc: hydpy_mpr.RasterElementIdentityTransformer[Any],
+    element_transformer_fc: hydpy_mpr.ElementIdentityTransformer[Any],
     gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
 
@@ -50,7 +50,7 @@ def test_raster_subunit_level(
     dirpath_mpr_data: DirpathMPRData,
     hp2: hydpy.HydPy,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
-    subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
+    subunit_transformer_fc: hydpy_mpr.SubunitIdentityTransformer[Any],
     gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
 
@@ -87,7 +87,7 @@ def test_raster_subunit_level_preprocessing(
     hp2: hydpy.HydPy,
     preprocessors_fc_flexible: list[hydpy_mpr.RasterPreprocessor],
     regionaliser_fc_flexible: hydpy_mpr.RasterRegionaliser,
-    subunit_transformer_fc: hydpy_mpr.RasterSubunitIdentityTransformer[Any],
+    subunit_transformer_fc: hydpy_mpr.SubunitIdentityTransformer[Any],
     gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
 
@@ -126,8 +126,8 @@ def test_raster_element_level_subregionalisers(
     subregionaliser_ks_2m: hydpy_mpr.RasterSubregionaliser,
     regionaliser_percmax_2m: hydpy_mpr.RasterRegionaliser,
     regionaliser_k_2m: hydpy_mpr.RasterRegionaliser,
-    element_transformers_percmax: hydpy_mpr.RasterElementIdentityTransformer[Any],
-    element_transformers_k: hydpy_mpr.RasterElementIdentityTransformer[Any],
+    element_transformers_percmax: hydpy_mpr.ElementIdentityTransformer[Any],
+    element_transformers_k: hydpy_mpr.ElementIdentityTransformer[Any],
     gridcalibrator: type[hydpy_mpr.GridCalibrator],
 ) -> None:
 

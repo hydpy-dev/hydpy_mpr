@@ -9,8 +9,8 @@ from hydpy_mpr.source.typing_ import *
 
 UpElement = hydpy_mpr.RasterElementDefaultUpscaler
 UpSubunit = hydpy_mpr.RasterSubunitDefaultUpscaler
-TransElement = hydpy_mpr.RasterElementIdentityTransformer
-TransSubunit = hydpy_mpr.RasterSubunitIdentityTransformer
+TransElement = hydpy_mpr.ElementIdentityTransformer
+TransSubunit = hydpy_mpr.SubunitIdentityTransformer
 
 
 @pytest.mark.parametrize(

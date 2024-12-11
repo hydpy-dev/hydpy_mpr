@@ -39,13 +39,13 @@ def filepath_feature(dirpath_mpr_data: DirpathMPRData) -> FilepathGeopackage:
 
 
 @pytest.fixture
-def name_feature_class() -> NameFeatureClass:
-    return NameFeatureClass("LBM2018_huek250_DGMglo_Element_Subunit_DISS_MP_simply10m")
+def name_feature_class() -> NameProvider:
+    return NameProvider("LBM2018_huek250_DGMglo_Element_Subunit_DISS_MP_simply10m")
 
 
 @pytest.fixture
-def name_attribute_kf() -> NameAttribute:
-    return NameAttribute("kf")
+def name_attribute_kf() -> NameData:
+    return NameData("kf")
 
 
 @pytest.fixture
@@ -54,39 +54,37 @@ def dirpath_raster(dirpath_mpr_data: DirpathMPRData) -> str:
 
 
 @pytest.fixture
-def dirname_raster_5km() -> NameRasterGroup:
-    return NameRasterGroup("raster_5km")
+def dirname_raster_5km() -> NameProvider:
+    return NameProvider("raster_5km")
 
 
 @pytest.fixture
-def dirname_raster_15km() -> NameRasterGroup:
-    return NameRasterGroup("raster_15km")
+def dirname_raster_15km() -> NameProvider:
+    return NameProvider("raster_15km")
 
 
 @pytest.fixture
-def dirpath_raster_5km(dirpath_raster: NameRasterGroup, dirname_raster_5km: str) -> str:
+def dirpath_raster_5km(dirpath_raster: NameProvider, dirname_raster_5km: str) -> str:
     return os.path.join(dirpath_raster, dirname_raster_5km)
 
 
 @pytest.fixture
-def dirpath_raster_15km(
-    dirpath_raster: str, dirname_raster_15km: NameRasterGroup
-) -> str:
+def dirpath_raster_15km(dirpath_raster: str, dirname_raster_15km: NameProvider) -> str:
     return os.path.join(dirpath_raster, dirname_raster_15km)
 
 
 @pytest.fixture
-def filepath_element_id_5km(dirpath_raster_5km: NameRasterGroup) -> str:
+def filepath_element_id_5km(dirpath_raster_5km: NameProvider) -> str:
     return os.path.join(dirpath_raster_5km, f"{constants.ELEMENT_ID}.tif")
 
 
 @pytest.fixture
-def filepath_element_id_15km(dirpath_raster_15km: NameRasterGroup) -> str:
+def filepath_element_id_15km(dirpath_raster_15km: NameProvider) -> str:
     return os.path.join(dirpath_raster_15km, f"{constants.ELEMENT_ID}.tif")
 
 
 @pytest.fixture
-def filepath_subunit_id_15km(dirpath_raster_15km: NameRasterGroup) -> str:
+def filepath_subunit_id_15km(dirpath_raster_15km: NameProvider) -> str:
     return os.path.join(dirpath_raster_15km, f"{constants.SUBUNIT_ID}.tif")
 
 
@@ -96,7 +94,7 @@ def filename_sand_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_sand_2m_15km(filename_sand_2m_15km: str) -> NameRaster:
+def rastername_sand_2m_15km(filename_sand_2m_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_sand_2m_15km)
 
 
@@ -111,7 +109,7 @@ def filename_clay_1m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_clay_1m_15km(filename_clay_1m_15km: str) -> NameRaster:
+def rastername_clay_1m_15km(filename_clay_1m_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_1m_15km)
 
 
@@ -121,7 +119,7 @@ def filename_clay_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_clay_2m_15km(filename_clay_2m_15km: str) -> NameRaster:
+def rastername_clay_2m_15km(filename_clay_2m_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_clay_2m_15km)
 
 
@@ -131,7 +129,7 @@ def filename_density_1m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_density_1m_15km(filename_density_1m_15km: str) -> NameRaster:
+def rastername_density_1m_15km(filename_density_1m_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_density_1m_15km)
 
 
@@ -141,7 +139,7 @@ def filename_density_2m_15km() -> str:
 
 
 @pytest.fixture
-def rastername_density_2m_15km(filename_density_2m_15km: str) -> NameRaster:
+def rastername_density_2m_15km(filename_density_2m_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_density_2m_15km)
 
 
@@ -151,7 +149,7 @@ def filename_landuse_15km() -> str:
 
 
 @pytest.fixture
-def rastername_landuse_15km(filename_landuse_15km: str) -> NameRaster:
+def rastername_landuse_15km(filename_landuse_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_landuse_15km)
 
 
@@ -161,7 +159,7 @@ def filename_dh_15km() -> str:
 
 
 @pytest.fixture
-def rasterfilename_dh_15km(filename_dh_15km: str) -> NameRaster:
+def rasterfilename_dh_15km(filename_dh_15km: str) -> NameData:
     return hydpy_mpr.RasterGroup.filename2rastername(filename_dh_15km)
 
 
@@ -222,13 +220,13 @@ def regionaliser_fc_2m(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
-    dirname_raster_15km: NameRasterGroup,
-    rastername_clay_2m_15km: NameRaster,
-    rastername_density_2m_15km: NameRaster,
+    dirname_raster_15km: NameProvider,
+    rastername_clay_2m_15km: NameData,
+    rastername_density_2m_15km: NameData,
 ) -> regionalising.RasterRegionaliser:
 
     fc = runpy.run_path(filepath_regionalisers)["FC2m"](
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_clay=rastername_clay_2m_15km,
         file_density=rastername_density_2m_15km,
         coef_const=regionalising.Coefficient(
@@ -243,9 +241,8 @@ def regionaliser_fc_2m(
     )
 
     assert isinstance(fc, regionalising.RasterRegionaliser)
-    fc.activate(
-        raster_groups=reading.RasterGroups(mprpath=dirpath_mpr_data, equations=(fc,))
-    )
+    providers = reading.RasterGroups(mprpath=dirpath_mpr_data, equations=(fc,))
+    fc.activate(provider=providers[dirname_raster_15km])
     return fc
 
 
@@ -254,11 +251,11 @@ def regionaliser_percmax_2m(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["PercMax"](
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_ks="ks_2m",
         coef_factor=regionalising.Coefficient(
             name="percmax_factor_ks", default=1.0, lower=0.1, upper=10.0
@@ -274,12 +271,12 @@ def regionaliser_k_2m(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filename_dh_15km: str,
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["K"](
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_ks="ks_2m",
         file_dh=filename_dh_15km.split(".")[0],
         coef_const=regionalising.Coefficient(
@@ -301,14 +298,14 @@ def subregionaliser_ks_2m(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filename_sand_2m_15km: str,
     filename_clay_2m_15km: str,
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["KS"](
         name="ks_2m",
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_sand=filename_sand_2m_15km.split(".")[0],
         file_clay=filename_clay_2m_15km.split(".")[0],
         coef_factor=regionalising.Coefficient(
@@ -331,14 +328,14 @@ def regionaliser_fc_flexible(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     filepath_regionalisers: str,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filename_landuse_15km: str,
     filename_clay_2m_15km: str,
     filename_density_2m_15km: str,
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["FCFlex"](
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_clay="clay",
         file_density="bdod",
         file_depth="depth",
@@ -361,7 +358,7 @@ def regionaliser_fc_flexible(
 def preprocessors_fc_flexible(
     arrange_project: None,
     filepath_preprocessors: str,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filename_clay_1m_15km: str,
     filename_clay_2m_15km: str,
     filename_density_1m_15km: str,
@@ -374,7 +371,7 @@ def preprocessors_fc_flexible(
 
     clay = selector(
         name="clay",
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_1m=filename_clay_1m_15km.split(".")[0],
         file_2m=filename_clay_2m_15km.split(".")[0],
         file_landuse=filename_landuse_15km.split(".")[0],
@@ -383,7 +380,7 @@ def preprocessors_fc_flexible(
 
     bdod = selector(
         name="bdod",
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_1m=filename_density_1m_15km.split(".")[0],
         file_2m=filename_density_2m_15km.split(".")[0],
         file_landuse=filename_landuse_15km.split(".")[0],
@@ -392,7 +389,7 @@ def preprocessors_fc_flexible(
 
     depth = classes["SoilDepth"](
         name="depth",
-        dir_group=dirname_raster_15km,
+        source=dirname_raster_15km,
         file_landuse=filename_landuse_15km.split(".")[0],
     )
     assert isinstance(depth, preprocessing.RasterPreprocessor)
@@ -402,36 +399,36 @@ def preprocessors_fc_flexible(
 
 @pytest.fixture
 def element_transformer_fc() -> (
-    transforming.RasterElementIdentityTransformer[hland_control.FC]
+    transforming.ElementIdentityTransformer[hland_control.FC]
 ):
-    return transforming.RasterElementIdentityTransformer(
+    return transforming.ElementIdentityTransformer(
         parameter=hland_control.FC, model="hland_96"
     )
 
 
 @pytest.fixture
 def element_transformers_percmax() -> (
-    transforming.RasterElementIdentityTransformer[hland_control.PercMax]
+    transforming.ElementIdentityTransformer[hland_control.PercMax]
 ):
-    return transforming.RasterElementIdentityTransformer(
+    return transforming.ElementIdentityTransformer(
         parameter=hland_control.PercMax, model="hland_96"
     )
 
 
 @pytest.fixture
 def element_transformers_k() -> (
-    transforming.RasterElementIdentityTransformer[hland_control.K]
+    transforming.ElementIdentityTransformer[hland_control.K]
 ):
-    return transforming.RasterElementIdentityTransformer(
+    return transforming.ElementIdentityTransformer(
         parameter=hland_control.K, model="hland_96"
     )
 
 
 @pytest.fixture
 def subunit_transformer_fc() -> (
-    transforming.RasterSubunitIdentityTransformer[hland_control.FC]
+    transforming.SubunitIdentityTransformer[hland_control.FC]
 ):
-    return transforming.RasterSubunitIdentityTransformer(
+    return transforming.SubunitIdentityTransformer(
         parameter=hland_control.FC, model="hland_96"
     )
 
@@ -447,19 +444,17 @@ def task_element(
     function: UpscalingOption
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterElementUpscaler)
-    assert issubclass(transformer, transforming.RasterElementTransformer)
+    assert issubclass(transformer, transforming.ElementTransformer)
 
     task = managing.RasterElementTask(
         regionaliser=regionaliser_fc_2m,
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
-    task.activate(
-        hp=hp1,
-        raster_groups=reading.RasterGroups(
-            mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
-        ),
+    providers = reading.RasterGroups(
+        mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
     )
+    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.source])
     return task
 
 
@@ -474,19 +469,17 @@ def task_subunit(
     function: UpscalingOption
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterSubunitUpscaler)
-    assert issubclass(transformer, transforming.RasterSubunitTransformer)
+    assert issubclass(transformer, transforming.SubunitTransformer)
 
     task = managing.RasterSubunitTask(
         regionaliser=regionaliser_fc_2m,
         upscaler=upscaler(function=function),
         transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
     )
-    task.activate(
-        hp=hp1,
-        raster_groups=reading.RasterGroups(
-            mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
-        ),
+    providers = reading.RasterGroups(
+        mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
     )
+    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.source])
     return task
 
 

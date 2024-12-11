@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 
 
@@ -20,17 +21,21 @@ from hydpy_mpr.source.reading import (
 )
 from hydpy_mpr.source.regionalising import (
     Coefficient,
+    AttributeRegionaliser,
+    AttributeSubregionaliser,
     RasterRegionaliser,
     RasterSubregionaliser,
 )
 from hydpy_mpr.source.transforming import (
-    RasterElementIdentityTransformer,
-    RasterElementTransformer,
-    RasterSubunitIdentityTransformer,
-    RasterSubunitTransformer,
+    ElementIdentityTransformer,
+    ElementTransformer,
+    SubunitIdentityTransformer,
+    SubunitTransformer,
     TypeVarParameter,
 )
 from hydpy_mpr.source.upscaling import (
+    AttributeElementUpscaler,
+    AttributeSubunitUpscaler,
     RasterElementDefaultUpscaler,
     RasterElementUpscaler,
     RasterSubunitDefaultUpscaler,
@@ -57,20 +62,24 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 
 
 __all__ = [
-    "AttributeInt",
+    "AttributeElementUpscaler",
     "AttributeFloat",
+    "AttributeInt",
+    "AttributeRegionaliser",
+    "AttributeSubregionaliser",
+    "AttributeSubunitUpscaler",
     "Calibrator",
     "Coefficient",
-    "FeatureClass",
-    "MPR",
     "ControlWriter",
+    "ElementIdentityTransformer",
+    "ElementTransformer",
+    "FeatureClass",
     "GridCalibrator",
+    "MPR",
     "NLOptCalibrator",
     "RasterElementDefaultUpscaler",
-    "RasterElementIdentityTransformer",
     "RasterElementUpscaler",
     "RasterElementTask",
-    "RasterElementTransformer",
     "RasterFloat",
     "RasterGroup",
     "RasterGroups",
@@ -79,10 +88,10 @@ __all__ = [
     "RasterRegionaliser",
     "RasterSubregionaliser",
     "RasterSubunitDefaultUpscaler",
-    "RasterSubunitIdentityTransformer",
     "RasterSubunitTask",
-    "RasterSubunitTransformer",
     "RasterSubunitUpscaler",
+    "SubunitIdentityTransformer",
+    "SubunitTransformer",
     "read_geotiff",
     "read_mapping_table",
     "TypeVarParameter",

@@ -100,37 +100,37 @@ def test_raster_equality(arrange_project: None, filepath_element_id_15km: str) -
 def test_read_rastergroup_okay(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filepath_element_id_15km: str,
     filepath_subunit_id_15km: str,
     filename_sand_2m_15km: str,
     filepath_sand_2m_15km: str,
-    rastername_sand_2m_15km: NameRaster,
+    rastername_sand_2m_15km: NameData,
 ) -> None:
     group = hydpy_mpr.RasterGroup(
         mprpath=dirpath_mpr_data,
         name=dirname_raster_15km,
-        raster_names=(rastername_sand_2m_15km,),
+        names_data=(rastername_sand_2m_15km,),
     )
-    assert group.element_raster == hydpy_mpr.read_geotiff(
+    assert group.element_id == hydpy_mpr.read_geotiff(
         filepath=filepath_element_id_15km, integer=True
     )
-    assert group.subunit_raster == hydpy_mpr.read_geotiff(
+    assert group.subunit_id == hydpy_mpr.read_geotiff(
         filepath=filepath_subunit_id_15km, integer=True
     )
-    assert group.data_rasters[
+    assert group.data[
         hydpy_mpr.RasterGroup.filename2rastername(filename_sand_2m_15km)
     ] == hydpy_mpr.read_geotiff(filepath=filepath_sand_2m_15km)
 
 
 def test_read_rastergroup_missing_dirpath(
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     dirpath_raster_15km: str,
 ) -> None:
     with pytest.raises(FileNotFoundError) as info:
         hydpy_mpr.RasterGroup(
-            mprpath=dirpath_mpr_data, name=dirname_raster_15km, raster_names=()
+            mprpath=dirpath_mpr_data, name=dirname_raster_15km, names_data=()
         )
     assert str(info.value) == (
         f"The requested raster group directory `{dirpath_raster_15km}` does not exist."
@@ -140,14 +140,14 @@ def test_read_rastergroup_missing_dirpath(
 def test_read_rastergroup_missing_element_id_file(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     dirpath_raster_15km: str,
     filepath_element_id_15km: str,
 ) -> None:
     os.remove(filepath_element_id_15km)
     with pytest.raises(FileNotFoundError) as info:
         hydpy_mpr.RasterGroup(
-            mprpath=dirpath_mpr_data, name=dirname_raster_15km, raster_names=()
+            mprpath=dirpath_mpr_data, name=dirname_raster_15km, names_data=()
         )
     assert str(info.value) == (
         f"The raster group directory `{dirpath_raster_15km}` does not contain an "
@@ -158,7 +158,7 @@ def test_read_rastergroup_missing_element_id_file(
 def test_read_rastergroup_missing_subunit_id_file(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     dirpath_raster_15km: str,
     filepath_subunit_id_15km: str,
 ) -> None:
@@ -171,21 +171,21 @@ def test_read_rastergroup_missing_subunit_id_file(
         ),
     ):
         hydpy_mpr.RasterGroup(
-            mprpath=dirpath_mpr_data, name=dirname_raster_15km, raster_names=()
+            mprpath=dirpath_mpr_data, name=dirname_raster_15km, names_data=()
         )
 
 
 def test_read_rastergroup_inconsistent_shape(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     filepath_element_id_5km: str,
     filepath_element_id_15km: str,
 ) -> None:
     shutil.copy(filepath_element_id_5km, filepath_element_id_15km)
     with pytest.raises(TypeError) as info:
         hydpy_mpr.RasterGroup(
-            mprpath=dirpath_mpr_data, name=dirname_raster_15km, raster_names=()
+            mprpath=dirpath_mpr_data, name=dirname_raster_15km, names_data=()
         )
     assert str(info.value) == (
         f"Raster group `{dirname_raster_15km}` is inconsistent: shape `(28, 29)` of "
@@ -197,10 +197,10 @@ def test_read_rastergroup_inconsistent_shape(
 def test_read_rastergroups_okay(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
-    dirname_raster_15km: NameRasterGroup,
+    dirname_raster_15km: NameProvider,
     regionaliser_fc_2m: hydpy_mpr.RasterRegionaliser,
-    rastername_clay_2m_15km: NameRaster,
-    rastername_density_2m_15km: NameRaster,
+    rastername_clay_2m_15km: NameData,
+    rastername_density_2m_15km: NameData,
 ) -> None:
     groups = hydpy_mpr.RasterGroups(
         mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
@@ -208,13 +208,13 @@ def test_read_rastergroups_okay(
     group = hydpy_mpr.RasterGroup(
         mprpath=dirpath_mpr_data,
         name=dirname_raster_15km,
-        raster_names=(rastername_density_2m_15km, rastername_clay_2m_15km),
+        names_data=(rastername_density_2m_15km, rastername_clay_2m_15km),
     )
     assert groups[dirname_raster_15km] == group
 
 
 def test_read_rastergroups_rastergroup_missing() -> None:
     groups = hydpy_mpr.RasterGroups(mprpath=DirpathMPRData("test"), equations=())
-    with pytest.raises(KeyError) as info:
-        groups[NameRasterGroup("wrong")]  # pylint: disable=expression-not-assigned
-    assert str(info.value) == "'No raster group named `wrong` available.'"
+    with pytest.raises(RuntimeError) as info:
+        groups[NameProvider("wrong")]  # pylint: disable=expression-not-assigned
+    assert str(info.value) == "No raster group named `wrong` available."

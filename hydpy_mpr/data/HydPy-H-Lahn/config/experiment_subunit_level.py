@@ -17,7 +17,7 @@ mpr = hydpy_mpr.MPR(
     tasks=[
         hydpy_mpr.RasterSubunitTask(
             regionaliser=regionalisers.FC2m(
-                dir_group="raster_15km",
+                source="raster_15km",
                 file_clay="clay_mean_0_200_res15km_pct",
                 file_density="bdod_mean_0_200_res15km_gcm3",
                 coef_const=coefficients.fc_const,
@@ -26,7 +26,7 @@ mpr = hydpy_mpr.MPR(
             ),
             upscaler=hydpy_mpr.RasterSubunitDefaultUpscaler(),
             transformers=[
-                hydpy_mpr.RasterSubunitIdentityTransformer(
+                hydpy_mpr.SubunitIdentityTransformer(
                     parameter=hland_control.FC, model="hland_96"
                 )
             ],

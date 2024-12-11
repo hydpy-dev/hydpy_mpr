@@ -6,6 +6,7 @@ from typing import (
     Any,
     Callable,
     cast,
+    ClassVar,
     Generic,
     Iterable,
     Iterator,
@@ -37,21 +38,46 @@ from typing_extensions import assert_never, override, Self
 
 # type variables
 
+TypeVarArrayBool = TypeVar("TypeVarArrayBool", VectorBool, MatrixBool)
+TypeVarArrayFloat = TypeVar("TypeVarArrayFloat", VectorFloat, MatrixFloat)
 TypeVarParameter = TypeVar("TypeVarParameter", bound=Parameter)
 
 if TYPE_CHECKING:
-    from hydpy_mpr.source import upscaling
+    from hydpy_mpr.source import equations
+    from hydpy_mpr.source import reading
+    from hydpy_mpr.source import regionalising
     from hydpy_mpr.source import transforming
+    from hydpy_mpr.source import upscaling
 
-    TypeVarRasterUpscaler = TypeVar(
-        "TypeVarRasterUpscaler", bound=upscaling.RasterUpscaler
+    TypeVarProvider = TypeVar("TypeVarProvider", bound=reading.Provider[Any, Any])
+    TypeVarEquation = TypeVar(
+        "TypeVarEquation", bound=equations.Equation[Any, Any, Any, Any]
     )
-    TypeVarRasterTransformer = TypeVar(
-        "TypeVarRasterTransformer", bound=transforming.RasterTransformer[Any, Any]
+    TypeVarData = TypeVar(
+        "TypeVarData",
+        reading.AttributeInt | reading.AttributeFloat,
+        reading.RasterInt | reading.RasterFloat,
+    )
+    TypeVarDataInt = TypeVar("TypeVarDataInt", reading.AttributeInt, reading.RasterInt)
+    TypeVarDataFloat = TypeVar(
+        "TypeVarDataFloat", reading.AttributeFloat, reading.RasterFloat
+    )
+    TypeVarRegionaliser = TypeVar(
+        "TypeVarRegionaliser", bound=regionalising.Regionaliser[Any, Any, Any, Any]
+    )
+    TypeVarUpscaler = TypeVar("TypeVarUpscaler", bound=upscaling.Upscaler[Any, Any])
+    TypeVarTransformer = TypeVar(
+        "TypeVarTransformer", bound=transforming.Transformer[Any, Any]
     )
 else:
-    TypeVarRasterUpscaler = TypeVar("TypeVarRasterUpscaler")
-    TypeVarRasterTransformer = TypeVar("TypeVarRasterTransformer")
+    TypeVarProvider = TypeVar("TypeVarProvider")
+    TypeVarEquation = TypeVar("TypeVarEquation")
+    TypeVarData = TypeVar("TypeVarData")
+    TypeVarDataInt = TypeVar("TypeVarDataInt")
+    TypeVarDataFloat = TypeVar("TypeVarDataFloat")
+    TypeVarRegionaliser = TypeVar("TypeVarRegionaliser")
+    TypeVarUpscaler = TypeVar("TypeVarUpscaler")
+    TypeVarTransformer = TypeVar("TypeVarTransformer")
 
 # type aliases
 
@@ -60,9 +86,14 @@ MappingTable: TypeAlias = dict[int64, str]
 if TYPE_CHECKING:
     from hydpy_mpr.source import managing
 
-    Tasks: TypeAlias = list[managing.RasterElementTask | managing.RasterSubunitTask]
+    Tasks: TypeAlias = Sequence[
+        managing.AttributeElementTask
+        | managing.AttributeSubunitTask
+        | managing.RasterElementTask
+        | managing.RasterSubunitTask
+    ]
 else:
-    Tasks = list
+    Tasks = Sequence
 
 UpscalingFunction: TypeAlias = Callable[[MatrixFloat], float64]
 
@@ -75,10 +106,8 @@ UpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
 
 DirpathMPRData = NewType("DirpathMPRData", str)
 FilepathGeopackage = NewType("FilepathGeopackage", str)
-NameAttribute = NewType("NameAttribute", str)
-NameFeatureClass = NewType("NameFeatureClass", str)
-NameRasterGroup = NewType("NameRasterGroup", str)
-NameRaster = NewType("NameRaster", str)
+NameProvider = NewType("NameProvider", str)
+NameData = NewType("NameData", str)
 
 
 __all__ = [
@@ -86,6 +115,7 @@ __all__ = [
     "assert_never",
     "Callable",
     "cast",
+    "ClassVar",
     "DirpathMPRData",
     "FilepathGeopackage",
     "float64",
@@ -100,10 +130,9 @@ __all__ = [
     "MatrixBool",
     "MatrixFloat",
     "MatrixInt",
-    "NameAttribute",
-    "NameFeatureClass",
-    "NameRaster",
-    "NameRasterGroup",
+    "NameData",
+    "NameProvider",
+    "NameData",
     "NoReturn",
     "overload",
     "override",
@@ -115,10 +144,19 @@ __all__ = [
     "Sequence",
     "Tasks",
     "TypeAlias",
+    "TYPE_CHECKING",
     "TypeVar",
+    "TypeVarArrayBool",
+    "TypeVarArrayFloat",
+    "TypeVarData",
+    "TypeVarDataFloat",
+    "TypeVarDataInt",
+    "TypeVarEquation",
     "TypeVarParameter",
-    "TypeVarRasterUpscaler",
-    "TypeVarRasterTransformer",
+    "TypeVarProvider",
+    "TypeVarRegionaliser",
+    "TypeVarUpscaler",
+    "TypeVarTransformer",
     "UpscalingOption",
     "UpscalingFunction",
 ]
