@@ -40,7 +40,7 @@ class Equation(
         self.provider = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
         for fieldname_source, datasetname in self.fieldname2datasetname.items():
-            fieldname_data = f"data_{fieldname_source.removeprefix('source_')}"
+            fieldname_data = f"dataset_{fieldname_source.removeprefix('source_')}"
             dataset = provider.name2dataset[datasetname]  # ToDo: error message
             setattr(self, fieldname_data, dataset)  # ToDo: check type?
             self.mask *= dataset.mask

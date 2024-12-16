@@ -16,11 +16,11 @@ def test_raster_regionaliser_fc(
     assert numpy.nanmean(r.output) == pytest.approx(371.63908024628955)
     assert numpy.nanmax(r.output) == pytest.approx(373.8650631904602)
     const, factor_clay, factor_density = r.coefficients
-    data_clay, data_density = r.inputs.values()
+    dataset_clay, dataset_density = r.inputs.values()
     i_max = numpy.nanargmax(r.output.flatten())
     fc_max = 20.0 * (
         const.value
-        + factor_clay.value * data_clay.values.flatten()[i_max]
-        + factor_density.value * data_density.values.flatten()[i_max]
+        + factor_clay.value * dataset_clay.values.flatten()[i_max]
+        + factor_density.value * dataset_density.values.flatten()[i_max]
     )
     assert fc_max == pytest.approx(373.8650631904602)

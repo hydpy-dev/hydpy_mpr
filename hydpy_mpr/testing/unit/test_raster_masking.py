@@ -18,8 +18,8 @@ def test_raster_masking(task_raster_subunit: hydpy_mpr.RasterSubunitTask) -> Non
     regionaliser = task_raster_subunit.regionaliser
     element = regionaliser.provider.element_id
     subunit = regionaliser.provider.subunit_id
-    clay = regionaliser.data_clay  # type: ignore[attr-defined]
-    density = regionaliser.data_density  # type: ignore[attr-defined]
+    clay = regionaliser.dataset_clay  # type: ignore[attr-defined]
+    density = regionaliser.dataset_density  # type: ignore[attr-defined]
     assert not numpy.any(numpy.isnan(clay.values[mask]))
     assert not numpy.any(numpy.isnan(density.values[mask]))
     assert not numpy.any(element.values[mask] == -9999)
