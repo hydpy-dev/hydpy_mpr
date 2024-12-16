@@ -18,7 +18,7 @@ class Equation(
     source: utilities.NewTypeDataclassDescriptor[str, NameProvider] = (
         utilities.NewTypeDataclassDescriptor()
     )
-    name: NameDataset = dataclasses.field(default=NameDataset(""))
+    name: NameEquation = dataclasses.field(default=NameEquation(""))
 
     provider: TypeVarProvider = dataclasses.field(init=False)
     mask: TypeVarArrayBool = dataclasses.field(init=False)
@@ -90,7 +90,7 @@ class RasterEquation(
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = NameDataset(type(self).__qualname__.lower())
+            self.name = NameEquation(type(self).__qualname__.lower())
 
     @property
     @override

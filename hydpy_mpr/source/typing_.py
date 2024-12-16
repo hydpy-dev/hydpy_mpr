@@ -125,6 +125,7 @@ else:
 DirpathMPRData = NewType("DirpathMPRData", str)
 FilepathGeopackage = NewType("FilepathGeopackage", str)
 NameProvider = NewType("NameProvider", str)
+NameEquation = NewType("NameEquation", str)
 NameDataset = NewType("NameDataset", str)
 
 
@@ -151,8 +152,8 @@ __all__ = [
     "MatrixFloat",
     "MatrixInt",
     "NameDataset",
+    "NameEquation",
     "NameProvider",
-    "NameDataset",
     "NoReturn",
     "overload",
     "override",

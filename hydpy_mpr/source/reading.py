@@ -521,7 +521,7 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
                 required_rasters[name] = set()
                 available_rasters[name] = set()
             required_rasters[name].update(equation.name_field2dataset.values())
-            available_rasters[name].add(equation.name)
+            available_rasters[name].add(NameDataset(equation.name))
 
         self._providers = {}
         for name in required_rasters:  # pylint: disable=consider-using-dict-items
