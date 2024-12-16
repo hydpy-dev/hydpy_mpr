@@ -34,10 +34,10 @@ class Task(
             transformer.activate(hp=hp, upscaler=self.upscaler)
 
     @property
-    def source(self) -> NameProvider:
-        source = self.regionaliser.source
+    def provider(self) -> NameProvider:
+        provider = self.regionaliser.provider
         # ToDo: check source is consistently defined
-        return source
+        return provider
 
     def run(self) -> None:
         self.regionaliser.apply_coefficients()
@@ -133,19 +133,23 @@ class MPR:
 
         for preprocessor in self.preprocessors:
             if isinstance(preprocessor, equations.RasterEquation):
-                preprocessor.activate(provider=raster_groups[preprocessor.source])
+                preprocessor.activate(provider=raster_groups[preprocessor.provider])
             else:
-                preprocessor.activate(provider=feature_class[preprocessor.source])
+                preprocessor.activate(provider=feature_class[preprocessor.provider])
         for subregionaliser in self.subregionalisers:
             if isinstance(subregionaliser, regionalising.RasterSubregionaliser):
-                subregionaliser.activate(provider=raster_groups[subregionaliser.source])
+                subregionaliser.activate(
+                    provider=raster_groups[subregionaliser.provider]
+                )
             else:
-                subregionaliser.activate(provider=feature_class[subregionaliser.source])
+                subregionaliser.activate(
+                    provider=feature_class[subregionaliser.provider]
+                )
         for task in self.tasks:
             if isinstance(task, RasterElementTask | RasterSubunitTask):
-                task.activate(hp=self.hp, provider=raster_groups[task.source])
+                task.activate(hp=self.hp, provider=raster_groups[task.provider])
             else:
-                task.activate(hp=self.hp, provider=feature_class[task.source])
+                task.activate(hp=self.hp, provider=feature_class[task.provider])
         self.calibrator.activate(
             hp=self.hp, tasks=self.tasks, subregionalisers=self.subregionalisers
         )

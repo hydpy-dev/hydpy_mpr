@@ -16,8 +16,8 @@ TransSubunit = hydpy_mpr.SubunitIdentityTransformer
 def test_raster_masking(task_raster_subunit: hydpy_mpr.RasterSubunitTask) -> None:
     mask = task_raster_subunit.upscaler.mask
     regionaliser = task_raster_subunit.regionaliser
-    element = regionaliser.provider.element_id
-    subunit = regionaliser.provider.subunit_id
+    element = regionaliser.provider_.element_id
+    subunit = regionaliser.provider_.subunit_id
     clay = regionaliser.dataset_clay  # type: ignore[attr-defined]
     density = regionaliser.dataset_density  # type: ignore[attr-defined]
     assert not numpy.any(numpy.isnan(clay.values[mask]))

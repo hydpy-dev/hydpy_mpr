@@ -18,9 +18,9 @@ class Upscaler(Generic[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         self.regionaliser = regionaliser
-        self.mask = regionaliser.provider.element_id.mask.copy()
-        for raster in regionaliser.inputs.values():
-            self.mask *= raster.mask
+        self.mask = regionaliser.provider_.element_id.mask.copy()
+        for dataset in regionaliser.inputs.values():
+            self.mask *= dataset.mask
 
     @abc.abstractmethod
     def scale_up(self) -> None:
@@ -36,12 +36,12 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         super().activate(regionaliser=regionaliser)
         self.id2value = {
-            id_: float64(numpy.nan) for id_ in self.regionaliser.provider.id2element
+            id_: float64(numpy.nan) for id_ in self.regionaliser.provider_.id2element
         }
 
     @property
     def name2value(self) -> Mapping[str, float64]:
-        id2element = self.regionaliser.provider.id2element
+        id2element = self.regionaliser.provider_.id2element
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
@@ -54,14 +54,16 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
         super().activate(regionaliser=regionaliser)
 
-        self.mask *= regionaliser.provider.subunit_id.mask  # ToDo: better error message
+        self.mask *= (
+            regionaliser.provider_.subunit_id.mask
+        )  # ToDo: better error message
 
-        element_raster = regionaliser.provider.element_id.values
-        subunit_raster = regionaliser.provider.subunit_id.values
+        element_id = regionaliser.provider_.element_id.values
+        subunit_id = regionaliser.provider_.subunit_id.values
         id2idx2value = {}
-        for id_ in regionaliser.provider.id2element:
+        for id_ in regionaliser.provider_.id2element:
             idx2value = {}
-            idxs = numpy.unique(subunit_raster[numpy.where(element_raster == id_)])
+            idxs = numpy.unique(subunit_id[numpy.where(element_id == id_)])
             for idx in sorted(idxs):
                 idx2value[int64(idx)] = float64(numpy.nan)
             id2idx2value[id_] = idx2value
@@ -69,7 +71,7 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     @property
     def name2idx2value(self) -> Mapping[str, Mapping[int64, float64]]:
-        id2element = self.regionaliser.provider.id2element
+        id2element = self.regionaliser.provider_.id2element
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 
 
@@ -174,7 +176,7 @@ class AttributeElementDefaultUpscaler(
     def scale_up(self) -> None:
         id2value = self.id2value
         output = self.regionaliser.output[self.mask]
-        provider = self.regionaliser.provider
+        provider = self.regionaliser.provider_
         ids = provider.element_id.values[self.mask]
         weights = provider.size.values[self.mask]
         function = self._function
@@ -193,7 +195,7 @@ class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler)
     def scale_up(self) -> None:
         id2value = self.id2value
         output = self.regionaliser.output[self.mask]
-        ids = self.regionaliser.provider.element_id.values[self.mask]
+        ids = self.regionaliser.provider_.element_id.values[self.mask]
         function = self._function
         for id_ in id2value:
             idxs = id_ == ids
@@ -211,7 +213,7 @@ class AttributeSubunitDefaultUpscaler(
     @override
     def scale_up(self) -> None:
         output = self.regionaliser.output[self.mask]
-        provider = self.regionaliser.provider
+        provider = self.regionaliser.provider_
         element_id = provider.element_id.values[self.mask]
         subunit_id = provider.subunit_id.values[self.mask]
         weights = provider.subunit_id.values[self.mask]
@@ -234,8 +236,8 @@ class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler)
     @override
     def scale_up(self) -> None:
         output = self.regionaliser.output[self.mask]
-        element_id = self.regionaliser.provider.element_id.values[self.mask]
-        subunit_id = self.regionaliser.provider.subunit_id.values[self.mask]
+        element_id = self.regionaliser.provider_.element_id.values[self.mask]
+        subunit_id = self.regionaliser.provider_.subunit_id.values[self.mask]
         function = self._function
         for id_, idx2value in self.id2idx2value.items():
             idx_raster_element = element_id == id_

@@ -226,7 +226,7 @@ def regionaliser_fc_2m(
 ) -> regionalising.RasterRegionaliser:
 
     fc = runpy.run_path(filepath_regionalisers)["FC2m"](
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_clay=rastername_clay_2m_15km,
         source_density=rastername_density_2m_15km,
         coef_const=regionalising.Coefficient(
@@ -255,7 +255,7 @@ def regionaliser_percmax_2m(
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["PercMax"](
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_ks="ks_2m",
         coef_factor=regionalising.Coefficient(
             name="percmax_factor_ks", default=1.0, lower=0.1, upper=10.0
@@ -276,7 +276,7 @@ def regionaliser_k_2m(
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["K"](
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_ks="ks_2m",
         source_dh=filename_dh_15km.split(".")[0],
         coef_const=regionalising.Coefficient(
@@ -305,7 +305,7 @@ def subregionaliser_ks_2m(
 
     r = runpy.run_path(filepath_regionalisers)["KS"](
         name="ks_2m",
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_sand=filename_sand_2m_15km.split(".")[0],
         source_clay=filename_clay_2m_15km.split(".")[0],
         coef_factor=regionalising.Coefficient(
@@ -335,7 +335,7 @@ def regionaliser_fc_flexible(
 ) -> regionalising.RasterRegionaliser:
 
     r = runpy.run_path(filepath_regionalisers)["FCFlex"](
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_clay="clay",
         source_density="bdod",
         source_depth="depth",
@@ -371,7 +371,7 @@ def preprocessors_fc_flexible(
 
     clay = selector(
         name="clay",
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_1m=filename_clay_1m_15km.split(".")[0],
         source_2m=filename_clay_2m_15km.split(".")[0],
         source_landuse=filename_landuse_15km.split(".")[0],
@@ -380,7 +380,7 @@ def preprocessors_fc_flexible(
 
     bdod = selector(
         name="bdod",
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_1m=filename_density_1m_15km.split(".")[0],
         source_2m=filename_density_2m_15km.split(".")[0],
         source_landuse=filename_landuse_15km.split(".")[0],
@@ -389,7 +389,7 @@ def preprocessors_fc_flexible(
 
     depth = classes["SoilDepth"](
         name="depth",
-        source=dirname_raster_15km,
+        provider=dirname_raster_15km,
         source_landuse=filename_landuse_15km.split(".")[0],
     )
     assert isinstance(depth, preprocessing.RasterPreprocessor)
@@ -454,7 +454,7 @@ def task_raster_element(
     providers = reading.RasterGroups(
         mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
     )
-    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.source])
+    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.provider])
     return task
 
 
@@ -479,7 +479,7 @@ def task_raster_subunit(
     providers = reading.RasterGroups(
         mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
     )
-    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.source])
+    task.activate(hp=hp1, provider=providers[regionaliser_fc_2m.provider])
     return task
 
 

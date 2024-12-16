@@ -28,7 +28,7 @@ def test_raster_element_default_upscaler_okay(
 ) -> None:
     r = task_raster_element.regionaliser
     u = task_raster_element.upscaler
-    i = r.provider.element_id.values
+    i = r.provider_.element_id.values
     r.output[u.mask * (i == 1)] = 2.0
     assert numpy.sum(u.mask * (i == 4)) == 3
     r.output[u.mask * (i == 4)] = 1.0, 2.0, 6.0
@@ -49,7 +49,7 @@ def test_raster_element_default_upscaler_missing_id(
 ) -> None:
     r = task_raster_element.regionaliser
     u = task_raster_element.upscaler
-    i = r.provider.element_id.values
+    i = r.provider_.element_id.values
     i[i == 1] = 2
     assert isinstance(u, UpElement)
     u.id2value[int64(1)] = float64(2.0)
@@ -73,7 +73,7 @@ def test_raster_element_default_upscaler_missing_value(
 ) -> None:
     r = task_raster_element.regionaliser
     u = task_raster_element.upscaler
-    i = r.provider.element_id.values
+    i = r.provider_.element_id.values
     r.output[i == 1] = 2.0, 2.0, 2.0, numpy.nan, 2.0, 2.0, 2.0
     assert isinstance(u, UpElement)
     u.id2value[int64(1)] = float64(2.0)
@@ -97,8 +97,8 @@ def test_raster_subunit_default_upscaler_okay(
 ) -> None:
     u = task_raster_subunit.upscaler
     o = task_raster_subunit.regionaliser.output
-    e = task_raster_subunit.regionaliser.provider.element_id.values
-    s = task_raster_subunit.regionaliser.provider.subunit_id.values
+    e = task_raster_subunit.regionaliser.provider_.element_id.values
+    s = task_raster_subunit.regionaliser.provider_.subunit_id.values
     o[u.mask * (e == 3) * (s == 0)] = 1.0, 4.0
     u.scale_up()
     assert isinstance(u, UpSubunit)
@@ -113,8 +113,8 @@ def test_raster_subunit_default_upscaler_missing_id(
     task_raster_subunit: hydpy_mpr.RasterElementTask,
 ) -> None:
     u = task_raster_subunit.upscaler
-    e = task_raster_subunit.regionaliser.provider.element_id.values
-    s = task_raster_subunit.regionaliser.provider.subunit_id.values
+    e = task_raster_subunit.regionaliser.provider_.element_id.values
+    s = task_raster_subunit.regionaliser.provider_.subunit_id.values
     s[u.mask * (e == 3) * (s == 0)] = 1
     assert isinstance(u, UpSubunit)
     u.id2idx2value[int64(3)][int64(0)] = float64(2.0)
@@ -138,8 +138,8 @@ def test_raster_subunit_default_upscaler_missing_value(
 ) -> None:
     o = task_raster_subunit.regionaliser.output
     u = task_raster_subunit.upscaler
-    e = task_raster_subunit.regionaliser.provider.element_id.values
-    s = task_raster_subunit.regionaliser.provider.subunit_id.values
+    e = task_raster_subunit.regionaliser.provider_.element_id.values
+    s = task_raster_subunit.regionaliser.provider_.subunit_id.values
     o[u.mask * (e == 3) * (s == 0)] = numpy.nan, 2.0
     assert isinstance(u, UpSubunit)
     assert len(u.id2idx2value) == 5

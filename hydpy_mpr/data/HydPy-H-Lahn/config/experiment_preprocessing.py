@@ -15,13 +15,13 @@ mpr = hydpy_mpr.MPR(
     preprocessors=[
         preprocessors.DataSelector(
             name="clay",
-            source="raster_15km",
+            provider="raster_15km",
             source_1m="clay_mean_0_100_res15km_pct",
             source_2m="clay_mean_0_200_res15km_pct",
         ),
         preprocessors.DataSelector(
             name="bdod",
-            source="raster_15km",
+            provider="raster_15km",
             source_1m="bdod_mean_0_100_res15km_gcm3",
             source_2m="bdod_mean_0_200_res15km_gcm3",
         ),
@@ -29,7 +29,7 @@ mpr = hydpy_mpr.MPR(
     tasks=[
         hydpy_mpr.RasterSubunitTask(
             regionaliser=regionalisers.FCFlex(
-                source="raster_15km",
+                provider="raster_15km",
                 source_clay="clay",
                 source_density="bdod",
                 coef_const=coefficients.fc_const,

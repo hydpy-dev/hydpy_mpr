@@ -18,7 +18,7 @@ class Preprocessor(
     def activate(self, *, provider: TypeVarProvider) -> None:
         super().activate(provider=provider)
         self.preprocess_data()
-        self.provider.name2dataset[NameDataset(self.name)] = self.TYPE_DATA_FLOAT(
+        self.provider_.name2dataset[NameDataset(self.name)] = self.TYPE_DATA_FLOAT(
             values=self.output
         )
 

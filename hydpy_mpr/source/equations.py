@@ -15,12 +15,12 @@ class Equation(
     abc.ABC,
 ):
 
-    source: utilities.NewTypeDataclassDescriptor[str, NameProvider] = (
+    provider: utilities.NewTypeDataclassDescriptor[str, NameProvider] = (
         utilities.NewTypeDataclassDescriptor()
     )
     name: NameEquation = dataclasses.field(default=NameEquation(""))
 
-    provider: TypeVarProvider = dataclasses.field(init=False)
+    provider_: TypeVarProvider = dataclasses.field(init=False)
     mask: TypeVarArrayBool = dataclasses.field(init=False)
     output: TypeVarArrayFloat = dataclasses.field(init=False)
 
@@ -37,7 +37,7 @@ class Equation(
         pass
 
     def activate(self, *, provider: TypeVarProvider) -> None:
-        self.provider = provider
+        self.provider_ = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
         for fieldname_source, datasetname in self.fieldname2datasetname.items():
             fieldname_data = f"dataset_{fieldname_source.removeprefix('source_')}"
@@ -78,7 +78,7 @@ class AttributeEquation(
     @property
     @override
     def shape(self) -> int:
-        return self.provider.shape
+        return self.provider_.shape
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -95,7 +95,7 @@ class RasterEquation(
     @property
     @override
     def shape(self) -> tuple[int, int]:
-        shape = self.provider.shape
+        shape = self.provider_.shape
         assert isinstance(shape, tuple)
         assert len(shape) == 2
         return shape
