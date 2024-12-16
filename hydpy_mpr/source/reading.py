@@ -136,14 +136,21 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
                 f"integer values are expected."
             )
         if integer or ((dtype is not None) and numpy.isdtype(dtype, "integral")):
+            try:
+                missing_int = int64(page.tags[42113].value)
+            except ValueError:
+                raise ValueError(
+                    f"The missing value `{page.tags[42113].value}` defined by the "
+                    f"tiff file `{filepath}` cannot be converted to an integer."
+                )
             return RasterInt(
                 values=numpy.array(tiff.asarray(), dtype=int64),
-                missingvalue=int64(page.tags[42113].value),
+                missingvalue=missing_int,
             )
         values = numpy.array(tiff.asarray(), dtype=float64)
-        missingvalue = float64(page.tags[42113].value)
-        if not numpy.isnan(missingvalue):
-            values[values == missingvalue] = numpy.nan
+        missing_float = float64(page.tags[42113].value)
+        if not numpy.isnan(missing_float):
+            values[values == missing_float] = numpy.nan
         return RasterFloat(values=values)
 
 
