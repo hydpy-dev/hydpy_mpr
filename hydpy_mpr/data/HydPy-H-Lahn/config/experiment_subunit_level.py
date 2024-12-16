@@ -18,8 +18,8 @@ mpr = hydpy_mpr.MPR(
         hydpy_mpr.RasterSubunitTask(
             regionaliser=regionalisers.FC2m(
                 source="raster_15km",
-                file_clay="clay_mean_0_200_res15km_pct",
-                file_density="bdod_mean_0_200_res15km_gcm3",
+                source_clay="clay_mean_0_200_res15km_pct",
+                source_density="bdod_mean_0_200_res15km_gcm3",
                 coef_const=coefficients.fc_const,
                 coef_factor_clay=coefficients.fc_clay,
                 coef_factor_density=coefficients.fc_density,

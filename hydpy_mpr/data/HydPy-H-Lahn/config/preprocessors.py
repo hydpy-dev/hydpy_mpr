@@ -6,9 +6,9 @@ import hydpy_mpr
 @dataclasses.dataclass
 class DataSelector(hydpy_mpr.RasterPreprocessor):
 
-    file_1m: str
-    file_2m: str
-    file_landuse: str
+    source_1m: str
+    source_2m: str
+    source_landuse: str
 
     data_1m: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
     data_2m: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
@@ -25,7 +25,7 @@ class DataSelector(hydpy_mpr.RasterPreprocessor):
 @dataclasses.dataclass
 class SoilDepth(hydpy_mpr.RasterPreprocessor):
 
-    file_landuse: str
+    source_landuse: str
 
     data_landuse: hydpy_mpr.RasterInt = dataclasses.field(init=False)
 

@@ -9,8 +9,8 @@ import hydpy_mpr
 @dataclasses.dataclass(kw_only=True)
 class FC(hydpy_mpr.RasterRegionaliser, abc.ABC):
 
-    file_clay: str
-    file_density: str
+    source_clay: str
+    source_density: str
 
     data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
     data_density: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
@@ -34,7 +34,7 @@ class FC2m(FC):
 @dataclasses.dataclass(kw_only=True)
 class FCFlex(FC):
 
-    file_depth: str
+    source_depth: str
 
     data_depth: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
@@ -53,7 +53,7 @@ class FCFlex(FC):
 @dataclasses.dataclass(kw_only=True)
 class Beta(hydpy_mpr.RasterRegionaliser):
 
-    file_density: str
+    source_density: str
 
     data_density: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
@@ -66,8 +66,8 @@ class Beta(hydpy_mpr.RasterRegionaliser):
 @dataclasses.dataclass(kw_only=True)
 class KS(hydpy_mpr.RasterSubregionaliser):
 
-    file_sand: str
-    file_clay: str
+    source_sand: str
+    source_clay: str
 
     data_sand: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
     data_clay: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
@@ -86,7 +86,7 @@ class KS(hydpy_mpr.RasterSubregionaliser):
 @dataclasses.dataclass(kw_only=True)
 class PercMax(hydpy_mpr.RasterRegionaliser):
 
-    file_ks: str
+    source_ks: str
 
     data_ks: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
 
@@ -99,8 +99,8 @@ class PercMax(hydpy_mpr.RasterRegionaliser):
 @dataclasses.dataclass(kw_only=True)
 class K(hydpy_mpr.RasterRegionaliser):
 
-    file_ks: str
-    file_dh: str
+    source_ks: str
+    source_dh: str
 
     data_ks: hydpy_mpr.RasterFloat = dataclasses.field(init=False)
     data_dh: hydpy_mpr.RasterFloat = dataclasses.field(init=False)

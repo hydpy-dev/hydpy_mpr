@@ -525,9 +525,9 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
 
         self._providers = {}
         for name in required_rasters:  # pylint: disable=consider-using-dict-items
-            file_rasters = required_rasters[name] - available_rasters[name]
+            source_rasters = required_rasters[name] - available_rasters[name]
             self._providers[name] = RasterGroup(
-                mprpath=self.mprpath, name=name, datasets=tuple(sorted(file_rasters))
+                mprpath=self.mprpath, name=name, datasets=tuple(sorted(source_rasters))
             )
 
     def __getitem__(self, name: NameProvider) -> RasterGroup:

@@ -40,7 +40,7 @@ class Equation(
         self.provider = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
         for fieldname_source, datasetname in self.fieldname2datasetname.items():
-            fieldname_data = f"data_{fieldname_source.removeprefix('file_')}"
+            fieldname_data = f"data_{fieldname_source.removeprefix('source_')}"
             dataset = provider.name2dataset[datasetname]  # ToDo: error message
             setattr(self, fieldname_data, dataset)  # ToDo: check type?
             self.mask *= dataset.mask
@@ -60,7 +60,7 @@ class Equation(
         return {
             field.name: NameDataset(getattr(self, field.name))
             for field in dataclasses.fields(self)
-            if (field.name).startswith("file_")
+            if (field.name).startswith("source_")
         }
 
     def apply_mask(self) -> None:
