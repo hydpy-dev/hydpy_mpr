@@ -35,7 +35,7 @@ class Coefficient:
 @dataclasses.dataclass(kw_only=True)
 class Regionaliser(
     equations.Equation[
-        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+        TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat
     ],
     abc.ABC,
 ):
@@ -73,7 +73,7 @@ class AttributeRegionaliser(
 @dataclasses.dataclass(kw_only=True)
 class Subregionaliser(
     Regionaliser[
-        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+        TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat
     ],
     abc.ABC,
 ):

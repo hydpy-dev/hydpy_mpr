@@ -54,14 +54,16 @@ if TYPE_CHECKING:
     TypeVarEquation = TypeVar(
         "TypeVarEquation", bound=equations.Equation[Any, Any, Any, Any]
     )
-    TypeVarData = TypeVar(
-        "TypeVarData",
+    TypeVarDataset = TypeVar(
+        "TypeVarDataset",
         reading.AttributeInt | reading.AttributeFloat,
         reading.RasterInt | reading.RasterFloat,
     )
-    TypeVarDataInt = TypeVar("TypeVarDataInt", reading.AttributeInt, reading.RasterInt)
-    TypeVarDataFloat = TypeVar(
-        "TypeVarDataFloat", reading.AttributeFloat, reading.RasterFloat
+    TypeVarDatasetInt = TypeVar(
+        "TypeVarDatasetInt", reading.AttributeInt, reading.RasterInt
+    )
+    TypeVarDatasetFloat = TypeVar(
+        "TypeVarDatasetFloat", reading.AttributeFloat, reading.RasterFloat
     )
     TypeVarRegionaliser = TypeVar(
         "TypeVarRegionaliser", bound=regionalising.Regionaliser[Any, Any, Any, Any]
@@ -73,9 +75,9 @@ if TYPE_CHECKING:
 else:
     TypeVarProvider = TypeVar("TypeVarProvider")
     TypeVarEquation = TypeVar("TypeVarEquation")
-    TypeVarData = TypeVar("TypeVarData")
-    TypeVarDataInt = TypeVar("TypeVarDataInt")
-    TypeVarDataFloat = TypeVar("TypeVarDataFloat")
+    TypeVarDataset = TypeVar("TypeVarDataset")
+    TypeVarDatasetInt = TypeVar("TypeVarDatasetInt")
+    TypeVarDatasetFloat = TypeVar("TypeVarDatasetFloat")
     TypeVarRegionaliser = TypeVar("TypeVarRegionaliser")
     TypeVarUpscaler = TypeVar("TypeVarUpscaler")
     TypeVarTransformer = TypeVar("TypeVarTransformer")
@@ -168,9 +170,9 @@ __all__ = [
     "TypeVar",
     "TypeVarArrayBool",
     "TypeVarArrayFloat",
-    "TypeVarData",
-    "TypeVarDataFloat",
-    "TypeVarDataInt",
+    "TypeVarDataset",
+    "TypeVarDatasetFloat",
+    "TypeVarDatasetInt",
     "TypeVarEquation",
     "TypeVarParameter",
     "TypeVarProvider",

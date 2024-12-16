@@ -11,7 +11,7 @@ from hydpy_mpr.source.typing_ import *
 
 @dataclasses.dataclass(kw_only=True)
 class Equation(
-    Generic[TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat],
+    Generic[TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat],
     abc.ABC,
 ):
 
@@ -26,7 +26,9 @@ class Equation(
 
     @property
     @abc.abstractmethod
-    def TYPE_DATA_FLOAT(self) -> type[TypeVarDataFloat]:  # pylint: disable=invalid-name
+    def TYPE_DATA_FLOAT(  # pylint: disable=invalid-name
+        self,
+    ) -> type[TypeVarDatasetFloat]:
         pass
 
     @property
@@ -45,7 +47,7 @@ class Equation(
         self.output = numpy.full(self.shape, numpy.nan)
 
     @property
-    def inputs(self) -> Mapping[str, TypeVarDataFloat]:
+    def inputs(self) -> Mapping[str, TypeVarDatasetFloat]:
         return {
             name: value
             for field in dataclasses.fields(self)

@@ -138,11 +138,11 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
         if integer or ((dtype is not None) and numpy.isdtype(dtype, "integral")):
             try:
                 missing_int = int64(page.tags[42113].value)
-            except ValueError:
+            except ValueError as exc:
                 raise ValueError(
                     f"The missing value `{page.tags[42113].value}` defined by the "
                     f"tiff file `{filepath}` cannot be converted to an integer."
-                )
+                ) from exc
             return RasterInt(
                 values=numpy.array(tiff.asarray(), dtype=int64),
                 missingvalue=missing_int,
@@ -155,7 +155,7 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
 
 
 @dataclasses.dataclass(kw_only=True)
-class Data(Generic[TypeVarNumber]):
+class Dataset(Generic[TypeVarNumber]):
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -178,7 +178,7 @@ class Data(Generic[TypeVarNumber]):
 
 
 @dataclasses.dataclass(kw_only=True, eq=False)
-class Raster(Data[TypeVarNumber]):
+class Raster(Dataset[TypeVarNumber]):
     values: Matrix[TypeVarNumber]
     shape: tuple[int, int] = dataclasses.field(init=False)
     mask: MatrixBool = dataclasses.field(init=False)
@@ -208,7 +208,7 @@ class RasterFloat(Raster[float64]):
 
 
 @dataclasses.dataclass(kw_only=True, eq=False)
-class Attribute(Data[TypeVarNumber]):
+class Attribute(Dataset[TypeVarNumber]):
     values: Vector[TypeVarNumber]
     shape: int = dataclasses.field(init=False)
     mask: VectorBool = dataclasses.field(init=False)
@@ -256,14 +256,14 @@ def _extract_tiffiles(filenames: Iterable[str]) -> Sequence[str]:
 
 
 @dataclasses.dataclass(kw_only=True)
-class Provider(Generic[TypeVarDataInt, TypeVarData]):
+class Provider(Generic[TypeVarDatasetInt, TypeVarDataset]):
     mprpath: DirpathMPRData
     name: NameProvider
     datasets: Sequence[NameDataset]
 
-    element_id: TypeVarDataInt = dataclasses.field(init=False)
-    subunit_id: TypeVarDataInt = dataclasses.field(init=False)
-    name2dataset: dict[NameDataset, TypeVarData] = dataclasses.field(init=False)
+    element_id: TypeVarDatasetInt = dataclasses.field(init=False)
+    subunit_id: TypeVarDatasetInt = dataclasses.field(init=False)
+    name2dataset: dict[NameDataset, TypeVarDataset] = dataclasses.field(init=False)
     id2element: MappingTable = dataclasses.field(init=False)
 
 

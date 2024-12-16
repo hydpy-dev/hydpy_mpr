@@ -9,7 +9,7 @@ from hydpy_mpr.source.typing_ import *
 
 class Preprocessor(
     equations.Equation[
-        TypeVarProvider, TypeVarDataFloat, TypeVarArrayBool, TypeVarArrayFloat
+        TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat
     ],
     abc.ABC,
 ):
