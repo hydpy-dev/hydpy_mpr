@@ -39,11 +39,11 @@ class Equation(
     def activate(self, *, provider: TypeVarProvider) -> None:
         self.provider = provider
         self.mask = numpy.full(self.shape, True, dtype=bool)
-        for fieldname, filename in self.name_field2dataset.items():
-            rastername = f"data_{fieldname.removeprefix('file_')}"
-            raster = provider.name2dataset[filename]  # ToDo: error message
-            setattr(self, rastername, raster)  # ToDo: check type?
-            self.mask *= raster.mask
+        for fieldname_source, datasetname in self.fieldname2datasetname.items():
+            fieldname_data = f"data_{fieldname_source.removeprefix('file_')}"
+            dataset = provider.name2dataset[datasetname]  # ToDo: error message
+            setattr(self, fieldname_data, dataset)  # ToDo: check type?
+            self.mask *= dataset.mask
         self.output = numpy.full(self.shape, numpy.nan)
 
     @property
@@ -56,7 +56,7 @@ class Equation(
         }
 
     @property
-    def name_field2dataset(self) -> Mapping[str, NameDataset]:
+    def fieldname2datasetname(self) -> Mapping[str, NameDataset]:
         return {
             field.name: NameDataset(getattr(self, field.name))
             for field in dataclasses.fields(self)

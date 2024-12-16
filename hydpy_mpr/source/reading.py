@@ -520,7 +520,7 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
             if (name := equation.source) not in required_rasters:
                 required_rasters[name] = set()
                 available_rasters[name] = set()
-            required_rasters[name].update(equation.name_field2dataset.values())
+            required_rasters[name].update(equation.fieldname2datasetname.values())
             available_rasters[name].add(NameDataset(equation.name))
 
         self._providers = {}
