@@ -49,6 +49,32 @@ def name_attribute_kf() -> NameDataset:
 
 
 @pytest.fixture
+def regionaliser_k4(
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    filepath_regionalisers: str,
+    name_feature_class: NameProvider,
+    name_attribute_kf: NameDataset,
+) -> regionalising.AttributeRegionaliser:
+
+    k4 = runpy.run_path(filepath_regionalisers)["K4"](
+        provider=name_feature_class,
+        source_kf=name_attribute_kf,
+        coef_slow=regionalising.Coefficient(
+            name="k4_slow", default=0.005, lower=0.001, upper=0.01
+        ),
+        coef_fast=regionalising.Coefficient(
+            name="k4_fast", default=0.045, lower=0.0, upper=0.01
+        ),
+    )
+
+    assert isinstance(k4, regionalising.AttributeRegionaliser)
+    providers = reading.FeatureClasses(mprpath=dirpath_mpr_data, equations=(k4,))
+    k4.activate(provider=providers[name_feature_class])
+    return k4
+
+
+@pytest.fixture
 def dirpath_raster(dirpath_mpr_data: DirpathMPRData) -> str:
     return os.path.join(dirpath_mpr_data, constants.RASTER)
 

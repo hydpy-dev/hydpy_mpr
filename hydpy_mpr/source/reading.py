@@ -390,11 +390,11 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
             self.subunit_id = AttributeInt.from_vector(data[:, 1])
         self.size = AttributeFloat.from_vector(data[:, 1 + delta])
 
-        self.data = {}
+        self.name2dataset = {}
         for idx, (header, type_) in enumerate(
             zip(headers[1 + delta :], types[1 + delta :])
         ):
-            self.data[header] = type_.from_vector(data[:, 1 + delta + idx])
+            self.name2dataset[header] = type_.from_vector(data[:, 1 + delta + idx])
 
         self.shape = self.element_id.shape
 
@@ -504,31 +504,36 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
 
 @dataclasses.dataclass(kw_only=True)
 class Providers(Generic[TypeVarProvider, TypeVarEquation]):
+
+    _TYPE_PROVIDER: type[TypeVarProvider] = dataclasses.field(init=False)
+
     mprpath: DirpathMPRData
     equations: Sequence[TypeVarEquation]
     _providers: Mapping[NameProvider, TypeVarProvider] = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+
+        required: dict[NameProvider, set[NameDataset]] = {}
+        available: dict[NameProvider, set[NameDataset]] = {}
+        for equation in self.equations:
+            if (name := equation.provider) not in required:
+                required[name] = set()
+                available[name] = set()
+            required[name].update(equation.fieldname2datasetname.values())
+            available[name].add(NameDataset(equation.name))
+
+        self._providers = {}
+        for name in required:  # pylint: disable=consider-using-dict-items
+            source_rasters = required[name] - available[name]
+            self._providers[name] = self._TYPE_PROVIDER(
+                mprpath=self.mprpath, name=name, datasets=tuple(sorted(source_rasters))
+            )
 
 
 @dataclasses.dataclass(kw_only=True)
 class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
 
-    def __post_init__(self) -> None:
-
-        required_rasters: dict[NameProvider, set[NameDataset]] = {}
-        available_rasters: dict[NameProvider, set[NameDataset]] = {}
-        for equation in self.equations:
-            if (name := equation.provider) not in required_rasters:
-                required_rasters[name] = set()
-                available_rasters[name] = set()
-            required_rasters[name].update(equation.fieldname2datasetname.values())
-            available_rasters[name].add(NameDataset(equation.name))
-
-        self._providers = {}
-        for name in required_rasters:  # pylint: disable=consider-using-dict-items
-            source_rasters = required_rasters[name] - available_rasters[name]
-            self._providers[name] = RasterGroup(
-                mprpath=self.mprpath, name=name, datasets=tuple(sorted(source_rasters))
-            )
+    _TYPE_PROVIDER = RasterGroup
 
     def __getitem__(self, name: NameProvider) -> RasterGroup:
         if (provider := self._providers.get(name)) is None:
@@ -538,6 +543,8 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
 
 @dataclasses.dataclass(kw_only=True)
 class FeatureClasses(Providers[FeatureClass, "equations.AttributeEquation"]):
+
+    _TYPE_PROVIDER = FeatureClass
 
     def __getitem__(self, name: NameProvider) -> FeatureClass:
         if (provider := self._providers.get(name)) is None:

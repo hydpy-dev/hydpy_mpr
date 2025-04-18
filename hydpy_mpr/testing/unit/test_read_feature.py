@@ -46,7 +46,7 @@ def test_read_features_everything_okay(
     assert numpy.min(a.values) == pytest.approx(0.9527015089988708)
     assert numpy.max(a.values) == pytest.approx(232333792.0)
 
-    k = f.data[name_attribute_kf]
+    k = f.name2dataset[name_attribute_kf]
     assert isinstance(k, hydpy_mpr.AttributeInt)
     assert numpy.all(k.values[:3] == (2, 3, 3))
     assert numpy.min(k.values) == 2.0
@@ -324,3 +324,26 @@ def test_attribute_int_adjusted_missing_value() -> None:
     assert a.missingvalue == -10001
     assert numpy.array_equal(a.values, [1, -10001, -10000])
     assert numpy.array_equal(a.mask, [True, False, True])
+
+
+def test_read_featureclasses_okay(
+    arrange_project: None,
+    dirpath_mpr_data: DirpathMPRData,
+    name_feature_class: NameProvider,
+    regionaliser_k4: AttributeRegionaliser,
+    name_attribute_kf: NameDataset,
+) -> None:
+    features = hydpy_mpr.FeatureClasses(
+        mprpath=dirpath_mpr_data, equations=(regionaliser_k4,)
+    )
+    feature = hydpy_mpr.FeatureClass(
+        mprpath=dirpath_mpr_data, name=name_feature_class, datasets=(name_attribute_kf,)
+    )
+    features[name_feature_class] == feature
+
+
+def test_read_featureclasses_featureclass_missing() -> None:
+    features = hydpy_mpr.FeatureClasses(mprpath=DirpathMPRData("test"), equations=())
+    with pytest.raises(RuntimeError) as info:
+        features[NameProvider("wrong")]  # pylint: disable=expression-not-assigned
+    assert str(info.value) == "No feature class named `wrong` available."
