@@ -2,6 +2,8 @@ import abc
 import dataclasses
 
 import numpy
+from numpy.typing import NDArray
+
 
 import hydpy_mpr
 
@@ -114,4 +116,35 @@ class K(hydpy_mpr.RasterRegionaliser):
             self.coef_const.value
             + self.coef_factor_ks.value * (1.0 + self.dataset_ks.values)
             + self.coef_factor_dh.value * (1.0 + self.dataset_dh.values)
+        )
+
+
+@dataclasses.dataclass(kw_only=True)
+class K4(hydpy_mpr.AttributeRegionaliser):
+
+    source_kf: str
+
+    dataset_kf: hydpy_mpr.AttributeFloat = dataclasses.field(init=False)
+
+    coef_slow: hydpy_mpr.Coefficient
+    coef_fast: hydpy_mpr.Coefficient
+
+    idx_slow: NDArray[numpy.bool] = dataclasses.field(init=False)
+    idx_fast: NDArray[numpy.bool] = dataclasses.field(init=False)
+    idx_unknown: NDArray[numpy.bool] = dataclasses.field(init=False)
+
+    def activate(self, *, provider: hydpy_mpr.FeatureClass) -> None:
+
+        super().activate(provider=provider)
+
+        v = self.dataset_kf.values
+        self.idxs_slow = (((v >= 4) * (v <= 7)) + (v == 10) + (v == 12)) > 0
+        self.idxs_fast = (((v >= 1) * (v <= 3)) * (v == 8) + (v == 9)) > 0
+        self.idx_unknown = ((v == 0) + (v == 11) + (v == 99)) > 0
+
+    def apply_coefficients(self) -> None:
+        self.output[self.idxs_slow] = self.coef_slow.value
+        self.output[self.idxs_fast] = self.coef_slow.value + self.coef_fast.value
+        self.output[self.idx_unknown] = (
+            self.coef_slow.value + self.coef_fast.value / 2.0
         )
