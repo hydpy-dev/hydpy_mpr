@@ -91,7 +91,7 @@ class AttributeUpscalingFunction(Protocol):
 
 
 class RasterUpscalingFunction(Protocol):
-    def __call__(self, values: MatrixFloat, /) -> float64: ...
+    def __call__(self, values: MatrixFloat, /) -> VectorFloat: ...
 
 
 # type aliases

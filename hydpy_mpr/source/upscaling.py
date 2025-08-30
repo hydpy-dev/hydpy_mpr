@@ -26,11 +26,27 @@ class Upscaler(Generic[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
     def scale_up(self) -> None:
         pass
 
+    def _prepare_uniques_and_idxs(self, ids: VectorInt) -> tuple[VectorInt, MatrixInt]:
+        argsort_ids = numpy.argsort(ids)
+        sorted_ids = ids[argsort_ids]
+        unique_ids, unique_index, unique_counts = numpy.unique(
+            sorted_ids, return_index=True, return_counts=True
+        )
+        splitted_sorted_ids = numpy.split(argsort_ids, unique_index[1:])
+        idxs = numpy.full(
+            (unique_ids.shape[0], numpy.max(unique_counts)), -1, dtype=int64
+        )
+        for i, (count, subidxs) in enumerate(zip(unique_counts, splitted_sorted_ids)):
+            idxs[i, :count] = subidxs
+        return unique_ids, idxs
+
 
 @dataclasses.dataclass(kw_only=True)
 class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2value: dict[int64, float64] = dataclasses.field(init=False)
+    _uniques: VectorInt = dataclasses.field(init=False)
+    _idxs: MatrixInt = dataclasses.field(init=False)
 
     @override
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
@@ -38,6 +54,9 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         self.id2value = {
             id_: float64(numpy.nan) for id_ in self.regionaliser.provider_.id2element
         }
+        self._uniques, self._idxs = self._prepare_uniques_and_idxs(
+            regionaliser.provider_.element_id.values[self.mask]
+        )
 
     @property
     def name2value(self) -> Mapping[str, float64]:
@@ -49,6 +68,9 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
+    _uniques: VectorInt = dataclasses.field(init=False)
+    _idxs: MatrixInt = dataclasses.field(init=False)
+    _splits: dict[int64, tuple[int64, int64]] = dataclasses.field(init=False)
 
     @override
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
@@ -68,6 +90,13 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
                 idx2value[int64(idx)] = float64(numpy.nan)
             id2idx2value[id_] = idx2value
         self.id2idx2value = id2idx2value
+
+        element_ids = element_id[self.mask]
+        subunit_ids = subunit_id[self.mask]
+        factor = 10 ** int64(numpy.ceil(numpy.log10(numpy.max(subunit_ids)) + 1.0))
+        combined_ids = factor * element_ids + subunit_ids
+        self._splits = dict(zip(combined_ids, zip(element_ids, subunit_ids)))
+        self._uniques, self._idxs = self._prepare_uniques_and_idxs(combined_ids)
 
     @property
     def name2idx2value(self) -> Mapping[str, Mapping[int64, float64]]:
@@ -158,11 +187,15 @@ class RasterDefaultUpscaler(RasterUpscaler):
     def _query_function(function: RasterUpscalingOption) -> RasterUpscalingFunction:
         match function:
             case constants.UP_A:
-                return numpy.mean
+                return lambda x: numpy.nanmean(x, axis=1, keepdims=True)
             case constants.UP_H:
-                return stats.hmean  # type: ignore[no-any-return]
+                return lambda x: stats.hmean(
+                    x, axis=1, nan_policy="omit", keepdims=True
+                )
             case constants.UP_G:
-                return stats.gmean  # type: ignore[no-any-return]
+                return lambda x: stats.gmean(
+                    x, axis=1, nan_policy="omit", keepdims=True
+                )
             case _:
                 return function
 
@@ -193,16 +226,12 @@ class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler)
 
     @override
     def scale_up(self) -> None:
-        id2value = self.id2value
         output = self.regionaliser.output[self.mask]
-        ids = self.regionaliser.provider_.element_id.values[self.mask]
-        function = self._function
-        for id_ in id2value:
-            idxs = id_ == ids
-            if numpy.any(idxs):
-                id2value[id_] = function(output[idxs])
-            else:
-                id2value[id_] = float64(numpy.nan)
+        output = numpy.concatenate((output, numpy.array([numpy.nan])))
+        results = self._function(output[self._idxs])
+        id2value = self.id2value
+        for id_, result in zip(self._uniques, results):
+            id2value[id_] = result
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -236,14 +265,10 @@ class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler)
     @override
     def scale_up(self) -> None:
         output = self.regionaliser.output[self.mask]
-        element_id = self.regionaliser.provider_.element_id.values[self.mask]
-        subunit_id = self.regionaliser.provider_.subunit_id.values[self.mask]
-        function = self._function
-        for id_, idx2value in self.id2idx2value.items():
-            idx_raster_element = element_id == id_
-            for idx in idx2value:
-                idx_raster_subunit = idx_raster_element * (subunit_id == idx)
-                if numpy.any(idx_raster_subunit):
-                    idx2value[idx] = function(output[idx_raster_subunit])
-                else:
-                    idx2value[idx] = float64(numpy.nan)
+        output = numpy.concatenate((output, numpy.array([numpy.nan])))
+        results = self._function(output[self._idxs])
+        splits = self._splits
+        id2idx2value = self.id2idx2value
+        for unique, result in zip(self._uniques, results):
+            id_element, idx_subunit = splits[unique]
+            id2idx2value[id_element][idx_subunit] = result
