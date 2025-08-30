@@ -106,6 +106,9 @@ RasterUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
 )
 
 MappingTable: TypeAlias = Mapping[int64, str]
+"""Table for mapping element IDs to element names required when working with raster 
+files (the items must be added in sorted order, so that iteration also progresses in 
+sorted order)."""
 
 if TYPE_CHECKING:
     from hydpy_mpr.source import managing

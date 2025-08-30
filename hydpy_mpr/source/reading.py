@@ -81,7 +81,7 @@ def read_mapping_table(*, mprpath: DirpathMPRData) -> MappingTable:
         cursor.close()
         gpkg.connection.close()
 
-    return element_id2name
+    return dict(sorted(element_id2name.items()))
 
 
 @overload
