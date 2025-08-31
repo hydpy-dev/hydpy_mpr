@@ -330,7 +330,7 @@ def test_read_featureclasses_okay(
     arrange_project: None,
     dirpath_mpr_data: DirpathMPRData,
     name_feature_class: NameProvider,
-    regionaliser_k4: AttributeRegionaliser,
+    regionaliser_k4: hydpy_mpr.AttributeRegionaliser,
     name_attribute_kf: NameDataset,
 ) -> None:
     features = hydpy_mpr.FeatureClasses(
