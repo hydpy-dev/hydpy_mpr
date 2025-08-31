@@ -46,7 +46,6 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2value: dict[int64, float64] = dataclasses.field(init=False)
     _uniques: VectorInt = dataclasses.field(init=False)
-    _idxs: MatrixInt = dataclasses.field(init=False)
 
     @override
     def activate(self, *, regionaliser: TypeVarRegionaliser) -> None:
@@ -179,6 +178,7 @@ class AttributeDefaultUpscaler(AttributeUpscaler):
 class RasterDefaultUpscaler(RasterUpscaler):
     function: RasterUpscalingOption = constants.UP_A
     _function: RasterUpscalingFunction = dataclasses.field(init=False)
+    _idxs: MatrixInt = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self._function = self._query_function(self.function)
@@ -198,6 +198,15 @@ class RasterDefaultUpscaler(RasterUpscaler):
                 )
             case _:
                 return function
+
+    def _apply_function(self) -> VectorFloat:
+        output = self.regionaliser.output[self.mask]
+        output = numpy.concatenate((output, numpy.array([numpy.nan])))
+        results = self._function(output[self._idxs])
+        output[-1] = 0.0
+        missing = numpy.any(numpy.isnan(output[self._idxs]), axis=1)
+        results[missing] = numpy.nan
+        return results
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -226,11 +235,8 @@ class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler)
 
     @override
     def scale_up(self) -> None:
-        output = self.regionaliser.output[self.mask]
-        output = numpy.concatenate((output, numpy.array([numpy.nan])))
-        results = self._function(output[self._idxs])
         id2value = self.id2value
-        for id_, result in zip(self._uniques, results):
+        for id_, result in zip(self._uniques, self._apply_function()):
             id2value[id_] = result
 
 
@@ -264,11 +270,8 @@ class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler)
 
     @override
     def scale_up(self) -> None:
-        output = self.regionaliser.output[self.mask]
-        output = numpy.concatenate((output, numpy.array([numpy.nan])))
-        results = self._function(output[self._idxs])
         splits = self._splits
         id2idx2value = self.id2idx2value
-        for unique, result in zip(self._uniques, results):
+        for unique, result in zip(self._uniques, self._apply_function()):
             id_element, idx_subunit = splits[unique]
             id2idx2value[id_element][idx_subunit] = result
