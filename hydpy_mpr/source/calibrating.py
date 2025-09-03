@@ -84,6 +84,7 @@ class Calibrator(abc.ABC):
                 futures = (executor.submit(task.run) for task in self.tasks)
                 for future in concurrent.futures.as_completed(futures):
                     pass
+        self.hp.update_parameters()
         self.hp.conditions = self.conditions
         self.hp.simulate()
         likelihood = self.calculate_likelihood()
