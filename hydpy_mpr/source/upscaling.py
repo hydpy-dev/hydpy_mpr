@@ -59,16 +59,12 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
             regionaliser.provider_.subunit_id.mask
         )  # ToDo: better error message
 
-        element_id = regionaliser.provider_.element_id.values
-        subunit_id = regionaliser.provider_.subunit_id.values
-        id2idx2value = {}
-        for id_ in regionaliser.provider_.id2element:
-            idx2value = {}
-            idxs = numpy.unique(subunit_id[numpy.where(element_id == id_)])
-            for idx in sorted(idxs):
-                idx2value[int64(idx)] = float64(numpy.nan)
-            id2idx2value[id_] = idx2value
-        self.id2idx2value = id2idx2value
+        self.id2idx2value = upscaling_helpers.prepare_id2idx2value_for_raster_subunit(
+            ids=numpy.asarray(tuple(regionaliser.provider_.id2element), dtype=int64),
+            element_id=regionaliser.provider_.element_id.values,
+            subunit_id=regionaliser.provider_.subunit_id.values,
+            mask=self.mask,
+        )
 
     @property
     def name2idx2value(self) -> Mapping[str, Mapping[int64, float64]]:

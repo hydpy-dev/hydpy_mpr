@@ -143,8 +143,8 @@ def test_raster_subunit_default_upscaler_missing_value(
     o[u.mask * (e == 3) * (s == 0)] = numpy.nan, 2.0
     assert isinstance(u, UpSubunit)
     assert len(u.id2idx2value) == 5
-    assert len(u.id2idx2value[int64(2)]) == 4
-    assert len(u.id2idx2value[int64(3)]) == 7
+    assert len(u.id2idx2value[int64(2)]) == 3
+    assert len(u.id2idx2value[int64(3)]) == 5
     u.id2idx2value[int64(3)][int64(0)] = float64(2.0)
     u.scale_up()
     assert isinstance(u, UpSubunit)

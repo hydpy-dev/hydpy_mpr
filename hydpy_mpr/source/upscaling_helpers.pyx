@@ -14,6 +14,42 @@ from libc.math cimport NAN as nan
 from libcpp.unordered_map cimport unordered_map
 
 
+def prepare_id2idx2value_for_raster_subunit(
+    *,
+    int64_t[:] ids,
+    int64_t[:, :] element_id,
+    int64_t[:, :] subunit_id,
+    npy_bool[:, :] mask,
+) -> dict[int64, dict[int64, float64]]:
+
+    cdef int64_t id_, idx, i, j
+    cdef int64_t m = element_id.shape[0]
+    cdef int64_t n = element_id.shape[1]
+    cdef dict[int64_t, set[int64_t]] id2idxs = {}
+    cdef set[int64_t] idxs
+    cdef dict[int64_t, dict[int64_t, double]] id2idx2value = {}
+    cdef dict[int64_t, double] idx2value
+
+    for i in range(m):
+        for j in range(n):
+            if mask[i, j]:
+                id_ = element_id[i, j]
+                if id_ in id2idxs:
+                    idxs = id2idxs[id_]
+                else:
+                    idxs = set()
+                    id2idxs[id_] = idxs
+                idxs.add(subunit_id[i, j])
+
+    for id_, idxs in id2idxs.items():
+        idx2value = {}
+        for idx in sorted(idxs):
+            idx2value[idx] = nan
+        id2idx2value[id_] = idx2value
+
+    return id2idx2value
+
+
 def arithmetic_mean_for_raster_element(
     *,
     int64_t[:, :] element_id,
