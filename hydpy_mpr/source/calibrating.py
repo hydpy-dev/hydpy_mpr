@@ -1,5 +1,6 @@
 from __future__ import annotations
 import abc
+import concurrent.futures
 import dataclasses
 import itertools
 
@@ -75,8 +76,14 @@ class Calibrator(abc.ABC):
         self.update_coefficients(values)
         for subregionaliser in self.subregionalisers:
             subregionaliser.apply_coefficients()
-        for task in self.tasks:
-            task.run()
+        if (threads := hydpy.pub.options.threads) == 0:
+            for task in self.tasks:
+                task.run()
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+                futures = (executor.submit(task.run) for task in self.tasks)
+                for future in concurrent.futures.as_completed(futures):
+                    pass
         self.hp.conditions = self.conditions
         self.hp.simulate()
         likelihood = self.calculate_likelihood()
