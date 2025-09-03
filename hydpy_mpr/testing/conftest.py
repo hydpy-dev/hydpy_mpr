@@ -467,7 +467,7 @@ def task_raster_element(
     request: pytest.FixtureRequest,
 ) -> managing.RasterElementTask:
 
-    function: RasterUpscalingOption
+    function: RasterElementUpscalingOption
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterElementUpscaler)
     assert issubclass(transformer, transforming.ElementTransformer)
@@ -492,7 +492,7 @@ def task_raster_subunit(
     request: pytest.FixtureRequest,
 ) -> managing.RasterSubunitTask:
 
-    function: RasterUpscalingOption
+    function: RasterSubunitUpscalingFunction
     upscaler, function, transformer = request.param
     assert issubclass(upscaler, upscaling.RasterSubunitUpscaler)
     assert issubclass(transformer, transforming.SubunitTransformer)

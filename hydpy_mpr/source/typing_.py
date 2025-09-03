@@ -90,8 +90,27 @@ class AttributeUpscalingFunction(Protocol):
     def __call__(self, values: VectorFloat, /, *, weights: VectorFloat) -> float64: ...
 
 
-class RasterUpscalingFunction(Protocol):
-    def __call__(self, values: MatrixFloat, /) -> float64: ...
+class RasterElementUpscalingFunction(Protocol):
+    def __call__(
+        self,
+        *,
+        element_id: MatrixInt,
+        mask: MatrixBool,
+        output: MatrixFloat,
+        id2value: dict[int64, float64],
+    ) -> None: ...
+
+
+class RasterSubunitUpscalingFunction(Protocol):
+    def __call__(
+        self,
+        *,
+        element_id: MatrixInt,
+        subunit_id: MatrixInt,
+        mask: MatrixBool,
+        output: MatrixFloat,
+        id2idx2value: dict[int64, dict[int64, float64]],
+    ) -> None: ...
 
 
 # type aliases
@@ -100,8 +119,13 @@ AttributeUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
     AttributeUpscalingFunction
     | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
 )
-RasterUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
-    RasterUpscalingFunction
+RasterElementUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
+    RasterElementUpscalingFunction
+    | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
+)
+
+RasterSubunitUpscalingOption: TypeAlias = (  # note: synchronise with `constants.py`
+    RasterSubunitUpscalingFunction
     | Literal["arithmetic_mean", "geometric_mean", "harmonic_mean"]
 )
 
@@ -161,8 +185,10 @@ __all__ = [
     "VectorBool",
     "VectorFloat",
     "VectorInt",
-    "RasterUpscalingFunction",
-    "RasterUpscalingOption",
+    "RasterElementUpscalingFunction",
+    "RasterElementUpscalingOption",
+    "RasterSubunitUpscalingFunction",
+    "RasterSubunitUpscalingOption",
     "Self",
     "Sequence",
     "Tasks",

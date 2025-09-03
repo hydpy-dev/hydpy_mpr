@@ -7,6 +7,7 @@ from scipy import stats
 
 from hydpy_mpr.source import constants
 from hydpy_mpr.source import regionalising
+from hydpy_mpr.source import upscaling_helpers
 from hydpy_mpr.source.typing_ import *
 
 
@@ -148,23 +149,7 @@ class AttributeDefaultUpscaler(AttributeUpscaler):
 
 @dataclasses.dataclass(kw_only=True)
 class RasterDefaultUpscaler(RasterUpscaler):
-    function: RasterUpscalingOption = constants.UP_A
-    _function: RasterUpscalingFunction = dataclasses.field(init=False)
-
-    def __post_init__(self) -> None:
-        self._function = self._query_function(self.function)
-
-    @staticmethod
-    def _query_function(function: RasterUpscalingOption) -> RasterUpscalingFunction:
-        match function:
-            case constants.UP_A:
-                return numpy.mean
-            case constants.UP_H:
-                return stats.hmean  # type: ignore[no-any-return]
-            case constants.UP_G:
-                return stats.gmean  # type: ignore[no-any-return]
-            case _:
-                return function
+    pass
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -191,18 +176,34 @@ class AttributeElementDefaultUpscaler(
 @dataclasses.dataclass(kw_only=True)
 class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler):
 
+    function: RasterElementUpscalingOption = constants.UP_A
+    _function: RasterElementUpscalingFunction = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self._function = self._query_function(self.function)
+
+    @staticmethod
+    def _query_function(
+        function: RasterElementUpscalingOption,
+    ) -> RasterElementUpscalingFunction:
+        match function:
+            case constants.UP_A:
+                return upscaling_helpers.arithmetic_mean_for_raster_element
+            case constants.UP_H:
+                return stats.hmean  # type: ignore[no-any-return]
+            case constants.UP_G:
+                return stats.gmean  # type: ignore[no-any-return]
+            case _:
+                return function
+
     @override
     def scale_up(self) -> None:
-        id2value = self.id2value
-        output = self.regionaliser.output[self.mask]
-        ids = self.regionaliser.provider_.element_id.values[self.mask]
-        function = self._function
-        for id_ in id2value:
-            idxs = id_ == ids
-            if numpy.any(idxs):
-                id2value[id_] = function(output[idxs])
-            else:
-                id2value[id_] = float64(numpy.nan)
+        self._function(
+            element_id=self.regionaliser.provider_.element_id.values,
+            mask=self.mask,
+            output=self.regionaliser.output,
+            id2value=self.id2value,
+        )
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -233,17 +234,32 @@ class AttributeSubunitDefaultUpscaler(
 @dataclasses.dataclass(kw_only=True)
 class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler):
 
+    function: RasterSubunitUpscalingOption = constants.UP_A
+    _function: RasterSubunitUpscalingFunction = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self._function = self._query_function(self.function)
+
+    @staticmethod
+    def _query_function(
+        function: RasterSubunitUpscalingOption,
+    ) -> RasterSubunitUpscalingFunction:
+        match function:
+            case constants.UP_A:
+                return upscaling_helpers.arithmetic_mean_for_raster_subunit
+            case constants.UP_H:
+                return stats.hmean  # type: ignore[no-any-return]
+            case constants.UP_G:
+                return stats.gmean  # type: ignore[no-any-return]
+            case _:
+                return function
+
     @override
     def scale_up(self) -> None:
-        output = self.regionaliser.output[self.mask]
-        element_id = self.regionaliser.provider_.element_id.values[self.mask]
-        subunit_id = self.regionaliser.provider_.subunit_id.values[self.mask]
-        function = self._function
-        for id_, idx2value in self.id2idx2value.items():
-            idx_raster_element = element_id == id_
-            for idx in idx2value:
-                idx_raster_subunit = idx_raster_element * (subunit_id == idx)
-                if numpy.any(idx_raster_subunit):
-                    idx2value[idx] = function(output[idx_raster_subunit])
-                else:
-                    idx2value[idx] = float64(numpy.nan)
+        self._function(
+            element_id=self.regionaliser.provider_.element_id.values,
+            subunit_id=self.regionaliser.provider_.subunit_id.values,
+            mask=self.mask,
+            output=self.regionaliser.output,
+            id2idx2value=self.id2idx2value,
+        )
