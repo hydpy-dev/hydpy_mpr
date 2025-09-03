@@ -130,12 +130,12 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
                 f"The data type of tiff file `{filepath}` cannot be detected.  "
                 f"Assuming `{'integer' if integer else 'float'}`."
             )
-        elif integer and not numpy.isdtype(dtype, "integral"):
+        elif integer and not numpy.issubdtype(dtype, numpy.integer):
             warnings.warn(
                 f"The data type of tiff file `{filepath}` is `{dtype.name}` but "
                 f"integer values are expected."
             )
-        if integer or ((dtype is not None) and numpy.isdtype(dtype, "integral")):
+        if integer or numpy.issubdtype(dtype, numpy.integer):
             try:
                 missing_int = int64(page.tags[42113].value)
             except ValueError as exc:
