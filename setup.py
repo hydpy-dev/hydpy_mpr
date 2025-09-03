@@ -1,11 +1,12 @@
 """Metadata of the HydPy-MPR library."""
 
-import os
+from Cython.Build import cythonize
+from numpy import get_include
+from setuptools import find_namespace_packages, setup
 
 import setuptools
 
-
-setuptools.setup(
+setup(
     name="HydPy-MPR",
     version="0.0.dev0",
     description="Calibrate HydPy with MPR (Multiscale Parameter Regionalisation)",
@@ -29,10 +30,11 @@ setuptools.setup(
     ],
     keywords="hydrology modelling water balance rainfall runoff",
     packages=(
-        ["hydpy_mpr"]
-        + [f"hydpy_mpr.{p}" for p in setuptools.find_namespace_packages("hydpy_mpr")]
+        ["hydpy_mpr"] + [f"hydpy_mpr.{p}" for p in find_namespace_packages("hydpy_mpr")]
     ),
     include_package_data=True,
+    ext_modules=cythonize("hydpy_mpr/source/*.pyx", language="c++"),
+    include_dirs=[get_include()],
     python_requires=">=3.10",
     install_requires=[
         "click",

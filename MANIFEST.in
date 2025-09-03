@@ -2,5 +2,7 @@ graft hydpy_mpr/data
 include *.md
 recursive-include hydpy_mpr *.md
 global-exclude *.pyc
+global-exclude *.c
+global-exclude *.cpp
 prune hydpy_mpr/testing/iotesting
 include hydpy_mpr/testing/iotesting/__init__.py
