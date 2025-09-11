@@ -7,7 +7,9 @@ import runpy
 
 import hydpy
 from hydpy import pub
+from hydpy.core import parametertools
 from hydpy.models.hland import hland_control
+from hydpy.models.evap import evap_control
 import pytest
 
 import hydpy_mpr
@@ -459,6 +461,26 @@ def subunit_transformer_fc() -> (
     )
 
 
+def _get_modelname_and_parameter(
+    param: tuple[object, object, object] | tuple[object, object, object, str],
+) -> tuple[str, type[parametertools.Parameter]]:
+
+    if len(param) == 3:
+        which_model = "mainmodel"
+    else:
+        which_model = param[3]
+
+    match which_model:
+        case "mainmodel":
+            return "hland_96", hland_control.FC
+        case "submodel":
+            return "evap_aet_hbv96", evap_control.SoilMoistureLimit
+        case "subsubmodel":
+            return "evap_pet_hbv96", evap_control.EvapotranspirationFactor
+        case _:
+            assert False
+
+
 @pytest.fixture
 def task_raster_element(
     hp1: hydpy.HydPy,
@@ -468,14 +490,15 @@ def task_raster_element(
 ) -> managing.RasterElementTask:
 
     function: RasterElementUpscalingOption
-    upscaler, function, transformer = request.param
+    upscaler, function, transformer = request.param[:3]
     assert issubclass(upscaler, upscaling.RasterElementUpscaler)
     assert issubclass(transformer, transforming.ElementTransformer)
+    model, parameter = _get_modelname_and_parameter(request.param)
 
     task = managing.RasterElementTask(
         regionaliser=regionaliser_fc_2m,
         upscaler=upscaler(function=function),
-        transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
+        transformers=[transformer(parameter=parameter, model=model)],
     )
     providers = reading.RasterGroups(
         mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)
@@ -493,14 +516,15 @@ def task_raster_subunit(
 ) -> managing.RasterSubunitTask:
 
     function: RasterSubunitUpscalingFunction
-    upscaler, function, transformer = request.param
+    upscaler, function, transformer = request.param[:3]
     assert issubclass(upscaler, upscaling.RasterSubunitUpscaler)
     assert issubclass(transformer, transforming.SubunitTransformer)
+    model, parameter = _get_modelname_and_parameter(request.param)
 
     task = managing.RasterSubunitTask(
         regionaliser=regionaliser_fc_2m,
         upscaler=upscaler(function=function),
-        transformers=[transformer(parameter=hland_control.FC, model="hland_96")],
+        transformers=[transformer(parameter=parameter, model=model)],
     )
     providers = reading.RasterGroups(
         mprpath=dirpath_mpr_data, equations=(regionaliser_fc_2m,)

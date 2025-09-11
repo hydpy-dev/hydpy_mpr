@@ -28,10 +28,14 @@ class Transformer(Generic[TypeVarUpscaler, TypeVarParameter], abc.ABC):
             elements = self.selection.elements
         element2parameter = {}
         for element in elements:
-            if self.model in (element.model.name, None):
-                parameter = element.model.parameters.control[self.parameter.name]
-                assert isinstance(parameter, self.parameter)
-                element2parameter[element.name] = parameter
+            if (name := self.model) is None:
+                name = element.model.name
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                if name == model.name:
+                    parameter = model.parameters.control[self.parameter.name]
+                    assert isinstance(parameter, self.parameter)
+                    element2parameter[element.name] = parameter
+                    break  # ToDo: What if multiple submodels are of the same type?
         self.element2parameter = element2parameter
 
     @abc.abstractmethod
