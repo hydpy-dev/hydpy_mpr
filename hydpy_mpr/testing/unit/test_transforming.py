@@ -16,7 +16,7 @@ TransSubunit = hydpy_mpr.SubunitIdentityTransformer
 @pytest.mark.parametrize(
     "task_raster_element", [(UpElement, constants.UP_A, TransElement)], indirect=True
 )
-def test_raster_element_default_upscaler(
+def test_element_identity_transformer_for_main_model(
     task_raster_element: hydpy_mpr.RasterElementTask,
 ) -> None:
     u = task_raster_element.upscaler
@@ -34,7 +34,7 @@ def test_raster_element_default_upscaler(
 @pytest.mark.parametrize(
     "task_raster_subunit", [(UpSubunit, constants.UP_A, TransSubunit)], indirect=True
 )
-def test_raster_subunit_default_upscaler(
+def test_subunit_identity_transformer_for_main_model(
     task_raster_subunit: hydpy_mpr.RasterElementTask,
 ) -> None:
     u = task_raster_subunit.upscaler
