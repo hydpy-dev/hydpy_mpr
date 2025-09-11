@@ -1,6 +1,7 @@
 graft hydpy_mpr/data
 include *.md
 recursive-include hydpy_mpr *.md
+include hydpy_mpr/source/*.pyx
 global-exclude *.pyc
 global-exclude *.c
 global-exclude *.cpp
