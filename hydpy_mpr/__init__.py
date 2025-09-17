@@ -50,7 +50,12 @@ from hydpy_mpr.source.upscaling import (
     SubunitUpscaler,
     Upscaler,
 )
-from hydpy_mpr.source.writing import ControlWriter, ParameterTableWriter, Writer
+from hydpy_mpr.source.writing import (
+    ControlWriter,
+    EfficiencyTableWriter,
+    ParameterTableWriter,
+    Writer,
+)
 
 
 __version__ = "0.0.dev0"
@@ -84,6 +89,7 @@ __all__ = [
     "Coefficient",
     "ControlWriter",
     "DefaultLogger",
+    "EfficiencyTableWriter",
     "ElementIdentityTransformer",
     "ElementTransformer",
     "ElementUpscaler",
