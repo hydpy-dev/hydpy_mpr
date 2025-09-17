@@ -6,6 +6,7 @@ import hydpy
 
 from hydpy_mpr.source import calibrating
 from hydpy_mpr.source import equations
+from hydpy_mpr.source import logging_
 from hydpy_mpr.source import preprocessing
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source import reading
@@ -106,6 +107,7 @@ class MPR:
     ] = dataclasses.field(default_factory=lambda: [])
     tasks: Tasks
     calibrator: calibrating.Calibrator
+    loggers: Sequence[logging_.Logger] = dataclasses.field(default_factory=lambda: [])
     writers: Sequence[writing.Writer] = dataclasses.field(default_factory=lambda: [])
 
     def __post_init__(self) -> None:
@@ -151,8 +153,13 @@ class MPR:
             else:
                 task.activate(hp=self.hp, provider=feature_class[task.provider])
         self.calibrator.activate(
-            hp=self.hp, tasks=self.tasks, subregionalisers=self.subregionalisers
+            hp=self.hp,
+            tasks=self.tasks,
+            subregionalisers=self.subregionalisers,
+            loggers=self.loggers,
         )
+        for logger in self.loggers:
+            logger.activate(hp=self.hp, calibrator=self.calibrator)
         for writer in self.writers:
             writer.activate(hp=self.hp, calibrator=self.calibrator)
 

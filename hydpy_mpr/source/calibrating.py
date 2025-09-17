@@ -9,6 +9,7 @@ from hydpy.core import typingtools
 import nlopt
 import numpy
 
+from hydpy_mpr.source import logging_
 from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
@@ -21,6 +22,7 @@ class Calibrator(abc.ABC):
     subregionalisers: Sequence[
         regionalising.AttributeSubregionaliser | regionalising.RasterSubregionaliser
     ] = dataclasses.field(init=False)
+    loggers: Sequence[logging_.Logger] = dataclasses.field(init=False)
     likelihood: float = dataclasses.field(init=False)
     nmb_steps: int = dataclasses.field(init=False, default=0)
 
@@ -32,10 +34,12 @@ class Calibrator(abc.ABC):
         subregionalisers: Sequence[
             regionalising.AttributeSubregionaliser | regionalising.RasterSubregionaliser
         ],
+        loggers: Sequence[logging_.Logger],
     ) -> None:
         self.hp = hp
         self.tasks = tasks
         self.subregionalisers = subregionalisers
+        self.loggers = loggers
         self.conditions = hp.conditions
         self.likelihood = numpy.nan
 
@@ -89,6 +93,8 @@ class Calibrator(abc.ABC):
         self.hp.simulate()
         likelihood = self.calculate_likelihood()
         self.nmb_steps += 1
+        for logger in self.loggers:
+            logger.log(likelihood=likelihood)
         return likelihood
 
     @abc.abstractmethod

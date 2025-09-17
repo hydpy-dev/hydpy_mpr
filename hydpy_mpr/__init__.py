@@ -6,6 +6,7 @@ from hydpy_mpr import testing
 
 
 from hydpy_mpr.source.calibrating import Calibrator, GridCalibrator, NLOptCalibrator
+from hydpy_mpr.source.logging_ import DefaultLogger, Logger
 from hydpy_mpr.source.managing import MPR, RasterElementTask, RasterSubunitTask
 from hydpy_mpr.source.preprocessing import RasterPreprocessor
 from hydpy_mpr.source.reading import (
@@ -82,12 +83,14 @@ __all__ = [
     "Calibrator",
     "Coefficient",
     "ControlWriter",
+    "DefaultLogger",
     "ElementIdentityTransformer",
     "ElementTransformer",
     "ElementUpscaler",
     "FeatureClass",
     "FeatureClasses",
     "GridCalibrator",
+    "Logger",
     "MPR",
     "NLOptCalibrator",
     "RasterElementDefaultUpscaler",
