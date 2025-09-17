@@ -50,7 +50,7 @@ from hydpy_mpr.source.upscaling import (
     SubunitUpscaler,
     Upscaler,
 )
-from hydpy_mpr.source.writing import ControlWriter, Writer
+from hydpy_mpr.source.writing import ControlWriter, ParameterTableWriter, Writer
 
 
 __version__ = "0.0.dev0"
@@ -93,6 +93,7 @@ __all__ = [
     "Logger",
     "MPR",
     "NLOptCalibrator",
+    "ParameterTableWriter",
     "RasterElementDefaultUpscaler",
     "RasterElementUpscaler",
     "RasterElementTask",
