@@ -9,7 +9,7 @@ from hydpy_mpr.source import utilities
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Equation(
     Generic[TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat],
     abc.ABC,
@@ -67,7 +67,7 @@ class Equation(
         self.output[~self.mask] = numpy.nan
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeEquation(
     Equation[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
     abc.ABC,
@@ -81,7 +81,7 @@ class AttributeEquation(
         return self.provider_.shape
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterEquation(
     Equation[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat], abc.ABC
 ):

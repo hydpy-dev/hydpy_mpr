@@ -14,7 +14,7 @@ from hydpy_mpr.source import regionalising
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Calibrator(abc.ABC):
     conditions: typingtools.Conditions = dataclasses.field(init=False)
     hp: hydpy.HydPy = dataclasses.field(init=False)
@@ -102,7 +102,7 @@ class Calibrator(abc.ABC):
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class GridCalibrator(Calibrator, abc.ABC):
 
     nmb_nodes: int
@@ -148,7 +148,7 @@ class GridCalibrator(Calibrator, abc.ABC):
         self.likelihood = self.perform_calibrationstep(best_values)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class NLOptCalibrator(Calibrator, abc.ABC):
 
     algorithm: int = dataclasses.field(default_factory=lambda: nlopt.LN_BOBYQA)

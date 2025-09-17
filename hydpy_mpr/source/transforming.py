@@ -9,7 +9,7 @@ from hydpy_mpr.source import upscaling
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Transformer(Generic[TypeVarUpscaler, TypeVarParameter], abc.ABC):
 
     parameter: type[TypeVarParameter]
@@ -43,7 +43,7 @@ class Transformer(Generic[TypeVarUpscaler, TypeVarParameter], abc.ABC):
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class ElementTransformer(
     Transformer[upscaling.ElementUpscaler[Any, Any], TypeVarParameter], abc.ABC
 ):
@@ -60,7 +60,7 @@ class ElementTransformer(
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class SubunitTransformer(
     Transformer[upscaling.SubunitUpscaler[Any, Any], TypeVarParameter], abc.ABC
 ):

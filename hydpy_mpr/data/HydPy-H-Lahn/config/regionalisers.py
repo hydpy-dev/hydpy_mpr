@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 import hydpy_mpr
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class FC(hydpy_mpr.RasterRegionaliser, abc.ABC):
 
     source_clay: str
@@ -22,7 +22,7 @@ class FC(hydpy_mpr.RasterRegionaliser, abc.ABC):
     coef_factor_density: hydpy_mpr.Coefficient
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class FC2m(FC):
 
     def apply_coefficients(self) -> None:
@@ -33,7 +33,7 @@ class FC2m(FC):
         )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class FCFlex(FC):
 
     source_depth: str
@@ -52,7 +52,7 @@ class FCFlex(FC):
         )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Beta(hydpy_mpr.RasterRegionaliser):
 
     source_density: str
@@ -65,7 +65,7 @@ class Beta(hydpy_mpr.RasterRegionaliser):
         self.output[:] = self.coef_factor_density.value * self.dataset_density.values
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class KS(hydpy_mpr.RasterSubregionaliser):
 
     source_sand: str
@@ -85,7 +85,7 @@ class KS(hydpy_mpr.RasterSubregionaliser):
         )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class PercMax(hydpy_mpr.RasterRegionaliser):
 
     source_ks: str
@@ -98,7 +98,7 @@ class PercMax(hydpy_mpr.RasterRegionaliser):
         self.output[:] = self.coef_factor.value * (1.0 + self.dataset_ks.values)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class K(hydpy_mpr.RasterRegionaliser):
 
     source_ks: str
@@ -119,7 +119,7 @@ class K(hydpy_mpr.RasterRegionaliser):
         )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class K4(hydpy_mpr.AttributeRegionaliser):
 
     source_kf: str

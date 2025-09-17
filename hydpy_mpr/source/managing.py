@@ -17,7 +17,7 @@ from hydpy_mpr.source import writing
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Task(
     Generic[TypeVarProvider, TypeVarRegionaliser, TypeVarUpscaler, TypeVarTransformer]
 ):
@@ -92,7 +92,7 @@ class RasterSubunitTask(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class MPR:
 
     mprpath: utilities.NewTypeDataclassDescriptor[str, DirpathMPRData] = (

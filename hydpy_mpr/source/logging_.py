@@ -13,7 +13,7 @@ from hydpy_mpr.source import calibrating
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Logger(abc.ABC):
 
     hp: hydpy.HydPy = dataclasses.field(init=False)
@@ -28,7 +28,7 @@ class Logger(abc.ABC):
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class DefaultLogger(Logger):
 
     filepath: str

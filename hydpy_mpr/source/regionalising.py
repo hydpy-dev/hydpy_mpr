@@ -9,7 +9,7 @@ from hydpy_mpr.source import reading
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class Coefficient:
 
     name: str
@@ -32,7 +32,7 @@ class Coefficient:
         self._value = v
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Regionaliser(
     equations.Equation[
         TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat
@@ -52,7 +52,7 @@ class Regionaliser(
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterRegionaliser(
     Regionaliser[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
     equations.RasterEquation,
@@ -61,7 +61,7 @@ class RasterRegionaliser(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeRegionaliser(
     Regionaliser[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
     equations.AttributeEquation,
@@ -70,7 +70,7 @@ class AttributeRegionaliser(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Subregionaliser(
     Regionaliser[
         TypeVarProvider, TypeVarDatasetFloat, TypeVarArrayBool, TypeVarArrayFloat
@@ -88,7 +88,7 @@ class Subregionaliser(
         self.provider_.name2dataset[NameDataset(self.name)] = raster
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeSubregionaliser(
     Subregionaliser[
         reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat
@@ -99,7 +99,7 @@ class AttributeSubregionaliser(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterSubregionaliser(
     Subregionaliser[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
     RasterRegionaliser,

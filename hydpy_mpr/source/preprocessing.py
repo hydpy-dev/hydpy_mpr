@@ -27,7 +27,7 @@ class Preprocessor(
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributePreprocessor(
     Preprocessor[reading.FeatureClass, reading.AttributeFloat, VectorBool, VectorFloat],
     equations.AttributeEquation,
@@ -36,7 +36,7 @@ class AttributePreprocessor(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterPreprocessor(
     Preprocessor[reading.RasterGroup, reading.RasterFloat, MatrixBool, MatrixFloat],
     equations.RasterEquation,

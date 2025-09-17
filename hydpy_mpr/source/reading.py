@@ -154,7 +154,7 @@ def read_geotiff(  # pylint: disable=inconsistent-return-statements
         return RasterFloat(values=values)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Dataset(Generic[TypeVarNumber]):
 
     @override
@@ -177,7 +177,7 @@ class Dataset(Generic[TypeVarNumber]):
         return False
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class Raster(Dataset[TypeVarNumber]):
     values: Matrix[TypeVarNumber]
     shape: tuple[int, int] = dataclasses.field(init=False)
@@ -187,7 +187,7 @@ class Raster(Dataset[TypeVarNumber]):
         self.shape = self.values.shape
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class RasterInt(Raster[int64]):
 
     missingvalue: int64
@@ -198,7 +198,7 @@ class RasterInt(Raster[int64]):
         self.mask = self.values != self.missingvalue
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class RasterFloat(Raster[float64]):
 
     @override
@@ -207,7 +207,7 @@ class RasterFloat(Raster[float64]):
         self.mask = ~numpy.isnan(self.values)
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class Attribute(Dataset[TypeVarNumber]):
     values: Vector[TypeVarNumber]
     shape: int = dataclasses.field(init=False)
@@ -217,7 +217,7 @@ class Attribute(Dataset[TypeVarNumber]):
         self.shape = self.values.shape[0]
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class AttributeInt(Attribute[int64]):
 
     missingvalue: int64
@@ -236,7 +236,7 @@ class AttributeInt(Attribute[int64]):
         return cls(values=vector.astype(int64), missingvalue=missingvalue)
 
 
-@dataclasses.dataclass(kw_only=True, eq=False)
+@dataclasses.dataclass(kw_only=True, repr=False, eq=False)
 class AttributeFloat(Attribute[float64]):
 
     @override
@@ -255,7 +255,7 @@ def _extract_tiffiles(filenames: Iterable[str]) -> Sequence[str]:
     return [fn for fn in filenames if fn.rsplit(".")[-1] in ("tif", "tiff")]
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Provider(Generic[TypeVarDatasetInt, TypeVarDataset]):
     mprpath: DirpathMPRData
     name: NameProvider
@@ -267,7 +267,7 @@ class Provider(Generic[TypeVarDatasetInt, TypeVarDataset]):
     id2element: MappingTable = dataclasses.field(init=False)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
 
     shape: tuple[int, int] = dataclasses.field(init=False)
@@ -333,7 +333,7 @@ class RasterGroup(Provider[RasterInt, RasterInt | RasterFloat]):
         return NameDataset(filename.rsplit(".")[0])
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
     size: AttributeFloat = dataclasses.field(init=False)
     shape: int = dataclasses.field(init=False)
@@ -502,7 +502,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
         return types
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Providers(Generic[TypeVarProvider, TypeVarEquation]):
 
     _TYPE_PROVIDER: type[TypeVarProvider] = dataclasses.field(init=False)
@@ -530,7 +530,7 @@ class Providers(Generic[TypeVarProvider, TypeVarEquation]):
             )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
 
     _TYPE_PROVIDER = RasterGroup
@@ -541,7 +541,7 @@ class RasterGroups(Providers[RasterGroup, "equations.RasterEquation"]):
         return provider
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class FeatureClasses(Providers[FeatureClass, "equations.AttributeEquation"]):
 
     _TYPE_PROVIDER = FeatureClass

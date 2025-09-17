@@ -11,7 +11,7 @@ from hydpy_mpr.source import upscaling_helpers
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Upscaler(Generic[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     regionaliser: TypeVarRegionaliser = dataclasses.field(init=False)
@@ -28,7 +28,7 @@ class Upscaler(Generic[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2value: dict[int64, float64] = dataclasses.field(init=False)
@@ -46,7 +46,7 @@ class ElementUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         return {id2element[id_]: value for id_, value in self.id2value.items()}
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
 
     id2idx2value: dict[int64, dict[int64, float64]] = dataclasses.field(init=False)
@@ -72,19 +72,19 @@ class SubunitUpscaler(Upscaler[TypeVarRegionaliser, TypeVarArrayBool], abc.ABC):
         return {id2element[id_]: value for id_, value in self.id2idx2value.items()}
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeUpscaler(
     Upscaler[regionalising.AttributeRegionaliser, VectorBool], abc.ABC
 ):
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterUpscaler(Upscaler[regionalising.RasterRegionaliser, MatrixBool], abc.ABC):
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterElementUpscaler(
     RasterUpscaler,
     ElementUpscaler[regionalising.RasterRegionaliser, MatrixBool],
@@ -93,7 +93,7 @@ class RasterElementUpscaler(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterSubunitUpscaler(
     RasterUpscaler,
     SubunitUpscaler[regionalising.RasterRegionaliser, MatrixBool],
@@ -102,7 +102,7 @@ class RasterSubunitUpscaler(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeElementUpscaler(
     AttributeUpscaler,
     ElementUpscaler[regionalising.AttributeRegionaliser, VectorBool],
@@ -111,7 +111,7 @@ class AttributeElementUpscaler(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeSubunitUpscaler(
     AttributeUpscaler,
     SubunitUpscaler[regionalising.AttributeRegionaliser, VectorBool],
@@ -120,7 +120,7 @@ class AttributeSubunitUpscaler(
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeDefaultUpscaler(AttributeUpscaler):
     function: AttributeUpscalingOption = constants.UP_A
     _function: AttributeUpscalingFunction = dataclasses.field(init=False)
@@ -143,12 +143,12 @@ class AttributeDefaultUpscaler(AttributeUpscaler):
                 return function
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterDefaultUpscaler(RasterUpscaler):
     pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeElementDefaultUpscaler(
     AttributeDefaultUpscaler, AttributeElementUpscaler
 ):
@@ -169,7 +169,7 @@ class AttributeElementDefaultUpscaler(
                 id2value[id_] = float64(numpy.nan)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler):
 
     function: RasterElementUpscalingOption = constants.UP_A
@@ -202,7 +202,7 @@ class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler)
         )
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class AttributeSubunitDefaultUpscaler(
     AttributeDefaultUpscaler, AttributeSubunitUpscaler
 ):
@@ -227,7 +227,7 @@ class AttributeSubunitDefaultUpscaler(
                     idx2value[idx] = float64(numpy.nan)
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler):
 
     function: RasterSubunitUpscalingOption = constants.UP_A

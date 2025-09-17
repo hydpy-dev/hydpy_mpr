@@ -10,7 +10,7 @@ from hydpy_mpr.source import calibrating
 from hydpy_mpr.source.typing_ import *
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class Writer(abc.ABC):
 
     hp: hydpy.HydPy = dataclasses.field(init=False)
@@ -25,7 +25,7 @@ class Writer(abc.ABC):
         pass
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class ControlWriter(Writer):
 
     controldir: str = dataclasses.field(default="default")
@@ -36,7 +36,7 @@ class ControlWriter(Writer):
         self.hp.save_controls()
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(kw_only=True, repr=False)
 class ParameterTableWriter(Writer):
 
     filepath: str
