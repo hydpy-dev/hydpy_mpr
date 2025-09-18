@@ -161,7 +161,7 @@ class MPR:
         for logger in self.loggers:
             logger.activate(hp=self.hp, calibrator=self.calibrator)
         for writer in self.writers:
-            writer.activate(hp=self.hp, calibrator=self.calibrator)
+            writer.activate(hp=self.hp, tasks=self.tasks, calibrator=self.calibrator)
 
     @property
     def attribute_preprocessors(self) -> Sequence[preprocessing.AttributePreprocessor]:

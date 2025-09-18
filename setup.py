@@ -45,5 +45,6 @@ setup(
         "imagecodecs",
         "nlopt",
         "numpy",
+        "pillow",
     ],
 )

@@ -53,6 +53,7 @@ from hydpy_mpr.source.upscaling import (
 from hydpy_mpr.source.writing import (
     ControlWriter,
     EfficiencyTableWriter,
+    GeotiffResultWriter,
     ParameterTableWriter,
     Writer,
 )
@@ -95,6 +96,7 @@ __all__ = [
     "ElementUpscaler",
     "FeatureClass",
     "FeatureClasses",
+    "GeotiffResultWriter",
     "GridCalibrator",
     "Logger",
     "MPR",

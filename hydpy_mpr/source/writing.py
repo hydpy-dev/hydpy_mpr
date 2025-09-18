@@ -2,12 +2,16 @@ from __future__ import annotations
 import abc
 import dataclasses
 import os
+import warnings
 
 import hydpy
 from hydpy import pub
 from hydpy.auxs.statstools import Criterion, SummaryRow
+from PIL import Image as pillow_image
 
 from hydpy_mpr.source import calibrating
+from hydpy_mpr.source import constants
+from hydpy_mpr.source import managing
 from hydpy_mpr.source.typing_ import *
 
 
@@ -19,10 +23,14 @@ Aggregator: TypeAlias = str | Callable[[Sequence[float] | VectorFloat], float]
 class Writer(abc.ABC):
 
     hp: hydpy.HydPy = dataclasses.field(init=False)
+    tasks: Tasks = dataclasses.field(init=False)
     calibrator: calibrating.Calibrator = dataclasses.field(init=False)
 
-    def activate(self, *, hp: hydpy.HydPy, calibrator: calibrating.Calibrator) -> None:
+    def activate(
+        self, *, hp: hydpy.HydPy, tasks: Tasks, calibrator: calibrating.Calibrator
+    ) -> None:
         self.hp = hp
+        self.tasks = tasks
         self.calibrator = calibrator
 
     @abc.abstractmethod
@@ -165,3 +173,53 @@ class AggregatedEfficiencyTableWriter(Writer):
     aggregator: str | Callable[[Sequence[float] | VectorFloat], float] = "mean"
     missingvalue: str = "-"
     decimalseperator: str = "."
+
+
+@dataclasses.dataclass(kw_only=True, repr=False)
+class GeotiffResultWriter(Writer):
+    dirpath: str
+    overwrite: bool = False
+
+    @override
+    def write(self) -> None:
+
+        os.makedirs(self.dirpath, exist_ok=True)
+
+        raster_tasks = (managing.RasterElementTask, managing.RasterSubunitTask)
+        integer_tifs = (constants.ELEMENT_ID, constants.SUBUNIT_ID)
+
+        for task in [t for t in self.tasks if isinstance(t, raster_tasks)]:
+
+            regionaliser = task.regionaliser
+
+            filepath = os.path.join(self.dirpath, f"{regionaliser.name}.tif")
+            if os.path.exists(filepath) and not self.overwrite:
+                raise PermissionError(
+                    f"Overwriting the already existing geotiff result file "
+                    f"`{filepath} is not allowed."
+                )
+
+            dirpath = os.path.join(
+                regionaliser.provider_.mprpath, constants.RASTER, regionaliser.provider
+            )
+
+            template_file = None
+            for filename in os.listdir(dirpath):
+                if filename.endswith(".tif") and (
+                    filename.split(".")[0] not in integer_tifs
+                ):
+                    template_file = pillow_image.open(os.path.join(dirpath, filename))
+                    break
+            else:
+                warnings.warn(
+                    f"The `{type(self).__name__}` cannot find a template GeoTiff file "
+                    f"in the raster group directory `{dirpath}` to extract the any "
+                    f"coordinate system information.  Hence, the result file "
+                    f"`{filepath}` will not be properly georeferenced."
+                )
+
+            result_file = pillow_image.fromarray(regionaliser.output)
+            if template_file is None:
+                result_file.save(filepath)
+            else:
+                result_file.save(filepath, exif=template_file.getexif())

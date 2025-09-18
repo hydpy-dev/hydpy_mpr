@@ -10,6 +10,7 @@ mypy
 nox
 nlopt
 numpy
+pillow
 pylint
 pytest
 pytest-cov
