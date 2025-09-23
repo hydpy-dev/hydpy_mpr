@@ -82,16 +82,19 @@ class DefaultLogger(Logger):
         best_line: str | None = None
 
         saw_header = False
+        nmb_steps = 0
         for line in lines:
             line = line.strip()
             if line:
                 first_entry = line.split(maxsplit=1)[0]
                 if saw_header:
+                    nmb_steps += 1
                     value = float(first_entry)
                     if comparer(value, best_value):
                         best_value, best_line = value, line
                 elif first_entry == "likelihood":
                     saw_header = True
+        self.calibrator.nmb_steps = nmb_steps
 
         if best_line is None:
             raise RuntimeError(f"The log file `{self.filepath}` is empty or corrupted.")
