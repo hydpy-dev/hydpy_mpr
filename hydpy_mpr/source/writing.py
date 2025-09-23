@@ -91,6 +91,7 @@ class EfficiencyTableWriter(Writer):
     overwrite: bool = False
     nodes: Sequence[hydpy.Node]
     criteria: Sequence[Criterion]
+    firstcellname: str = ""
     nodenames: Sequence[str] | None = None
     critnames: Sequence[str] | None = None
     critfactors: Sequence[float] | float = 1.0
@@ -103,6 +104,7 @@ class EfficiencyTableWriter(Writer):
     stepsize_and_aggregator: tuple[StepSize, Aggregator] | None = None
     missingvalue: str = "-"
     decimalseperator: str = "."
+    columnseparator: str = "\t"
 
     @override
     def write(self) -> None:
@@ -124,12 +126,14 @@ class EfficiencyTableWriter(Writer):
                     critfactors=self.critfactors,
                     critdigits=self.critdigits,
                     subperiod=self.subperiod,
+                    firstcellname=self.firstcellname,
                     average=self.average,
                     averagename=self.averagename,
                     summaryrows=self.summaryrows,
                     filter_=self.filter_,
                     missingvalue=self.missingvalue,
                     decimalseperator=self.decimalseperator,
+                    columnseparator=self.columnseparator,
                     file_=self.filepath,
                 )
             else:
@@ -141,6 +145,7 @@ class EfficiencyTableWriter(Writer):
                     critfactors=self.critfactors,
                     critdigits=self.critdigits,
                     subperiod=self.subperiod,
+                    firstcellname=self.firstcellname,
                     average=self.average,
                     averagename=self.averagename,
                     summaryrows=self.summaryrows,
@@ -149,6 +154,7 @@ class EfficiencyTableWriter(Writer):
                     aggregator=self.stepsize_and_aggregator[1],
                     missingvalue=self.missingvalue,
                     decimalseperator=self.decimalseperator,
+                    columnseparator=self.columnseparator,
                     file_=self.filepath,
                 )
 
