@@ -97,7 +97,9 @@ class DefaultLogger(Logger):
             raise RuntimeError(f"The log file `{self.filepath}` is empty or corrupted.")
 
         values = [float(v) for v in best_line.split()[1:]]
-        best_value_again = self.calibrator.perform_calibrationstep(values)
+        best_value_again = self.calibrator.perform_calibrationstep(
+            values, apply_loggers=False
+        )
 
         if not math.isclose(best_value, best_value_again):
             warnings.warn(

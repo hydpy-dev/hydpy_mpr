@@ -75,6 +75,7 @@ class Calibrator(abc.ABC):
         self,  # pylint: disable=unused-argument
         values: Sequence[float],
         *args: Any,
+        apply_loggers: bool = True,
         **kwargs: Any,
     ) -> float:
         self.update_coefficients(values)
@@ -141,11 +142,11 @@ class GridCalibrator(Calibrator, abc.ABC):
         best_likelihood = -numpy.inf
         best_values: Sequence[float] = len(self.coefficients) * (numpy.nan,)
         for values in self.gridpoints:
-            likelihood = self.perform_calibrationstep(values)
+            likelihood = self.perform_calibrationstep(values, apply_loggers=True)
             if likelihood > best_likelihood:
                 best_likelihood = likelihood
                 best_values = values
-        self.likelihood = self.perform_calibrationstep(best_values)
+        self.likelihood = self.perform_calibrationstep(best_values, apply_loggers=False)
 
 
 @dataclasses.dataclass(kw_only=True, repr=False)
@@ -164,4 +165,4 @@ class NLOptCalibrator(Calibrator, abc.ABC):
         optimiser.set_max_objective(self.perform_calibrationstep)
         values = optimiser.optimize(self.values)
         self.update_coefficients(values)
-        self.likelihood = self.perform_calibrationstep(self.values)
+        self.likelihood = self.perform_calibrationstep(self.values, apply_loggers=False)
