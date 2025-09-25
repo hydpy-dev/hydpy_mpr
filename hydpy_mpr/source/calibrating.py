@@ -88,7 +88,7 @@ class Calibrator(abc.ABC):
             with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
                 futures = (executor.submit(task.run) for task in self.tasks)
                 for future in concurrent.futures.as_completed(futures):
-                    pass
+                    future.result()
         self.hp.update_parameters()
         self.hp.conditions = self.conditions
         self.hp.simulate()
