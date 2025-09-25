@@ -32,8 +32,8 @@ class Logger(abc.ABC):
 class DefaultLogger(Logger):
 
     filepath: str
+    filemode: Literal["r", "w", "a"] = "r"
     documentation: Sequence[str] | str | None = None
-    overwrite: bool = False
 
     @override
     def activate(self, *, hp: hydpy.HydPy, calibrator: calibrating.Calibrator) -> None:
@@ -42,16 +42,24 @@ class DefaultLogger(Logger):
 
         os.makedirs(os.path.split(self.filepath)[0], exist_ok=True)
         if os.path.exists(self.filepath):
-            if self.overwrite:
-                os.remove(self.filepath)
-            else:
-                raise PermissionError(
-                    f"Overwriting the already existing log file `{self.filepath}` is "
-                    f"not allowed."
-                )
+            match self.filemode:
+                case "w":
+                    os.remove(self.filepath)
+                case "r" | "a":
+                    pass
+                case _:
+                    assert_never(self.filemode)
 
     @override
     def log(self, likelihood: float) -> None:
+
+        match self.filemode:
+            case "r":
+                return
+            case "w" | "a":
+                pass
+            case _:
+                assert_never(self.filemode)
 
         with open(self.filepath, "a", encoding="utf-8") as logfile:
 
