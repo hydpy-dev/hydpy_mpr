@@ -1,6 +1,7 @@
 from __future__ import annotations
 import abc
 import dataclasses
+import warnings
 
 import hydpy
 import numpy
@@ -97,4 +98,12 @@ class SubunitIdentityTransformer(SubunitTransformer[TypeVarParameter]):
         # ToDo: parameterstep
         for idx, value in values.items():
             if not numpy.isnan(value):
-                parameter.values[idx] = value
+                try:
+                    parameter.values[idx] = value
+                except IndexError:
+                    warnings.warn(
+                        f"There seems to be a configuration error for parameter "
+                        f"`{type(parameter).__name__}` of element "
+                        f"`{parameter.subpars.pars.model.element.name}`: index "
+                        f"`{idx}` is out of bounds `(0, {parameter.shape[0]})`."
+                    )
