@@ -7,7 +7,13 @@ from hydpy_mpr import testing
 
 from hydpy_mpr.source.calibrating import Calibrator, GridCalibrator, NLOptCalibrator
 from hydpy_mpr.source.logging_ import DefaultLogger, Logger
-from hydpy_mpr.source.managing import MPR, RasterElementTask, RasterSubunitTask
+from hydpy_mpr.source.managing import (
+    AttributeElementTask,
+    AttributeSubunitTask,
+    MPR,
+    RasterElementTask,
+    RasterSubunitTask,
+)
 from hydpy_mpr.source.preprocessing import RasterPreprocessor
 from hydpy_mpr.source.reading import (
     AttributeFloat,
@@ -78,12 +84,14 @@ if os.path.exists(os.path.join(testing.__path__[0], ".hydpy_mpr_doctest_hack")):
 
 __all__ = [
     "AttributeElementDefaultUpscaler",
+    "AttributeElementTask",
     "AttributeElementUpscaler",
     "AttributeFloat",
     "AttributeInt",
     "AttributeRegionaliser",
     "AttributeSubregionaliser",
     "AttributeSubunitDefaultUpscaler",
+    "AttributeSubunitTask",
     "AttributeSubunitUpscaler",
     "AttributeUpscaler",
     "Calibrator",
