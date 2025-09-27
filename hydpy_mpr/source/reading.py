@@ -345,24 +345,28 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
 
         try:
 
-            featureclass = gpkg.feature_classes.get(self.name)
-            if featureclass is None:
-                raise TypeError(
-                    f"Geopackage `{filepath}` does not contain the required feature "
-                    f"class `{self.name}`."
-                )
+            f_or_t: geopkg.FeatureClass | geopkg.Table
+            f_or_t = gpkg.feature_classes.get(self.name)
+            if f_or_t is None:
+                f_or_t = gpkg.tables.get(self.name)
+                if f_or_t is None:
+                    raise TypeError(
+                        f"Geopackage `{filepath}` does neither contain a feature class "
+                        f"nor a table named `{self.name}`."
+                    )
 
             # Determine the relevant headers (field names), typically something like
             # ["element_id", "subunit_id", "Area", "field_capacity", "landuse"]
             headers = self._prepare_headers(
-                filepath=filepath, name=self.name, field_names=featureclass.field_names
+                filepath=filepath, name=self.name, field_names=f_or_t.field_names
             )
-            self._append_size_header(
-                filepath=filepath,
-                name=self.name,
-                headers=headers,
-                geometry_type=featureclass.geometry_type,
-            )
+            if isinstance(f_or_t, geopkg.FeatureClass):
+                self._append_size_header(
+                    filepath=filepath,
+                    name=self.name,
+                    headers=headers,
+                    geometry_type=f_or_t.geometry_type,
+                )
             headers.extend(self.datasets)
 
             # Determine the corresponding types, for the above example something like
@@ -371,13 +375,21 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
                 filepath=filepath,
                 name=self.name,
                 headers=headers,
-                field_names=featureclass.field_names,
-                fields=featureclass.fields,
+                field_names=f_or_t.field_names,
+                fields=f_or_t.fields,
+                geometry_type=(
+                    f_or_t.geometry_type
+                    if isinstance(f_or_t, geopkg.FeatureClass)
+                    else None
+                ),
             )
 
             # Query the relevant data:
+            if isinstance(f_or_t, geopkg.FeatureClass):
+                cursor = f_or_t.select(fields=headers, include_geometry=False)
+            else:
+                cursor = f_or_t.select(fields=headers)
             try:
-                cursor = featureclass.select(fields=headers, include_geometry=False)
                 data = numpy.asarray(cursor.fetchall(), dtype=object)
             finally:
                 cursor.close()
@@ -450,6 +462,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
         headers: Sequence[NameDataset],
         field_names: Sequence[str],
         fields: Sequence[geopkg.Field],
+        geometry_type: str | None,
     ) -> Sequence[type[AttributeInt | AttributeFloat]]:
 
         integers = ("TINYINT", "SMALLINT", "MEDIUMINT", "INTEGER", "INT")
@@ -470,7 +483,7 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
             field = fields[header2idx[header]]
             datatype = field.data_type.upper()
 
-            if header in constants.Size:
+            if (geometry_type is not None) and (header in constants.Size):
                 types.append(AttributeFloat)
                 if datatype not in floats:
                     available_types = objecttools.enumeration(floats, conjunction="or")
