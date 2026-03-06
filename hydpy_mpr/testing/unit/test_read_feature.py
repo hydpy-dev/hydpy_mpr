@@ -71,8 +71,8 @@ def test_read_features_missing_feature_class(
             mprpath=dirpath_mpr_data, name=NameProvider("wrong"), datasets=()
         )
     assert str(info.value) == (
-        f"Geopackage `{filepath_feature}` does not contain the required feature class "
-        "`wrong`."
+        f"Geopackage `{filepath_feature}` does neither contain a feature class nor a "
+        f"table named `wrong`."
     )
 
 
@@ -160,6 +160,7 @@ def test_read_features_missing_attribute() -> None:
             headers=cast(list[NameDataset], ["x", "y", "z"]),
             field_names=["z", "x"],
             fields=[],
+            geometry_type=None,
         )
     assert str(info.value) == (
         "Feature class `name_featureclass` of geopackage `path_geopackage` does not "
@@ -186,6 +187,7 @@ def test_read_features_types_okay() -> None:
         headers=cast(list[NameDataset], [i5, i4, f3, "i6", "i7", "i8", "f1", "f2"]),
         field_names=field_names,
         fields=fields,
+        geometry_type=None,
     )
     assert types == [
         hydpy_mpr.AttributeInt,
@@ -217,6 +219,7 @@ def test_read_features_id_should_be_int() -> None:
             headers=cast(list[NameDataset], [constants.ELEMENT_ID, "x", "y", "z"]),
             field_names=field_names,
             fields=fields,
+            geometry_type=None,
         )
 
 
@@ -241,6 +244,7 @@ def test_read_features_size_should_be_float() -> None:
             ),
             field_names=field_names,
             fields=fields,
+            geometry_type="POLYGON",
         )
 
 
@@ -262,6 +266,7 @@ def test_read_features_geodata_should_be_int_or_float() -> None:
             headers=cast(list[NameDataset], [constants.ELEMENT_ID, "x", "y", "z"]),
             field_names=field_names,
             fields=fields,
+            geometry_type=None,
         )
 
 

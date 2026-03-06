@@ -483,7 +483,10 @@ class FeatureClass(Provider[AttributeInt, AttributeInt | AttributeFloat]):
             field = fields[header2idx[header]]
             datatype = field.data_type.upper()
 
-            if (geometry_type is not None) and (header in constants.Size):
+            maybe_size = cast(constants.Size, header)
+            if (geometry_type is not None) and any(
+                maybe_size == e for e in constants.Size
+            ):
                 types.append(AttributeFloat)
                 if datatype not in floats:
                     available_types = objecttools.enumeration(floats, conjunction="or")
