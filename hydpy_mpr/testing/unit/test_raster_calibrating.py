@@ -64,7 +64,9 @@ def test_grid_calibrator_calibrate(
     times_called = 0
 
     def perform_calibrationstep(
-        self: hydpy_mpr.GridCalibrator, values: Sequence[float]
+        self: hydpy_mpr.GridCalibrator,
+        values: Sequence[float],
+        apply_loggers: bool = True,
     ) -> float:
         nonlocal times_called, last_values
         times_called += 1
