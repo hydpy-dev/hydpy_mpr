@@ -5,7 +5,6 @@ import enum
 
 from hydpy_mpr.source.typing_ import *
 
-
 # Name of the raster directory:
 RASTER = "raster"
 

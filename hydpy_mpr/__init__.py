@@ -64,7 +64,6 @@ from hydpy_mpr.source.writing import (
     Writer,
 )
 
-
 __version__ = "0.0.dev0"
 
 

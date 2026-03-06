@@ -14,7 +14,6 @@ from hydpy_mpr.source import constants
 from hydpy_mpr.source import managing
 from hydpy_mpr.source.typing_ import *
 
-
 StepSize: TypeAlias = Literal["daily", "d", "monthly", "m"]
 Aggregator: TypeAlias = str | Callable[[Sequence[float] | VectorFloat], float]
 

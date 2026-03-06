@@ -36,7 +36,6 @@ from hydpy.core.typingtools import (
 from numpy import int64, float64
 from typing_extensions import assert_never, override, Self
 
-
 # type variables
 
 TypeVarArrayBool = TypeVar("TypeVarArrayBool", VectorBool, MatrixBool)
