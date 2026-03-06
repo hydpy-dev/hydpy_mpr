@@ -186,9 +186,9 @@ class RasterElementDefaultUpscaler(RasterDefaultUpscaler, RasterElementUpscaler)
             case constants.UP_A:
                 return upscaling_helpers.arithmetic_mean_for_raster_element
             case constants.UP_H:
-                return stats.hmean  # type: ignore[no-any-return]
+                return upscaling_helpers.harmonic_mean_for_raster_element
             case constants.UP_G:
-                return stats.gmean  # type: ignore[no-any-return]
+                return upscaling_helpers.geometric_mean_for_raster_element
             case _:
                 return function
 
@@ -244,9 +244,9 @@ class RasterSubunitDefaultUpscaler(RasterDefaultUpscaler, RasterSubunitUpscaler)
             case constants.UP_A:
                 return upscaling_helpers.arithmetic_mean_for_raster_subunit
             case constants.UP_H:
-                return stats.hmean  # type: ignore[no-any-return]
+                return upscaling_helpers.harmonic_mean_for_raster_subunit
             case constants.UP_G:
-                return stats.gmean  # type: ignore[no-any-return]
+                return upscaling_helpers.geometric_mean_for_raster_subunit
             case _:
                 return function
 

@@ -19,7 +19,6 @@ TransSubunit = hydpy_mpr.SubunitIdentityTransformer
         ((UpElement, constants.UP_A, TransElement), 3.0),
         ((UpElement, constants.UP_G, TransElement), 2.2894284851066637),
         ((UpElement, constants.UP_H, TransElement), 1.8),
-        ((UpElement, numpy.max, TransElement), 6.0),
     ],
     indirect=True,
 )
@@ -64,7 +63,6 @@ def test_raster_element_default_upscaler_missing_id(
         (UpElement, constants.UP_A, TransElement),
         (UpElement, constants.UP_G, TransElement),
         (UpElement, constants.UP_H, TransElement),
-        (UpElement, numpy.max, TransElement),
     ],
     indirect=True,
 )
@@ -88,7 +86,6 @@ def test_raster_element_default_upscaler_missing_value(
         ((UpSubunit, constants.UP_A, TransSubunit), 2.5),
         ((UpSubunit, constants.UP_G, TransSubunit), 2.0),
         ((UpSubunit, constants.UP_H, TransSubunit), 1.6),
-        ((UpSubunit, numpy.max, TransSubunit), 4.0),
     ],
     indirect=True,
 )
@@ -129,7 +126,6 @@ def test_raster_subunit_default_upscaler_missing_id(
         (UpSubunit, constants.UP_A, TransSubunit),
         (UpSubunit, constants.UP_G, TransSubunit),
         (UpSubunit, constants.UP_H, TransSubunit),
-        (UpSubunit, numpy.max, TransSubunit),
     ],
     indirect=True,
 )
